@@ -68,11 +68,17 @@ int pathcmp(const char *pattern_path,const char *test_path) {
         // search for next '/' in pattern path, check for asterisks
         const char *end_block_pattern=pattern_path;
         int pattern_asterisk=0;
+        int first_asterisk=-1;
         while ((*end_block_pattern!=0) && (*end_block_pattern!='/')) {
-            if (*end_block_pattern=='*') pattern_asterisk++;
+            if (*end_block_pattern=='*') {
+                pattern_asterisk++;
+                if (first_asterisk<0) first_asterisk=end_block_pattern-pattern_path;
+            }
             end_block_pattern++;
         }
         int len_block_pattern=end_block_pattern-pattern_path;
+        if ((len_block_test == 0) && (len_block_pattern !=0))
+            return(-1);
         if (pattern_asterisk==0) {
             // simple case, no asterisks.
             //   path components of differnt length cannot match
@@ -85,18 +91,26 @@ int pathcmp(const char *pattern_path,const char *test_path) {
                 pattern_path++;
             }
         } else if (pattern_asterisk==1) {
-            if (len_block_test == 0)
-                return(-1);
             if (len_block_pattern == 1) {
                 // simple case: the only char in pattern is '*'
-                test_path=end_block_test;
-                pattern_path=end_block_pattern;
-            } else {
-                fprintf(stderr,"unimplemented: %d %d\n",pattern_asterisk,len_block_pattern);
+            } else if (len_block_test < (len_block_pattern-1)) {
+                // '*' expands to >=0 characters
                 return(-1);
+            } else {
+                int i,j;
+                for (i=0;i<first_asterisk;i++) {
+                    if ((test_path[i]!=pattern_path[i]) && (pattern_path[i]!='?'))
+                        return(-1);
+                }
+                for (i=first_asterisk+1,j=len_block_test-first_asterisk;i<len_block_pattern;i++,j++) {
+                    if ((test_path[j]!=pattern_path[i]) && (pattern_path[i]!='?'))
+                        return(-1);
+                }
             }
+            test_path=end_block_test;
+            pattern_path=end_block_pattern;
         } else {
-            fprintf(stderr,"unimplemented: %d %d\n",pattern_asterisk,len_block_pattern);
+            fprintf(stderr,"pathcmp unimplemented for more than 1 '*' per path component\n");
             return(-1);
         }
         test_path++;
