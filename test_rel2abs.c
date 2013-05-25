@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <limits.h>
-extern char* rel2abs(const char *, char *);
-extern void init();
+#include "path_util.h"
 int main(int argc, char *argv[]) {
     int i;
     char processed_path[PATH_MAX];
@@ -9,7 +8,6 @@ int main(int argc, char *argv[]) {
         fprintf(stderr,"usage: %s <path> [path] [path] ...\n",argv[0]);
         return(1);
     }
-    init();
     for (i=1;i<argc;i++) {
         if (rel2abs(argv[i],processed_path) == NULL) {
             fprintf(stderr,"error processing arg '%s'\n",argv[i]);
