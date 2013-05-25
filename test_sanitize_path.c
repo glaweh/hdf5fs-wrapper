@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <limits.h>
-extern char* sanitize_path(const char *, char *);
+extern char* rel2abs(const char *, char *);
 extern void init();
 int main(int argc, char *argv[]) {
     int i;
@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
     }
     init();
     for (i=1;i<argc;i++) {
-        if (sanitize_path(argv[i],processed_path) == NULL) {
+        if (rel2abs(argv[i],processed_path) == NULL) {
             fprintf(stderr,"error processing arg '%s'\n",argv[i]);
             continue;
         }

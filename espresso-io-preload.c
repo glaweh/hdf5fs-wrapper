@@ -25,7 +25,7 @@ int initialized = 0;
 const char *scratch_base = "./SCRATCH////";
 char scratch_abs[PATH_MAX];
 
-char *sanitize_path(const char *orig_path, char *new_path) {
+char *rel2abs(const char *orig_path, char *new_path) {
     char tmp_path[PATH_MAX];
     if (orig_path[0] == '/') {
         strncpy(tmp_path,orig_path,PATH_MAX);
@@ -79,7 +79,7 @@ void init() {
     _unlink = dlsym(RTLD_NEXT, "unlink");
     ___xstat64 = dlsym(RTLD_NEXT, "__xstat64");
     _fopen = dlsym(RTLD_NEXT, "fopen");
-    sanitize_path(scratch_base,scratch_abs);
+    rel2abs(scratch_base,scratch_abs);
     fprintf(stderr,"scratch_abs: '%s'\n",scratch_abs);
     initialized = 1;
 }
