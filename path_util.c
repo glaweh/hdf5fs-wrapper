@@ -20,8 +20,10 @@ char *rel2abs(const char *orig_path, char *new_path) {
     int len=strnlen(tmp_path,PATH_MAX);
     int i,j;
     int had_slash=0;
+    int had_asterisk=0;
     int dot_count=0;
     for (i=0,j=-1;i<=len;i++) {
+        if (tmp_path[i] != '*') had_asterisk=0;
         if ((tmp_path[i] == '/') || (i==len)) {
             if (had_slash) {
                 if (dot_count == 1) {
@@ -39,6 +41,10 @@ char *rel2abs(const char *orig_path, char *new_path) {
                 continue;
             }
             had_slash = 1;
+        } else if (tmp_path[i] == '*') {
+            if (had_asterisk) continue;
+            had_slash=0;
+            had_asterisk=1;
         } else if (tmp_path[i] == '.') {
             dot_count++;
         } else {
