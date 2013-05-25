@@ -51,3 +51,6 @@ char *rel2abs(const char *orig_path, char *new_path) {
     return new_path;
 }
 
+int pathcmp(const char *pattern_path,const char *test_path) {
+    return(-1);
+}
