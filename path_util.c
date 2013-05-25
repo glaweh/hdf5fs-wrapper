@@ -58,5 +58,50 @@ char *rel2abs(const char *orig_path, char *new_path) {
 }
 
 int pathcmp(const char *pattern_path,const char *test_path) {
+    const char *test_path_base = test_path;
+    while ((*test_path) && (*pattern_path)) {
+        // search for next '/' in test path
+        const char *end_block_test=test_path;
+        while ((*end_block_test!=0) && (*end_block_test!='/'))
+            end_block_test++;
+        int len_block_test = end_block_test - test_path;
+        // search for next '/' in pattern path, check for asterisks
+        const char *end_block_pattern=pattern_path;
+        int pattern_asterisk=0;
+        while ((*end_block_pattern!=0) && (*end_block_pattern!='/')) {
+            if (*end_block_pattern=='*') pattern_asterisk++;
+            end_block_pattern++;
+        }
+        int len_block_pattern=end_block_pattern-pattern_path;
+        if (pattern_asterisk==0) {
+            // simple case, no asterisks.
+            //   path components of differnt length cannot match
+            if (len_block_test != len_block_pattern) return(-1);
+            //   compare char-by-char. pointers will point to the blocks final '/'
+            while (test_path < end_block_test) {
+                if ((*pattern_path != *test_path) && (*pattern_path != '?'))
+                    return(-1);
+                test_path++;
+                pattern_path++;
+            }
+        } else if (pattern_asterisk==1) {
+            if (len_block_test == 0)
+                return(-1);
+            if (len_block_pattern == 1) {
+                // simple case: the only char in pattern is '*'
+                test_path=end_block_test;
+                pattern_path=end_block_pattern;
+            } else {
+                fprintf(stderr,"unimplemented: %d %d\n",pattern_asterisk,len_block_pattern);
+                return(-1);
+            }
+        } else {
+            fprintf(stderr,"unimplemented: %d %d\n",pattern_asterisk,len_block_pattern);
+            return(-1);
+        }
+        test_path++;
+        pattern_path++;
+    }
+    if (*pattern_path == 0) return(test_path - test_path_base);
     return(-1);
 }
