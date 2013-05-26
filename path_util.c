@@ -40,6 +40,7 @@ char *rel2abs(const char *orig_path, char *new_path) {
                 dot_count=0;
                 continue;
             }
+            dot_count=0;
             had_slash = 1;
         } else if (tmp_path[i] == '*') {
             if (had_asterisk) continue;
