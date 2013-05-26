@@ -68,12 +68,9 @@ int pathcmp(const char *pattern_path,const char *test_path) {
         // search for next '/' in pattern path, check for asterisks
         const char *end_block_pattern=pattern_path;
         int pattern_asterisk=0;
-        int first_asterisk=-1;
         while ((*end_block_pattern!=0) && (*end_block_pattern!='/')) {
-            if (*end_block_pattern=='*') {
+            if (*end_block_pattern=='*')
                 pattern_asterisk++;
-                if (first_asterisk<0) first_asterisk=end_block_pattern-pattern_path;
-            }
             end_block_pattern++;
         }
         int len_block_pattern=end_block_pattern-pattern_path;
@@ -90,29 +87,79 @@ int pathcmp(const char *pattern_path,const char *test_path) {
                 test_path++;
                 pattern_path++;
             }
-        } else if (pattern_asterisk==1) {
-            if (len_block_pattern == 1) {
-                // simple case: the only char in pattern is '*'
-            } else if (len_block_test < (len_block_pattern-1)) {
+        } else {
+            if (len_block_test < (len_block_pattern-pattern_asterisk)) {
                 // '*' expands to >=0 characters
                 return(-1);
+            } else if (len_block_pattern == 1) {
+                // simple case: the only char in pattern is '*'
             } else {
-                int i,j;
-                for (i=0;i<first_asterisk;i++) {
-                    if ((test_path[i]!=pattern_path[i]) && (pattern_path[i]!='?'))
+                // compare up first asterisk, pointers will point at it after
+                while (*pattern_path != '*') {
+                    if ((*pattern_path != *test_path) && (*pattern_path != '?'))
                         return(-1);
+                    pattern_path++;
+                    test_path++;
                 }
-                for (i=first_asterisk+1,j=len_block_test-first_asterisk;i<len_block_pattern;i++,j++) {
-                    if ((test_path[j]!=pattern_path[i]) && (pattern_path[i]!='?'))
+                // compare part after last asterisk if there is any
+                const char *end_tmp_pattern=end_block_pattern;
+                const char *end_tmp_test=end_block_test;
+                while (*(end_tmp_pattern-1) != '*') {
+                    // printf("cmp: %c %c\n",*(end_tmp_pattern-1),*(end_tmp_test-1));
+                    if ((*(end_tmp_pattern-1)!=*(end_tmp_test-1)) && (*(end_tmp_pattern-1)!='?')) {
+                        return(-1);
+                    }
+                    end_tmp_pattern--;
+                    end_tmp_test--;
+                }
+                int pattern_len = (end_tmp_pattern-pattern_path);
+                int test_len = (end_tmp_test-test_path);
+                // single asterisk will match independently of test length
+                if (pattern_len > 1) {
+                    //strip tailing asterisks
+                    while (*(end_tmp_pattern-1) == '*') {
+                        pattern_asterisk--;
+                        pattern_len--;
+                        end_tmp_pattern--;
+                    }
+#ifdef DEBUG_PATHCMP
+                    char tmp_str[PATH_MAX];
+                    strncpy(tmp_str,pattern_path,pattern_len);
+                    tmp_str[pattern_len]=0;
+                    printf("to_cmp pat: (%d) '%s'\n", pattern_len,tmp_str);
+                    strncpy(tmp_str,test_path,test_len);
+                    tmp_str[test_len]=0;
+                    printf("to_cmp tst: (%d) '%s'\n", test_len,tmp_str);
+#endif
+                    if (test_len < (pattern_len-pattern_asterisk))
+                        return(-1);
+                    // now search for the floating parts
+                    int j=0;
+                    while (test_path < end_tmp_test) {
+                        if (*pattern_path == '*') {
+                            j=0;
+                            pattern_path++;
+                        }
+#ifdef DEBUG_PATHCMP
+                        printf("cmp p/t: %c %c\n",*pattern_path,*test_path);
+#endif
+                        if ((*pattern_path == *test_path) || (*pattern_path == '?')) {
+                            pattern_path++;
+                            j++;
+                            if (pattern_path == end_tmp_pattern) break;
+                        } else {
+                            pattern_path-=j;
+                        }
+                        test_path++;
+                    }
+                    if (pattern_path != end_tmp_pattern)
                         return(-1);
                 }
             }
             test_path=end_block_test;
             pattern_path=end_block_pattern;
-        } else {
-            fprintf(stderr,"pathcmp unimplemented for more than 1 '*' per path component\n");
-            return(-1);
         }
+        // step beyond the terminating '/'
         test_path++;
         pattern_path++;
     }
