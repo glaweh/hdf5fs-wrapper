@@ -24,7 +24,7 @@ FILE *(*_fopen)(const char *,const char *) = NULL;
 
 int initialized = 0;
 
-const char *scratch_base = "./SCRATCH////";
+const char *scratch_base = "./SCRATCH/*.save/*";
 char scratch_abs[PATH_MAX];
 
 void init() {
