@@ -38,8 +38,68 @@ void init() {
     initialized = 1;
 }
 
+int map_filename(const char *filename, char *mapped) {
+    rel2abs(filename,mapped);
+    int match_index = pathcmp(scratch_abs,mapped);
+    if (match_index < 0) return(-1);
+    mapped+=match_index-1;
+    while (*mapped != 0) {
+        if (*mapped == '/') *mapped = '%';
+        mapped++;
+    }
+    return(1);
+}
+
 int mkdir(const char *pathname, mode_t mode) {
+    char mapped[PATH_MAX];
     if (initialized == 0) init();
     fprintf(stderr,"mkdir_called: %s\n",pathname);
+    if (map_filename(pathname,mapped)>=0) {
+        fprintf(stderr,"mapped to: %s\n",mapped);
+        return(0);
+    }
     return _mkdir(pathname,mode);
+}
+
+int open64(const char *pathname, int flags, mode_t mode) {
+    char mapped[PATH_MAX];
+    if (initialized == 0) init();
+    fprintf(stderr,"open64_called: %s\n",pathname);
+    if (map_filename(pathname,mapped) >= 0) {
+        fprintf(stderr,"open64_mapped to: %s\n",mapped);
+        return(_open64(mapped,flags,mode));
+    }
+    return(_open64(pathname,flags,mode));
+}
+
+int __xstat64(int version, const char *pathname, struct stat64 *buf) {
+    char mapped[PATH_MAX];
+    if (initialized == 0) init();
+    fprintf(stderr,"__xstat64_called: %s\n",pathname);
+    if (map_filename(pathname,mapped) >= 0) {
+        fprintf(stderr,"__xstat64_mapped to: %s\n",mapped);
+        return(___xstat64(version,mapped,buf));
+    }
+    return(___xstat64(version,pathname,buf));
+}
+
+int unlink(const char *pathname) {
+    char mapped[PATH_MAX];
+    if (initialized == 0) init();
+    fprintf(stderr,"unlink_called: %s\n",pathname);
+    if (map_filename(pathname,mapped) >= 0) {
+        fprintf(stderr,"unlink_mapped to: %s\n",mapped);
+        return(_unlink(mapped));
+    }
+    return(_unlink(pathname));
+}
+FILE *fopen(const char *pathname,const char *mode) {
+    char mapped[PATH_MAX];
+    if (initialized == 0) init();
+    fprintf(stderr,"fopen_called: %s\n",pathname);
+    if (map_filename(pathname,mapped) >= 0) {
+        fprintf(stderr,"fopen_mapped to: %s\n",mapped);
+        return(_fopen(mapped,mode));
+    }
+    return(_fopen(pathname,mode));
 }
