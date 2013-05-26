@@ -1,5 +1,5 @@
 CC:=colorgcc
-CFLAGS:=$(CFLAGS) -fpic -g -O0 -Wall -Werror -Wno-error=unused-variable
+CFLAGS:=$(CFLAGS) -fpic -g -O0 -Wall -Werror -Wno-error=unused-variable -DDEBUG
 LDLIBS:=-ldl
 
 all: espresso-io-preload.so
