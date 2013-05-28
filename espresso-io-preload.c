@@ -25,9 +25,6 @@ int (*___xstat64)(int,const char *,struct stat64*) = NULL;
 FILE *(*_fopen)(const char *,const char *) = NULL;
 int (*_close)(int)=NULL;
 int (*_fclose)(FILE *)=NULL;
-void (*__fini)() = NULL;
-
-int initialized = 0;
 
 const char *scratch_base = "./SCRATCH/*.save/*";
 char scratch_abs[PATH_MAX];
@@ -40,7 +37,8 @@ FILE* file_table[HANDLES_MAX];
 char  filename_table[HANDLES_MAX*PATH_MAX];
 int   basename_idx[HANDLES_MAX];
 
-void init() {
+
+void __attribute__ ((constructor)) my_init() {
     _open64    = dlsym(RTLD_NEXT, "open64");
     _mkdir     = dlsym(RTLD_NEXT, "mkdir");
     _unlink    = dlsym(RTLD_NEXT, "unlink");
@@ -48,7 +46,6 @@ void init() {
     _fopen     = dlsym(RTLD_NEXT, "fopen");
     _close     = dlsym(RTLD_NEXT, "close");
     _fclose    = dlsym(RTLD_NEXT, "fclose");
-    __fini    = dlsym(RTLD_NEXT, "_fini");
     rel2abs(scratch_base,scratch_abs);
     fprintf(stderr,"scratch_abs: '%s'\n",scratch_abs);
     int i;
@@ -56,7 +53,6 @@ void init() {
     for (i=0;i<HANDLES_MAX;i++) file_table[i]=NULL;
     for (i=0;i<HANDLES_MAX*PATH_MAX;i++) filename_table[i]=0;
     for (i=0;i<HANDLES_MAX;i++) basename_idx[i]=0;
-    initialized = 1;
 }
 
 int map_filename(const char *filename, char *mapped) {
@@ -74,7 +70,6 @@ int map_filename(const char *filename, char *mapped) {
 
 int mkdir(const char *pathname, mode_t mode) {
     char mapped[PATH_MAX];
-    if (initialized == 0) init();
     fprintf(stderr,"mkdir_called: '%s'\n",pathname);
     if (map_filename(pathname,mapped)>=0) {
         fprintf(stderr,"mkdir_mapped '%s' to: '%s'\n",pathname,mapped);
@@ -93,7 +88,6 @@ int open64(const char *pathname, int flags, ...) {
     mode_t mode=-1;
     char mapped[PATH_MAX];
     int match_idx;
-    if (initialized == 0) init();
     if (flags & O_CREAT) {
         va_start(argp,flags);
         mode = va_arg(argp, mode_t);
@@ -128,7 +122,6 @@ int open64(const char *pathname, int flags, ...) {
 
 int __xstat64(int version, const char *pathname, struct stat64 *buf) {
     char mapped[PATH_MAX];
-    if (initialized == 0) init();
     fprintf(stderr,"__xstat64_called: '%s'\n",pathname);
     if (map_filename(pathname,mapped) >= 0) {
         fprintf(stderr,"__xstat64_mapped: %s\n",mapped);
@@ -139,7 +132,6 @@ int __xstat64(int version, const char *pathname, struct stat64 *buf) {
 
 int unlink(const char *pathname) {
     char mapped[PATH_MAX];
-    if (initialized == 0) init();
     fprintf(stderr,"unlink_called: '%s'\n",pathname);
     if (map_filename(pathname,mapped) >= 0) {
         fprintf(stderr,"unlink_mapped to: '%s'\n",mapped);
@@ -150,7 +142,6 @@ int unlink(const char *pathname) {
 FILE *fopen(const char *pathname,const char *mode) {
     char mapped[PATH_MAX];
     int match_idx;
-    if (initialized == 0) init();
     fprintf(stderr,"fopen_called: %s\n",pathname);
     if ((match_idx=map_filename(pathname,mapped)) >= 0) {
         fprintf(stderr,"fopen_mapped to: %s, mode: %s, nfiles: %d\n",mapped,mode,nfiles);
@@ -192,6 +183,6 @@ int fclose(FILE * file) {
     filename_table[fd*PATH_MAX]=0;
     return(_fclose(file));
 }
-void _fini(void) {
-    fprintf(stderr,"_fini called\n");
+void __attribute__ ((destructor)) my_fini(void) {
+    fprintf(stderr,"my_fini called\n");
 }
