@@ -27,6 +27,8 @@ int (*_close)(int)=NULL;
 int (*_fclose)(FILE *)=NULL;
 
 const char *scratch_base = "./SCRATCH/*.save/*";
+const char *zip_base = "0.zip";
+char tmpdir[PATH_MAX];
 char scratch_abs[PATH_MAX];
 
 #define HANDLES_MAX 1024
@@ -53,19 +55,36 @@ void __attribute__ ((constructor)) my_init() {
     for (i=0;i<HANDLES_MAX;i++) file_table[i]=NULL;
     for (i=0;i<HANDLES_MAX*PATH_MAX;i++) filename_table[i]=0;
     for (i=0;i<HANDLES_MAX;i++) basename_idx[i]=0;
+    tmpdir[0]=0;
 }
 
 int map_filename(const char *filename, char *mapped) {
-    rel2abs(filename,mapped);
-    int match_index = pathcmp(scratch_abs,mapped);
+    char mapped0[PATH_MAX];
+    rel2abs(filename,mapped0);
+    int match_index = pathcmp(scratch_abs,mapped0);
     if (match_index < 0) return(-1);
-    char *rewrite=mapped+match_index-1;
-    while (*rewrite != 0) {
-        if (*rewrite == '/') *rewrite = '%';
-        rewrite++;
+    // rewind back to future dirname
+    char *baseptr=mapped0+match_index-2;
+    while (*baseptr != '/')
+        baseptr--;
+    baseptr++;
+    if (tmpdir[0]==0) {
+        strncpy(tmpdir,mapped0,PATH_MAX);
+        *(tmpdir+(baseptr-mapped0))=0;
+        fprintf(stderr,"tmpdir set to '%s'\n",tmpdir);
     }
-    fprintf(stderr,"map_filename: %d == pathcmp('%s','%s')\n",match_index,scratch_abs,mapped);
-    return(match_index);
+    strncpy(mapped,tmpdir,PATH_MAX);
+    char *dstbase=mapped+strnlen(mapped,PATH_MAX);
+    while (*baseptr != 0) {
+        *dstbase=(*baseptr == '/' ? '%' : *baseptr);
+        dstbase++;
+        baseptr++;
+    }
+    fprintf(stderr,"map_filename: %d == pathcmp('%s','%s'), base: '%s'\n",
+            match_index,scratch_abs,mapped,
+            mapped+strlen(tmpdir)
+            );
+    return(strlen(tmpdir));
 }
 
 int mkdir(const char *pathname, mode_t mode) {
