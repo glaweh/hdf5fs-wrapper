@@ -25,6 +25,7 @@ int (*___xstat64)(int,const char *,struct stat64*) = NULL;
 FILE *(*_fopen)(const char *,const char *) = NULL;
 int (*_close)(int)=NULL;
 int (*_fclose)(FILE *)=NULL;
+void (*__fini)() = NULL;
 
 int initialized = 0;
 
@@ -47,6 +48,7 @@ void init() {
     _fopen     = dlsym(RTLD_NEXT, "fopen");
     _close     = dlsym(RTLD_NEXT, "close");
     _fclose    = dlsym(RTLD_NEXT, "fclose");
+    __fini    = dlsym(RTLD_NEXT, "_fini");
     rel2abs(scratch_base,scratch_abs);
     fprintf(stderr,"scratch_abs: '%s'\n",scratch_abs);
     int i;
@@ -189,4 +191,7 @@ int fclose(FILE * file) {
     nfiles--;
     filename_table[fd*PATH_MAX]=0;
     return(_fclose(file));
+}
+void _fini(void) {
+    fprintf(stderr,"_fini called\n");
 }
