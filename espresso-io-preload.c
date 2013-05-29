@@ -27,7 +27,6 @@ int (*_close)(int)=NULL;
 int (*_fclose)(FILE *)=NULL;
 
 const char *scratch_base = "./SCRATCH/*.save/*";
-const char *zip_base = "0.zip";
 char tmpdir[PATH_MAX];
 char scratch_abs[PATH_MAX];
 
