@@ -56,9 +56,10 @@ int   basename_idx[HANDLES_MAX];
     fwrite       Y                 N
     __fxstat64
     isatty
+    ttyname
     lseek64
-    read
-    write
+    read         Y
+    write        Y
 */
 
 void __attribute__ ((constructor)) my_init() {
