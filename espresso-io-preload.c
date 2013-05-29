@@ -25,6 +25,10 @@ int (*___xstat64)(int,const char *,struct stat64*) = NULL;
 FILE *(*_fopen)(const char *,const char *) = NULL;
 int (*_close)(int)=NULL;
 int (*_fclose)(FILE *)=NULL;
+size_t (*_fread)(void *ptr, size_t size, size_t nmemb, FILE *stream) = NULL;
+size_t (*_fwrite)(const void *ptr, size_t size, size_t nmemb, FILE *stream) = NULL;
+ssize_t (*_read)(int fd, void *buf, size_t count);
+ssize_t (*_write)(int fd, const void *buf, size_t count);
 
 const char *scratch_base = "./SCRATCH/*.save/*";
 char tmpdir[PATH_MAX];
@@ -39,16 +43,17 @@ char  filename_table[HANDLES_MAX*PATH_MAX];
 int   basename_idx[HANDLES_MAX];
 
 /* libc io calls found in serial espresso pw.x (scf), pp.x (localization) for everything under outdir
- *  libc call    implemented_here
+ *  libc call    implemented_here  found_in_espresso
     close        Y
     fopen        Y
     mkdir        Y
     open64       Y
     unlink       Y
     __xstat64    Y
-    fread
+    fread        Y
     fseek
     ftell
+    fwrite       Y                 N
     __fxstat64
     isatty
     lseek64
@@ -64,6 +69,10 @@ void __attribute__ ((constructor)) my_init() {
     _fopen     = dlsym(RTLD_NEXT, "fopen");
     _close     = dlsym(RTLD_NEXT, "close");
     _fclose    = dlsym(RTLD_NEXT, "fclose");
+    _fread     = dlsym(RTLD_NEXT, "fread");
+    _fwrite    = dlsym(RTLD_NEXT, "fwrite");
+    _read      = dlsym(RTLD_NEXT, "read");
+    _write     = dlsym(RTLD_NEXT, "write");
     rel2abs(scratch_base,scratch_abs);
 #ifdef DEBUG
     fprintf(stderr,"scratch_abs: '%s'\n",scratch_abs);
@@ -254,4 +263,38 @@ void __attribute__ ((destructor)) my_fini(void) {
 #ifdef DEBUG_WRAPPER
     fprintf(stderr,"my_fini called\n");
 #endif
+}
+size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+    int fd=fileno(stream);
+    if (! handle_table[fd])
+        return(_fread(ptr,size,nmemb,stream));
+#ifdef DEBUG
+    fprintf(stderr,"fread: '%s'\n", filename_table+fd*PATH_MAX);
+#endif
+    return(_fread(ptr,size,nmemb,stream));
+}
+size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
+    int fd=fileno(stream);
+    if (! handle_table[fd])
+        return(_fwrite(ptr,size,nmemb,stream));
+#ifdef DEBUG
+    fprintf(stderr,"fwrite: '%s'\n", filename_table+fd*PATH_MAX);
+#endif
+    return(_fwrite(ptr,size,nmemb,stream));
+}
+ssize_t read(int fd, void *buf, size_t count) {
+    if (! handle_table[fd])
+        return(_read(fd,buf,count));
+#ifdef DEBUG
+    fprintf(stderr,"read: '%s'\n", filename_table+fd*PATH_MAX);
+#endif
+    return(_read(fd,buf,count));
+}
+ssize_t write(int fd, const void *buf, size_t count) {
+    if (! handle_table[fd])
+        return(_write(fd,buf,count));
+#ifdef DEBUG
+    fprintf(stderr,"write: '%s'\n", filename_table+fd*PATH_MAX);
+#endif
+    return(_write(fd,buf,count));
 }
