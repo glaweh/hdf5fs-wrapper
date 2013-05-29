@@ -48,7 +48,9 @@ void __attribute__ ((constructor)) my_init() {
     _close     = dlsym(RTLD_NEXT, "close");
     _fclose    = dlsym(RTLD_NEXT, "fclose");
     rel2abs(scratch_base,scratch_abs);
+#ifdef DEBUG
     fprintf(stderr,"scratch_abs: '%s'\n",scratch_abs);
+#endif
     int i;
     for (i=0;i<HANDLES_MAX;i++) handle_table[i]=0;
     for (i=0;i<HANDLES_MAX;i++) file_table[i]=NULL;
@@ -70,7 +72,9 @@ int map_filename(const char *filename, char *mapped) {
     if (tmpdir[0]==0) {
         strncpy(tmpdir,mapped0,PATH_MAX);
         *(tmpdir+(baseptr-mapped0))=0;
+#ifdef DEBUG
         fprintf(stderr,"tmpdir set to '%s'\n",tmpdir);
+#endif
     }
     strncpy(mapped,tmpdir,PATH_MAX);
     char *dstbase=mapped+strnlen(mapped,PATH_MAX);
@@ -79,18 +83,24 @@ int map_filename(const char *filename, char *mapped) {
         dstbase++;
         baseptr++;
     }
+#ifdef DEBUG_WRAPPER
     fprintf(stderr,"map_filename: %d == pathcmp('%s','%s'), base: '%s'\n",
             match_index,scratch_abs,mapped,
             mapped+strlen(tmpdir)
             );
+#endif
     return(strlen(tmpdir));
 }
 
 int mkdir(const char *pathname, mode_t mode) {
     char mapped[PATH_MAX];
+#ifdef DEBUG_WRAPPER
     fprintf(stderr,"mkdir_called: '%s'\n",pathname);
+#endif
     if (map_filename(pathname,mapped)>=0) {
-        fprintf(stderr,"mkdir_mapped '%s' to: '%s'\n",pathname,mapped);
+#ifdef DEBUG
+        fprintf(stderr,"mkdir_mapped: '%s' to '%s'\n",pathname,mapped);
+#endif
         return(0);
     }
     return _mkdir(pathname,mode);
@@ -112,7 +122,9 @@ int open64(const char *pathname, int flags, ...) {
         va_end(argp);
     }
 
-    fprintf(stderr,"open64_called: '%s' '%s'\n",pathname,scratch_abs);
+#ifdef DEBUG_WRAPPER
+    fprintf(stderr,"open64_called: '%s'\n",pathname);
+#endif
     if ((match_idx=map_filename(pathname,mapped)) >= 0) {
         char *modestr=WTF_str;
         if ((flags & O_ACCMODE) == O_RDWR) {
@@ -122,7 +134,9 @@ int open64(const char *pathname, int flags, ...) {
         } else if ((flags & O_ACCMODE) == O_WRONLY) {
             modestr=wron_str;
         }
-        fprintf(stderr,"open64_mapped: %s, 0x%x(%s), nfiles: %d\n",mapped,flags,modestr,nfiles);
+#ifdef DEBUG
+        fprintf(stderr,"open64_mapped: '%s' to '%s', 0x%x(%s), nfiles: %d\n",pathname,mapped,flags,modestr,nfiles);
+#endif
         int fd=_open64(mapped,flags,mode);
         if (fd < 0) return(fd);
         if (fd > HANDLES_MAX) {
@@ -140,9 +154,13 @@ int open64(const char *pathname, int flags, ...) {
 
 int __xstat64(int version, const char *pathname, struct stat64 *buf) {
     char mapped[PATH_MAX];
+#ifdef DEBUG_WRAPPER
     fprintf(stderr,"__xstat64_called: '%s'\n",pathname);
+#endif
     if (map_filename(pathname,mapped) >= 0) {
-        fprintf(stderr,"__xstat64_mapped: %s\n",mapped);
+#ifdef DEBUG
+        fprintf(stderr,"__xstat64_mapped: '%s' to '%s'\n",pathname,mapped);
+#endif
         return(___xstat64(version,mapped,buf));
     }
     return(___xstat64(version,pathname,buf));
@@ -150,9 +168,13 @@ int __xstat64(int version, const char *pathname, struct stat64 *buf) {
 
 int unlink(const char *pathname) {
     char mapped[PATH_MAX];
+#ifdef DEBUG_WRAPPER
     fprintf(stderr,"unlink_called: '%s'\n",pathname);
+#endif
     if (map_filename(pathname,mapped) >= 0) {
-        fprintf(stderr,"unlink_mapped to: '%s'\n",mapped);
+#ifdef DEBUG
+        fprintf(stderr,"unlink_mapped: '%s' to '%s'\n",pathname,mapped);
+#endif
         return(_unlink(mapped));
     }
     return(_unlink(pathname));
@@ -160,9 +182,13 @@ int unlink(const char *pathname) {
 FILE *fopen(const char *pathname,const char *mode) {
     char mapped[PATH_MAX];
     int match_idx;
+#ifdef DEBUG_WRAPPER
     fprintf(stderr,"fopen_called: %s\n",pathname);
+#endif
     if ((match_idx=map_filename(pathname,mapped)) >= 0) {
-        fprintf(stderr,"fopen_mapped to: %s, mode: %s, nfiles: %d\n",mapped,mode,nfiles);
+#ifdef DEBUG
+        fprintf(stderr,"fopen_mapped: '%s' to '%s', mode: %s, nfiles: %d\n",pathname,mapped,mode,nfiles);
+#endif
         FILE *file=_fopen(mapped,mode);
         if (file == NULL)
             return(NULL);
@@ -202,5 +228,7 @@ int fclose(FILE * file) {
     return(_fclose(file));
 }
 void __attribute__ ((destructor)) my_fini(void) {
+#ifdef DEBUG_WRAPPER
     fprintf(stderr,"my_fini called\n");
+#endif
 }
