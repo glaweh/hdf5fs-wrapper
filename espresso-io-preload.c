@@ -226,6 +226,9 @@ FILE *fopen(const char *pathname,const char *mode) {
 int close(int fd) {
     if (! handle_table[fd])
         return(_close(fd));
+#ifdef DEBUG
+    fprintf(stderr,"close: '%s', nfiles %d\n", filename_table+fd*PATH_MAX,nfiles);
+#endif
     nfiles--;
     handle_table[fd]=0;
     file_table[fd]=NULL;
@@ -237,6 +240,9 @@ int fclose(FILE * file) {
     int fd=fileno(file);
     if (! handle_table[fd])
         return(_fclose(file));
+#ifdef DEBUG
+    fprintf(stderr,"fclose: '%s', nfiles %d\n", filename_table+fd*PATH_MAX,nfiles);
+#endif
     handle_table[fd]=0;
     file_table[fd]=NULL;
     basename_idx[fd]=0;
