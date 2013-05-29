@@ -29,6 +29,10 @@ size_t (*_fread)(void *ptr, size_t size, size_t nmemb, FILE *stream) = NULL;
 size_t (*_fwrite)(const void *ptr, size_t size, size_t nmemb, FILE *stream) = NULL;
 ssize_t (*_read)(int fd, void *buf, size_t count);
 ssize_t (*_write)(int fd, const void *buf, size_t count);
+off_t (*_lseek64)(int fd, off_t offset, int whence);
+int (*_fseek)(FILE *stream, long offset, int whence);
+long int (*_ftell)(FILE *stream);
+int (*___fxstat64)(int __ver, int __fildes, struct stat64 *__stat_buf);
 
 const char *scratch_base = "./SCRATCH/*.save/*";
 char tmpdir[PATH_MAX];
@@ -51,15 +55,15 @@ int   basename_idx[HANDLES_MAX];
     unlink       Y
     __xstat64    Y
     fread        Y
-    fseek
-    ftell
+    fseek        Y
+    ftell        Y
     fwrite       Y                 N
-    __fxstat64
-    isatty
-    ttyname
-    lseek64
+    __fxstat64   Y
+    lseek64      Y
     read         Y
     write        Y
+    isatty
+    ttyname
 */
 
 void __attribute__ ((constructor)) my_init() {
@@ -74,6 +78,10 @@ void __attribute__ ((constructor)) my_init() {
     _fwrite    = dlsym(RTLD_NEXT, "fwrite");
     _read      = dlsym(RTLD_NEXT, "read");
     _write     = dlsym(RTLD_NEXT, "write");
+    _lseek64   = dlsym(RTLD_NEXT, "lseek64");
+    _fseek     = dlsym(RTLD_NEXT, "fseek");
+    _ftell     = dlsym(RTLD_NEXT, "ftell");
+    ___fxstat64= dlsym(RTLD_NEXT, "__fxstat64");
     rel2abs(scratch_base,scratch_abs);
 #ifdef DEBUG
     fprintf(stderr,"scratch_abs: '%s'\n",scratch_abs);
@@ -298,4 +306,38 @@ ssize_t write(int fd, const void *buf, size_t count) {
     fprintf(stderr,"write: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
     return(_write(fd,buf,count));
+}
+off_t lseek64(int fd, off_t offset, int whence) {
+    if (! handle_table[fd])
+        return(_lseek64(fd,offset,whence));
+#ifdef DEBUG
+    fprintf(stderr,"lseek64: '%s'\n", filename_table+fd*PATH_MAX);
+#endif
+    return(_lseek64(fd,offset,whence));
+}
+int fseek(FILE *stream, long offset, int whence) {
+    int fd = fileno(stream);
+    if (! handle_table[fd])
+        return(_fseek(stream,offset,whence));
+#ifdef DEBUG
+    fprintf(stderr,"fseek: '%s'\n", filename_table+fd*PATH_MAX);
+#endif
+    return(_fseek(stream,offset,whence));
+}
+long int ftell(FILE *stream) {
+    int fd = fileno(stream);
+    if (! handle_table[fd])
+        return(_ftell(stream));
+#ifdef DEBUG
+    fprintf(stderr,"ftell: '%s'\n", filename_table+fd*PATH_MAX);
+#endif
+    return(_ftell(stream));
+}
+int __fxstat64 (int __ver, int fd, struct stat64 *buf) {
+    if (! handle_table[fd])
+        return(___fxstat64(__ver,fd,buf));
+#ifdef DEBUG
+    fprintf(stderr,"__fxstat64: '%s'\n", filename_table+fd*PATH_MAX);
+#endif
+    return(___fxstat64(__ver,fd,buf));
 }
