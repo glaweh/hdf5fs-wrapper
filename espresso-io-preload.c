@@ -38,6 +38,23 @@ FILE* file_table[HANDLES_MAX];
 char  filename_table[HANDLES_MAX*PATH_MAX];
 int   basename_idx[HANDLES_MAX];
 
+/* libc io calls found in serial espresso pw.x (scf), pp.x (localization) for everything under outdir
+ *  libc call    implemented_here
+    close        Y
+    fopen        Y
+    mkdir        Y
+    open64       Y
+    unlink       Y
+    __xstat64    Y
+    fread
+    fseek
+    ftell
+    __fxstat64
+    isatty
+    lseek64
+    read
+    write
+*/
 
 void __attribute__ ((constructor)) my_init() {
     _open64    = dlsym(RTLD_NEXT, "open64");
