@@ -36,7 +36,9 @@ long int (*_ftell)(FILE *stream);
 int (*___fxstat64)(int __ver, int __fildes, struct stat64 *__stat_buf);
 
 const char *scratch_base = "./SCRATCH/*.save/*";
+const char *hdf_base = "./scratch.h5";
 char tmpdir[PATH_MAX];
+char hdf_filename[PATH_MAX];
 char scratch_abs[PATH_MAX];
 
 int   nfiles   = 0;
@@ -91,6 +93,7 @@ void __attribute__ ((constructor)) my_init() {
     for (i=0;i<HANDLES_MAX*PATH_MAX;i++) filename_table[i]=0;
     for (i=0;i<HANDLES_MAX;i++) basename_idx[i]=0;
     tmpdir[0]=0;
+    rel2abs(hdf_base,hdf_filename);
 }
 
 int map_filename(const char *filename, char *mapped) {
