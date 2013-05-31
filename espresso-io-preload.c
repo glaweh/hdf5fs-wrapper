@@ -17,6 +17,7 @@
 #include <stdarg.h>
 
 #include "path_util.h"
+#include "hdf5_fs.h"
 #include "wrapper_limits.h"
 
 int (*_open64)(const char *, int, ...) = NULL;
@@ -94,6 +95,10 @@ void __attribute__ ((constructor)) my_init() {
     for (i=0;i<HANDLES_MAX;i++) basename_idx[i]=0;
     tmpdir[0]=0;
     rel2abs(hdf_base,hdf_filename);
+    if (! hdf5_fs_init(hdf_filename)) {
+        fprintf(stderr,"error initializing hdf5_fs\n");
+        exit(1);
+    }
 }
 
 int map_filename(const char *filename, char *mapped) {
@@ -274,6 +279,7 @@ void __attribute__ ((destructor)) my_fini(void) {
 #ifdef DEBUG_WRAPPER
     fprintf(stderr,"my_fini called\n");
 #endif
+    hdf5_fs_fini();
 }
 size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream) {
     int fd=fileno(stream);
