@@ -17,6 +17,7 @@
 #include <stdarg.h>
 
 #include "path_util.h"
+#include "wrapper_limits.h"
 
 int (*_open64)(const char *, int, ...) = NULL;
 int (*_mkdir)(const char *, mode_t) = NULL;
@@ -37,8 +38,6 @@ int (*___fxstat64)(int __ver, int __fildes, struct stat64 *__stat_buf);
 const char *scratch_base = "./SCRATCH/*.save/*";
 char tmpdir[PATH_MAX];
 char scratch_abs[PATH_MAX];
-
-#define HANDLES_MAX 1024
 
 int   nfiles   = 0;
 int   handle_table[HANDLES_MAX];
