@@ -5,8 +5,8 @@ LDLIBS:=-ldl
 all: espresso-io-preload.so
 test: test_rel2abs test_pathcmp
 
-espresso-io-preload.so: espresso-io-preload.o path_util.o
-	$(LD) $(LDFLAGS) -shared $^ -ldl -o $@
+espresso-io-preload.so: espresso-io-preload.o path_util.o hdf5_fs.o
+	$(LD) $(LDFLAGS) -shared $^ $(LDLIBS) -o $@
 
 test_rel2abs: test_rel2abs.o path_util.o
 test_pathcmp: test_pathcmp.o path_util.o
