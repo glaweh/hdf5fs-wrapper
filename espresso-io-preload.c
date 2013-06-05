@@ -320,7 +320,9 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream) {
 #ifdef DEBUG
     fprintf(stderr,"fread: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
-    return(hdf5_read(fd,ptr,size*nmemb));
+    int count = hdf5_read(fd,ptr,size*nmemb);
+    _fseek(stream,count,SEEK_CUR);
+    return(count);
 //    return(_fread(ptr,size,nmemb,stream));
 }
 size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
@@ -339,7 +341,9 @@ ssize_t read(int fd, void *buf, size_t count) {
 #ifdef DEBUG
     fprintf(stderr,"read: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
-    return(hdf5_read(fd,buf,count));
+    int rcount=hdf5_read(fd,buf,count);
+    _lseek64(fd,rcount,SEEK_CUR);
+    return(rcount);
 //    return(_read(fd,buf,count));
 }
 ssize_t write(int fd, const void *buf, size_t count) {
@@ -357,8 +361,13 @@ off_t lseek64(int fd, off_t offset, int whence) {
 #ifdef DEBUG
     fprintf(stderr,"lseek64: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
-    return(hdf5_lseek(fd,offset,whence));
-    return(_lseek64(fd,offset,whence));
+    int hoff = hdf5_lseek(fd,offset,whence);
+    int foff = _lseek64(fd,offset,whence);
+    if (hoff != foff) {
+        fprintf(stderr,"lseek64: '%s', difference between hdf/file %d/%d\n",
+                filename_table+fd*PATH_MAX,hoff,foff);
+    }
+    return(hoff);
 }
 int fseek(FILE *stream, long offset, int whence) {
     int fd = fileno(stream);
@@ -367,8 +376,13 @@ int fseek(FILE *stream, long offset, int whence) {
 #ifdef DEBUG
     fprintf(stderr,"fseek: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
-    hdf5_lseek(fd,offset,whence);
-    return(_fseek(stream,offset,whence));
+    int hoff=hdf5_lseek(fd,offset,whence);
+    int foff=_fseek(stream,offset,whence);
+    if (hoff != foff) {
+        fprintf(stderr,"fseek: '%s', difference between hdf/file %d/%d\n",
+                filename_table+fd*PATH_MAX,hoff,foff);
+    }
+    return(hoff);
 }
 long int ftell(FILE *stream) {
     int fd = fileno(stream);
@@ -377,7 +391,13 @@ long int ftell(FILE *stream) {
 #ifdef DEBUG
     fprintf(stderr,"ftell: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
-    return(_ftell(stream));
+    int hoff=hdf5_lseek(fd,0,SEEK_CUR);
+    int foff=_ftell(stream);
+    if (hoff != foff) {
+        fprintf(stderr,"ftell: '%s', difference between hdf/file %d/%d\n",
+                filename_table+fd*PATH_MAX,hoff,foff);
+    }
+    return(hoff);
 }
 int __fxstat64 (int __ver, int fd, struct stat64 *buf) {
     if (! handle_table[fd])
