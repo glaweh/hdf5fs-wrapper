@@ -189,6 +189,7 @@ int open64(const char *pathname, int flags, ...) {
         handle_table[fd]=1;
         strncpy(filename_table+PATH_MAX*fd,mapped,PATH_MAX);
         basename_idx[fd]=match_idx;
+        hdf5_open(fd,mapped+match_idx,flags);
         return(fd);
     }
     return(_open64(pathname,flags,mode));
@@ -244,6 +245,35 @@ FILE *fopen(const char *pathname,const char *mode) {
         strncpy(filename_table+PATH_MAX*fd,mapped,PATH_MAX);
         file_table[fd]=file;
         basename_idx[fd]=match_idx;
+        int flags;
+        if (mode[1] == '+') {
+            switch (mode[0]) {
+                case 'r' :
+                    flags = O_RDWR;
+                    break;
+                case 'w' :
+                    flags = O_RDWR | O_CREAT | O_TRUNC;
+                    break;
+                case 'a' :
+                    flags = O_APPEND | O_CREAT | O_RDWR;
+                    break;
+            }
+        } else {
+            switch (mode[0]) {
+                case 'r' :
+                    flags = O_RDONLY;
+                    break;
+                case 'w' :
+                    flags = O_WRONLY | O_CREAT | O_TRUNC;
+                    break;
+                case 'a' :
+                    flags = O_WRONLY | O_CREAT | O_APPEND;
+                    break;
+            }
+        }
+        if (hdf5_open(fd,mapped+match_idx,flags) < 0) {
+            fprintf(stderr,"error hdf5_opening '%s'\n",mapped+match_idx);
+        }
         return(file);
     }
     return(_fopen(pathname,mode));
@@ -259,6 +289,7 @@ int close(int fd) {
     file_table[fd]=NULL;
     filename_table[fd*PATH_MAX]=0;
     basename_idx[fd]=0;
+    hdf5_close(fd);
     return(_close(fd));
 }
 int fclose(FILE * file) {
@@ -273,6 +304,7 @@ int fclose(FILE * file) {
     basename_idx[fd]=0;
     nfiles--;
     filename_table[fd*PATH_MAX]=0;
+    hdf5_close(fd);
     return(_fclose(file));
 }
 void __attribute__ ((destructor)) my_fini(void) {
@@ -297,6 +329,7 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
 #ifdef DEBUG
     fprintf(stderr,"fwrite: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
+    hdf5_write(fd,ptr,size*nmemb);
     return(_fwrite(ptr,size,nmemb,stream));
 }
 ssize_t read(int fd, void *buf, size_t count) {
@@ -313,6 +346,7 @@ ssize_t write(int fd, const void *buf, size_t count) {
 #ifdef DEBUG
     fprintf(stderr,"write: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
+    hdf5_write(fd,buf,count);
     return(_write(fd,buf,count));
 }
 off_t lseek64(int fd, off_t offset, int whence) {
@@ -321,6 +355,7 @@ off_t lseek64(int fd, off_t offset, int whence) {
 #ifdef DEBUG
     fprintf(stderr,"lseek64: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
+    hdf5_lseek(fd,offset,whence);
     return(_lseek64(fd,offset,whence));
 }
 int fseek(FILE *stream, long offset, int whence) {
@@ -330,6 +365,7 @@ int fseek(FILE *stream, long offset, int whence) {
 #ifdef DEBUG
     fprintf(stderr,"fseek: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
+    hdf5_lseek(fd,offset,whence);
     return(_fseek(stream,offset,whence));
 }
 long int ftell(FILE *stream) {

@@ -1,6 +1,6 @@
 CC:=colorgcc
 CFLAGS:=$(CFLAGS) -fpic -g -O0 -Wall -Werror -Wno-error=unused-variable -DDEBUG
-LDLIBS:=-ldl -lhdf5 -lc
+LDLIBS:=-ldl -lhdf5_hl -lhdf5 -lc
 
 all: espresso-io-preload.so
 test: test_rel2abs test_pathcmp
