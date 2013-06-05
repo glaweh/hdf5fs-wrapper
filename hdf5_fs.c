@@ -189,6 +189,38 @@ int hdf5_write(int fd, const void *buf, size_t count) {
     return(count);
 }
 
+int hdf5_read(int fd, void *buf, size_t count) {
+    if (count == 0)
+        return(0);
+    if (hdf5_data[fd] == NULL) {
+        fprintf(stderr,"write on unknown fd %d\n",fd);
+        errno = EBADF;
+        return(-1);
+    }
+    hdf5_data_t * d = hdf5_data[fd];
+    // end of file
+    if (d->offset >= d->length)
+        return(0);
+    if (d->set < 0)
+        return(0);
+    size_t remaining_count = d->length - d->offset;
+    if (remaining_count > count)
+        remaining_count = count;
+    fprintf(stderr,"hdf5_read(%d='%s', %d) %d (%d)\n",fd,d->name,(int)count,(int)d->offset,(int)d->length);
+
+    hsize_t hs_count[RANK];
+    hs_count[0]=remaining_count;
+    hid_t filespace = H5Dget_space(d->set);
+    hid_t dataspace = H5Screate_simple(RANK, hs_count, NULL);
+    H5Sselect_hyperslab(filespace, H5S_SELECT_SET, &d->offset, NULL, hs_count, NULL);
+
+    H5Dread(d->set,H5T_NATIVE_CHAR,dataspace,filespace,H5P_DEFAULT,buf);
+    H5Sclose(filespace);
+    H5Sclose(dataspace);
+    d->offset+=remaining_count;
+    return(remaining_count);
+}
+
 int hdf5_lseek(int fd, off_t offset, int whence) {
     if (hdf5_data[fd] == NULL) {
         fprintf(stderr,"write on unknown fd %d\n",fd);
@@ -208,8 +240,10 @@ int hdf5_lseek(int fd, off_t offset, int whence) {
             break;
         default:
             errno=EINVAL;
+            fprintf(stderr,"hdf5_lseek: illegal whence: %d\n",whence);
             return(-1);
             break;
     }
+    fprintf(stderr,"hdf5_lseek(%d='%s',%d,%d) = %d\n",fd,d->name,(int)offset,whence,(int)d->offset);
     return(d->offset);
 }

@@ -320,7 +320,8 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream) {
 #ifdef DEBUG
     fprintf(stderr,"fread: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
-    return(_fread(ptr,size,nmemb,stream));
+    return(hdf5_read(fd,ptr,size*nmemb));
+//    return(_fread(ptr,size,nmemb,stream));
 }
 size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
     int fd=fileno(stream);
@@ -338,7 +339,8 @@ ssize_t read(int fd, void *buf, size_t count) {
 #ifdef DEBUG
     fprintf(stderr,"read: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
-    return(_read(fd,buf,count));
+    return(hdf5_read(fd,buf,count));
+//    return(_read(fd,buf,count));
 }
 ssize_t write(int fd, const void *buf, size_t count) {
     if (! handle_table[fd])
@@ -355,7 +357,7 @@ off_t lseek64(int fd, off_t offset, int whence) {
 #ifdef DEBUG
     fprintf(stderr,"lseek64: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
-    hdf5_lseek(fd,offset,whence);
+    return(hdf5_lseek(fd,offset,whence));
     return(_lseek64(fd,offset,whence));
 }
 int fseek(FILE *stream, long offset, int whence) {
