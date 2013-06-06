@@ -8,7 +8,7 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
 #include "hdf5_fs.h"
-#include "closed_empty_files.h"
+#include "string_set.h"
 #include "wrapper_limits.h"
 
 #define RANK 1

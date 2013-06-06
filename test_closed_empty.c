@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "closed_empty_files.h"
+#include "string_set.h"
 
 int main(int argc,char * argv[]) {
     int i;

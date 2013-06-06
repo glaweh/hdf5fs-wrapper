@@ -5,12 +5,12 @@ LDLIBS:=-ldl -lhdf5_hl -lhdf5 -lc
 all: espresso-io-preload.so
 test: test_rel2abs test_pathcmp
 
-espresso-io-preload.so: espresso-io-preload.o path_util.o hdf5_fs.o closed_empty_files.o
+espresso-io-preload.so: espresso-io-preload.o path_util.o hdf5_fs.o string_set.o
 	$(LD) $(LDFLAGS) -shared $^ $(LDLIBS) -o $@
 
 test_rel2abs: test_rel2abs.o path_util.o
 test_pathcmp: test_pathcmp.o path_util.o
-test_closed_empty: test_closed_empty.o closed_empty_files.o
+test_closed_empty: test_closed_empty.o string_set.o
 
 clean:
 	rm -f *.o *.so test_rel2abs

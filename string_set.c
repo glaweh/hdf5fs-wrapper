@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "closed_empty_files.h"
+#include "string_set.h"
 int string_set_add(string_set * self,const char *pathname) {
     int insert_pos=0;
     if (self->nitems>=CLOSED_EMPTY_MAX-1) {
