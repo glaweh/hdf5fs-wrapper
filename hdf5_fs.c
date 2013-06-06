@@ -79,6 +79,8 @@ int hdf5_fs_fini() {
         if (hdf5_data[i] != NULL)
             hdf5_close(i);
     }
+    _closed_empty_dump();
+    _closed_empty_free();
     H5Fclose(hdf_file);
     return(1);
 }
