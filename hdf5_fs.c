@@ -110,7 +110,7 @@ int hdf5_open(int fd, const char *pathname, int flags) {
         if (flags & O_CREAT) {
             d->length  = 0;
             d->offset[0] = 0;
-            d->dims[0] = 1;
+            d->dims[0] = 1; // hdf5 does not zero-length datasets. make dims[0]=length+1;
             return(fd);
         } else {
             fprintf(stderr,"error opening dataset '%s' %d\n",hdf5_data[fd]->name,hdf5_data[fd]->set);
@@ -177,9 +177,10 @@ int hdf5_write(int fd, const void *buf, size_t count) {
     if (d->append)
         d->offset[0]=d->length;
     int resize = 0;
-    if ((d->offset[0]+count) > d->dims[0]) {
+    int needed_dim = d->offset[0]+count+1;
+    if (needed_dim > d->dims[0]) {
         resize = 1;
-        d->dims[0]=d->offset[0]+count;
+        d->dims[0]=new_dim;
     }
     fprintf(stderr,"hdf5_write(%d='%s', %d) %d (%d)\n",fd,d->name,(int)count,(int)d->offset[0],(int)d->length);
     if (d->set < 0) {
