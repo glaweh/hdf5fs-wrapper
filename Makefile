@@ -13,6 +13,6 @@ test_pathcmp: test_pathcmp.o path_util.o
 test_string_set: test_string_set.o string_set.o
 
 clean:
-	rm -f *.o *.so test_rel2abs
+	rm -f *.o *.so test_rel2abs test_pathcmp test_string_set
 
 .PHONY: clean
