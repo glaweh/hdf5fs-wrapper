@@ -304,6 +304,7 @@ int hdf5_stat64(const char *pathname, struct stat64 *buf) {
     fprintf(stderr,"hdf5_stat64: size of '%s': %d\n",pathname,(int)buf->st_size);
     return(0);
 }
+
 int hdf5_fstat64(int fd, struct stat64 *buf) {
     if (hdf5_data[fd] == NULL) {
         fprintf(stderr,"write on unknown fd %d\n",fd);
