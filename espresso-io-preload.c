@@ -216,10 +216,12 @@ int unlink(const char *pathname) {
 #ifdef DEBUG_WRAPPER
     fprintf(stderr,"unlink_called: '%s'\n",pathname);
 #endif
-    if (map_filename(pathname,mapped) >= 0) {
+    int match_index;
+    if ((match_index=map_filename(pathname,mapped)) >= 0) {
 #ifdef DEBUG
         fprintf(stderr,"unlink_mapped: '%s' to '%s'\n",pathname,mapped);
 #endif
+        return(hdf5_unlink(mapped+match_index));
         return(_unlink(mapped));
     }
     return(_unlink(pathname));
