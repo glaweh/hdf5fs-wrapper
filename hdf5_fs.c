@@ -38,6 +38,7 @@ hdf5_data_t * hdf5_data[HANDLES_MAX];
 int _hdf5_path_exists(const char *pathname);
 int _closed_empty_add(const char *pathname);
 int _closed_empty_remove(const char *pathname);
+void _closed_empty_dump();
 
 int hdf5_fs_init(const char * hdf_filename) {
     struct stat hdf_stat;
