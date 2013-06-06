@@ -271,8 +271,15 @@ int hdf5_lseek(int fd, off_t offset, int whence) {
 int hdf5_stat64(const char *pathname, struct stat64 *buf) {
     H5O_info_t object_info;
     if (_hdf5_path_exists(pathname) == 0) {
-        errno=ENOENT;
-        return(-1);
+        if (_closed_empty_find(pathname) <= 0) {
+            errno=ENOENT;
+            return(-1);
+        }
+        (*buf)=hdf_file_stat;
+        buf->st_blksize=chunk_dims[0];
+        buf->st_size=0;
+        buf->st_blocks=0;
+        return(0);
     }
     herr_t status = H5Oget_info_by_name(hdf_file,pathname,&object_info,H5P_DEFAULT);
     if (status < 0) {
