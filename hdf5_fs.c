@@ -144,6 +144,11 @@ int hdf5_close(int fd) {
     hdf5_data_t * d = hdf5_data[fd];
     if (d->set >= 0) {
         H5LTset_attribute_int(hdf_file,d->name,"length",&d->length,1);
+        hsize_t newdim = d->length + 1;
+        if (newdim != d->dims[0]) {
+            d->dims[0]=newdim;
+            H5Dset_extent(d->set, d->dims);
+        }
         if ((status = H5Dclose(hdf5_data[fd]->set)) < 0) {
             fprintf(stderr,"error closing dataset '%s' %d\n",d->name,status);
             errno = EIO;
