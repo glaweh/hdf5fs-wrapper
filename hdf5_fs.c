@@ -38,6 +38,8 @@ hdf5_data_t * hdf5_data[HANDLES_MAX];
 int _hdf5_path_exists(const char *pathname);
 int _closed_empty_add(const char *pathname);
 int _closed_empty_remove(const char *pathname);
+int _closed_empty_find(const char *pathname);
+int _closed_empty_free();
 void _closed_empty_dump();
 
 int hdf5_fs_init(const char * hdf_filename) {
@@ -397,17 +399,17 @@ int _closed_empty_add(const char *pathname) {
     n_closed_empty_files++;
     return(1);
 }
-int _closed_empty_remove(const char *pathname) {
-    int delete_pos=-1;
+int _closed_empty_find(const char *pathname) {
+    int item_pos=-1;
     if (n_closed_empty_files == 0)
-        return(0);
+        return(-1);
     int left=0;
     int right=n_closed_empty_files-1;
     while (right>=left) {
         int middle=(right+left)/2;
         int cmpres=strcmp(closed_empty_files[middle],pathname);
         if (cmpres==0) {
-            delete_pos=middle;
+            item_pos=middle;
             break;
         }
         if (cmpres > 0) {
@@ -416,6 +418,10 @@ int _closed_empty_remove(const char *pathname) {
             left=middle+1;
         }
     }
+    return(item_pos);
+}
+int _closed_empty_remove(const char *pathname) {
+    int delete_pos = _closed_empty_find(pathname);
     if (delete_pos < 0)
         return(0);
     int i;
