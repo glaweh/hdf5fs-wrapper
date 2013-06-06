@@ -179,7 +179,13 @@ int open64(const char *pathname, int flags, ...) {
 #ifdef DEBUG
         fprintf(stderr,"open64_mapped: '%s' to '%s', 0x%x(%s), nfiles: %d\n",pathname,mapped,flags,modestr,nfiles);
 #endif
-        int fd=_open64(mapped,flags,mode);
+        int fd;
+#ifdef BOTH_HDF_AND_FILE
+        fd=_open64(mapped,flags,mode);
+#else
+        // open dummy handle
+        fd=_open64("/dev/null",O_RDONLY,mode);
+#endif
         if (fd < 0) return(fd);
         if (fd > HANDLES_MAX) {
             fprintf(stderr,"filehandle out of range\n");
@@ -206,7 +212,7 @@ int __xstat64(int version, const char *pathname, struct stat64 *buf) {
         fprintf(stderr,"__xstat64_mapped: '%s' to '%s'\n",pathname,mapped);
 #endif
         return(hdf5_stat64(mapped+match_idx,buf));
-        return(___xstat64(version,mapped,buf));
+//        return(___xstat64(version,mapped,buf));
     }
     return(___xstat64(version,pathname,buf));
 }
@@ -222,7 +228,9 @@ int unlink(const char *pathname) {
         fprintf(stderr,"unlink_mapped: '%s' to '%s'\n",pathname,mapped);
 #endif
         int hres = hdf5_unlink(mapped+match_index);
+#ifdef BOTH_HDF_AND_FILE
         int fres = _unlink(mapped);
+#endif
         return(hres);
     }
     return(_unlink(pathname));
@@ -237,7 +245,12 @@ FILE *fopen(const char *pathname,const char *mode) {
 #ifdef DEBUG
         fprintf(stderr,"fopen_mapped: '%s' to '%s', mode: %s, nfiles: %d\n",pathname,mapped,mode,nfiles);
 #endif
-        FILE *file=_fopen(mapped,mode);
+        FILE *file;
+#ifdef BOTH_HDF_AND_FILE
+        file =_fopen(mapped,mode);
+#else
+        file =_fopen("/dev/null","r");
+#endif
         if (file == NULL)
             return(NULL);
         nfiles++;
@@ -326,7 +339,9 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream) {
     fprintf(stderr,"fread: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
     int count = hdf5_read(fd,ptr,size*nmemb);
+#ifdef BOTH_HDF_AND_FILE
     _fseek(stream,count,SEEK_CUR);
+#endif
     return(count);
 //    return(_fread(ptr,size,nmemb,stream));
 }
@@ -337,8 +352,12 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
 #ifdef DEBUG
     fprintf(stderr,"fwrite: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
-    hdf5_write(fd,ptr,size*nmemb);
-    return(_fwrite(ptr,size,nmemb,stream));
+    size_t fwritten = nmemb;
+#ifdef BOTH_HDF_AND_FILE
+    fwritten=_fwrite(ptr,size,nmemb,stream);
+#endif
+    size_t hwritten = hdf5_write(fd,ptr,size*fwritten);
+    return(hwritten);
 }
 ssize_t read(int fd, void *buf, size_t count) {
     if (! handle_table[fd])
@@ -347,7 +366,9 @@ ssize_t read(int fd, void *buf, size_t count) {
     fprintf(stderr,"read: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
     int rcount=hdf5_read(fd,buf,count);
+#ifdef BOTH_HDF_AND_FILE
     _lseek64(fd,rcount,SEEK_CUR);
+#endif
     return(rcount);
 //    return(_read(fd,buf,count));
 }
@@ -357,8 +378,11 @@ ssize_t write(int fd, const void *buf, size_t count) {
 #ifdef DEBUG
     fprintf(stderr,"write: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
-    hdf5_write(fd,buf,count);
-    return(_write(fd,buf,count));
+    ssize_t fwritten = count;
+#ifdef BOTH_HDF_AND_FILE
+    fwritten=_write(fd,buf,count);
+#endif
+    return(hdf5_write(fd,buf,fwritten));
 }
 off_t lseek64(int fd, off_t offset, int whence) {
     if (! handle_table[fd])
@@ -367,11 +391,13 @@ off_t lseek64(int fd, off_t offset, int whence) {
     fprintf(stderr,"lseek64: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
     int hoff = hdf5_lseek(fd,offset,whence);
+#ifdef BOTH_HDF_AND_FILE
     int foff = _lseek64(fd,offset,whence);
     if (hoff != foff) {
         fprintf(stderr,"lseek64: '%s', difference between hdf/file %d/%d\n",
                 filename_table+fd*PATH_MAX,hoff,foff);
     }
+#endif
     return(hoff);
 }
 int fseek(FILE *stream, long offset, int whence) {
@@ -382,11 +408,13 @@ int fseek(FILE *stream, long offset, int whence) {
     fprintf(stderr,"fseek: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
     int hoff=hdf5_lseek(fd,offset,whence);
+#ifdef BOTH_HDF_AND_FILE
     int foff=_fseek(stream,offset,whence);
     if (hoff != foff) {
         fprintf(stderr,"fseek: '%s', difference between hdf/file %d/%d\n",
                 filename_table+fd*PATH_MAX,hoff,foff);
     }
+#endif
     return(hoff);
 }
 long int ftell(FILE *stream) {
@@ -397,11 +425,13 @@ long int ftell(FILE *stream) {
     fprintf(stderr,"ftell: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
     int hoff=hdf5_lseek(fd,0,SEEK_CUR);
+#ifdef BOTH_HDF_AND_FILE
     int foff=_ftell(stream);
     if (hoff != foff) {
         fprintf(stderr,"ftell: '%s', difference between hdf/file %d/%d\n",
                 filename_table+fd*PATH_MAX,hoff,foff);
     }
+#endif
     return(hoff);
 }
 int __fxstat64 (int __ver, int fd, struct stat64 *buf) {
@@ -411,5 +441,4 @@ int __fxstat64 (int __ver, int fd, struct stat64 *buf) {
     fprintf(stderr,"__fxstat64: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
     return(hdf5_fstat64(fd,buf));
-    return(___fxstat64(__ver,fd,buf));
 }
