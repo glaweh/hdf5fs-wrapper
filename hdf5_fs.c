@@ -393,6 +393,7 @@ int _closed_empty_add(const char *pathname) {
         insert_pos=left;
     }
 
+    fprintf(stderr,"_closed_empty_add: adding '%s'\n",pathname);
     if (insert_pos < n_closed_empty_files) {
         int i;
         for (i=n_closed_empty_files;i>insert_pos;i--) {
