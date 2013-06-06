@@ -221,8 +221,9 @@ int unlink(const char *pathname) {
 #ifdef DEBUG
         fprintf(stderr,"unlink_mapped: '%s' to '%s'\n",pathname,mapped);
 #endif
-        return(hdf5_unlink(mapped+match_index));
-        return(_unlink(mapped));
+        int hres = hdf5_unlink(mapped+match_index);
+        int fres = _unlink(mapped);
+        return(hres);
     }
     return(_unlink(pathname));
 }
