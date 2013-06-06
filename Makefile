@@ -2,10 +2,10 @@ CC:=colorgcc
 CFLAGS:=$(CFLAGS) -fpic -g -O0 -Wall -Werror -Wno-error=unused-variable -DDEBUG
 LDLIBS:=-ldl -lhdf5_hl -lhdf5 -lc
 
-all: espresso-io-preload.so
+all: hdf5fs-wrapper.so
 test: test_rel2abs test_pathcmp
 
-espresso-io-preload.so: espresso-io-preload.o path_util.o hdf5_fs.o string_set.o
+hdf5fs-wrapper.so: hdf5fs-wrapper.o path_util.o hdf5_fs.o string_set.o
 	$(LD) $(LDFLAGS) -shared $^ $(LDLIBS) -o $@
 
 test_rel2abs: test_rel2abs.o path_util.o
