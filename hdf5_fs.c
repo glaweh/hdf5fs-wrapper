@@ -18,6 +18,7 @@ char    fillvalue = 0;
 hsize_t chunk_dims[1]={1024*64};
 hsize_t maxdims[1] = {H5S_UNLIMITED};
 struct stat64 hdf_file_stat;
+string_set * closed_empty_files;
 
 typedef struct {
     hid_t   space;
@@ -63,6 +64,8 @@ int hdf5_fs_init(const char * hdf_filename) {
     if (stat64(hdf_filename,&hdf_file_stat) < 0) {
         fprintf(stderr,"error calling stat64 on '%s', %s\n",hdf_filename,strerror(errno));
     }
+    closed_empty_files=malloc(sizeof(string_set));
+    closed_empty_files->nitems=0;
     return(1);
 }
 
@@ -72,8 +75,9 @@ int hdf5_fs_fini() {
         if (hdf5_data[i] != NULL)
             hdf5_close(i);
     }
-    _closed_empty_dump();
-    _closed_empty_free();
+    string_set_dump(closed_empty_files);
+    string_set_free(closed_empty_files);
+    free(closed_empty_files);
     H5Fclose(hdf_file);
     return(1);
 }
@@ -155,7 +159,7 @@ int hdf5_close(int fd) {
             return(-1);
         }
     } else {
-        _closed_empty_add(d->name);
+        string_set_add(closed_empty_files, d->name);
     }
     if ((d->space >=0) && ((status = H5Sclose(d->space)) < 0)) {
         fprintf(stderr,"error closing dataspace '%s' %d\n",d->name,status);
@@ -271,7 +275,7 @@ int hdf5_lseek(int fd, off_t offset, int whence) {
 int hdf5_stat64(const char *pathname, struct stat64 *buf) {
     H5O_info_t object_info;
     if (_hdf5_path_exists(pathname) == 0) {
-        if (_closed_empty_find(pathname) <= 0) {
+        if (string_set_find(closed_empty_files, pathname) <= 0) {
             errno=ENOENT;
             return(-1);
         }
@@ -334,7 +338,7 @@ int hdf5_fstat64(int fd, struct stat64 *buf) {
 
 int hdf5_unlink(const char *pathname) {
     if (_hdf5_path_exists(pathname)==0) {
-        if (_closed_empty_remove(pathname))
+        if (string_set_remove(closed_empty_files,pathname))
             return(0);
         errno=ENOENT;
         return(-1);
