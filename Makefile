@@ -10,6 +10,7 @@ espresso-io-preload.so: espresso-io-preload.o path_util.o hdf5_fs.o
 
 test_rel2abs: test_rel2abs.o path_util.o
 test_pathcmp: test_pathcmp.o path_util.o
+test_closed_empty: test_closed_empty.o hdf5_fs.o
 
 clean:
 	rm -f *.o *.so test_rel2abs
