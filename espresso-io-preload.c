@@ -197,13 +197,15 @@ int open64(const char *pathname, int flags, ...) {
 
 int __xstat64(int version, const char *pathname, struct stat64 *buf) {
     char mapped[PATH_MAX];
+    int match_idx;
 #ifdef DEBUG_WRAPPER
     fprintf(stderr,"__xstat64_called: '%s'\n",pathname);
 #endif
-    if (map_filename(pathname,mapped) >= 0) {
+    if ((match_idx=map_filename(pathname,mapped)) >= 0) {
 #ifdef DEBUG
         fprintf(stderr,"__xstat64_mapped: '%s' to '%s'\n",pathname,mapped);
 #endif
+        return(hdf5_stat64(mapped+match_idx,buf));
         return(___xstat64(version,mapped,buf));
     }
     return(___xstat64(version,pathname,buf));
@@ -405,5 +407,6 @@ int __fxstat64 (int __ver, int fd, struct stat64 *buf) {
 #ifdef DEBUG
     fprintf(stderr,"__fxstat64: '%s'\n", filename_table+fd*PATH_MAX);
 #endif
+    return(hdf5_fstat64(fd,buf));
     return(___fxstat64(__ver,fd,buf));
 }
