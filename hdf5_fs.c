@@ -180,7 +180,7 @@ int hdf5_write(int fd, const void *buf, size_t count) {
     int needed_dim = d->offset[0]+count+1;
     if (needed_dim > d->dims[0]) {
         resize = 1;
-        d->dims[0]=new_dim;
+        d->dims[0]=needed_dim;
     }
     fprintf(stderr,"hdf5_write(%d='%s', %d) %d (%d)\n",fd,d->name,(int)count,(int)d->offset[0],(int)d->length);
     if (d->set < 0) {
