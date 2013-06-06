@@ -32,6 +32,8 @@ typedef struct {
 int     last_handle=-1;
 hdf5_data_t * hdf5_data[HANDLES_MAX];
 
+int _hdf5_path_exists(const char *pathname);
+
 int hdf5_fs_init(const char * hdf_filename) {
     struct stat hdf_stat;
     herr_t status;
@@ -79,7 +81,7 @@ int hdf5_open(int fd, const char *pathname, int flags) {
         return(-1);
     }
     fprintf(stderr,"hdf5_open(%d,'%s',%o)\n",fd,pathname,flags);
-    htri_t set_exists = H5Lexists(hdf_file,pathname,H5P_DEFAULT);
+    int set_exists = _hdf5_path_exists(pathname);
 
     hid_t  set=-1;
     if (set_exists) {
@@ -256,6 +258,10 @@ int hdf5_lseek(int fd, off_t offset, int whence) {
 
 int hdf5_stat64(const char *pathname, struct stat64 *buf) {
     H5O_info_t object_info;
+    if (_hdf5_path_exists(pathname) == 0) {
+        errno=ENOENT;
+        return(-1);
+    }
     herr_t status = H5Oget_info_by_name(hdf_file,pathname,&object_info,H5P_DEFAULT);
     if (status < 0) {
         fprintf(stderr,"hdf5_stat64: error getting status for '%s'\n",pathname);
@@ -304,4 +310,26 @@ int hdf5_fstat64(int fd, struct stat64 *buf) {
     }
     fprintf(stderr,"hdf5_fstat64: size of '%s': %d\n",d->name,(int)buf->st_size);
     return(0);
+}
+
+int _hdf5_path_exists(const char *pathname) {
+    int pathlen=strnlen(pathname,PATH_MAX);
+    if (pathlen == 0) return(1);
+    char testpath[PATH_MAX];
+    strncpy(testpath,pathname,PATH_MAX);
+    int i;
+    htri_t testres;
+    for (i=0;i<pathlen;i++) {
+        if (testpath[i] == '/') {
+            testpath[i] = 0;
+            testres=H5Lexists(hdf_file,testpath,H5P_DEFAULT);
+            if (testres <= 0)
+                return(0);
+            testpath[i] = '/';
+        }
+    }
+    testres=H5Lexists(hdf_file,testpath,H5P_DEFAULT);
+    if (testres <= 0)
+        return(0);
+    return(1);
 }
