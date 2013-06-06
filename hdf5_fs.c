@@ -141,18 +141,19 @@ int hdf5_close(int fd) {
         errno = EBADF;
         return(-1);
     }
-    if (hdf5_data[fd]->set >= 0) {
-        H5LTset_attribute_int(hdf_file,hdf5_data[fd]->name,"length",&hdf5_data[fd]->length,1);
+    hdf5_data_t * d = hdf5_data[fd];
+    if (d->set >= 0) {
+        H5LTset_attribute_int(hdf_file,d->name,"length",&d->length,1);
         if ((status = H5Dclose(hdf5_data[fd]->set)) < 0) {
-            fprintf(stderr,"error closing dataset '%s' %d\n",hdf5_data[fd]->name,status);
+            fprintf(stderr,"error closing dataset '%s' %d\n",d->name,status);
             errno = EIO;
             return(-1);
         }
     } else {
-        _closed_empty_add(hdf5_data[fd]->name);
+        _closed_empty_add(d->name);
     }
-    if ((hdf5_data[fd]->space >=0) && ((status = H5Sclose(hdf5_data[fd]->space)) < 0)) {
-        fprintf(stderr,"error closing dataspace '%s' %d\n",hdf5_data[fd]->name,status);
+    if ((d->space >=0) && ((status = H5Sclose(d->space)) < 0)) {
+        fprintf(stderr,"error closing dataspace '%s' %d\n",d->name,status);
         errno = EIO;
         return(-1);
     }
