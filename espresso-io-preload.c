@@ -36,7 +36,7 @@ int (*_fseek)(FILE *stream, long offset, int whence);
 long int (*_ftell)(FILE *stream);
 int (*___fxstat64)(int __ver, int __fildes, struct stat64 *__stat_buf);
 
-const char *scratch_base = "./SCRATCH/*.save/*";
+const char *scratch_base = "./SCRATCH/*";
 const char *hdf_base = "./scratch.h5";
 char tmpdir[PATH_MAX];
 char hdf_filename[PATH_MAX];
