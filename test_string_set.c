@@ -15,5 +15,6 @@ int main(int argc,char * argv[]) {
         string_set_remove(&check_it,argv[i]);
         string_set_dump(&check_it);
     }
+    string_set_free(&check_it);
     return(0);
 }
