@@ -20,11 +20,18 @@ hsize_t maxdims[1] = {H5S_UNLIMITED};
 struct stat64 hdf_file_stat;
 string_set * closed_empty_files;
 
-typedef struct {
+typedef struct hdf_dataset_info {
     hid_t   space;
     hid_t   set;
     hsize_t dims[RANK];
     int     length;
+    int     refcount;
+    struct  hdf5_dataset_info * prev;
+    struct  hdf5_dataset_info * next;
+} hdf5_dataset_info_t;
+
+typedef struct {
+    hdf5_dataset_info_t * dataset;
     int     append;
     hsize_t offset[RANK];
     char  name[PATH_MAX];
@@ -103,31 +110,38 @@ int hdf5_open(int fd, const char *pathname, int flags) {
         return(-1);
     }
     hdf5_data_t * d = hdf5_data[fd];
+    d->dataset  = malloc(sizeof(hdf5_dataset_info_t));
+    if (hdf5_data[fd]->dataset == NULL) {
+        fprintf(stderr,"error allocating hdf5_data[%d]->dataset\n",fd);
+        errno = ENOMEM;
+        return(-1);
+    }
     strncpy(d->name,pathname,PATH_MAX);
     d->append   = ((flags & O_APPEND) != 0 ? 1 : 0);
-    d->set      = set;
-    d->space    = -1;
-    if (d->set < 0) {
+    d->dataset->set      = set;
+    d->dataset->space    = -1;
+    if (d->dataset->set < 0) {
         if (flags & O_CREAT) {
-            d->length  = 0;
+            d->dataset->length  = 0;
             d->offset[0] = 0;
-            d->dims[0] = 1; // hdf5 does not zero-length datasets. make dims[0]=length+1;
+            d->dataset->dims[0] = 1; // hdf5 does not zero-length datasets. make dims[0]=length+1;
             return(fd);
         } else {
-            fprintf(stderr,"error opening dataset '%s' %d\n",hdf5_data[fd]->name,hdf5_data[fd]->set);
+            fprintf(stderr,"error opening dataset '%s' %d\n",hdf5_data[fd]->name,hdf5_data[fd]->dataset->set);
+            free(hdf5_data[fd]->dataset);
             free(hdf5_data[fd]);
             hdf5_data[fd]=NULL;
             errno=ENOENT;
             return(-1);
         }
     } else {
-        d->space = H5Dget_space(set);
-        H5Sget_simple_extent_dims(d->space, d->dims, NULL);
+        d->dataset->space = H5Dget_space(set);
+        H5Sget_simple_extent_dims(d->dataset->space, d->dataset->dims, NULL);
         if (flags & O_TRUNC) {
-            d->length  = 0;
+            d->dataset->length  = 0;
             d->offset[0] = 0;
         } else {
-            H5LTget_attribute_int(hdf_file,pathname,"length",&d->length);
+            H5LTget_attribute_int(hdf_file,pathname,"length",&d->dataset->length);
             d->offset[0] = 0;
         }
     }
@@ -143,14 +157,14 @@ int hdf5_close(int fd) {
         return(-1);
     }
     hdf5_data_t * d = hdf5_data[fd];
-    if (d->set >= 0) {
-        H5LTset_attribute_int(hdf_file,d->name,"length",&d->length,1);
-        hsize_t newdim = d->length + 1;
-        if (newdim != d->dims[0]) {
-            d->dims[0]=newdim;
-            H5Dset_extent(d->set, d->dims);
+    if (d->dataset->set >= 0) {
+        H5LTset_attribute_int(hdf_file,d->name,"length",&d->dataset->length,1);
+        hsize_t newdim = d->dataset->length + 1;
+        if (newdim != d->dataset->dims[0]) {
+            d->dataset->dims[0]=newdim;
+            H5Dset_extent(d->dataset->set, d->dataset->dims);
         }
-        if ((status = H5Dclose(hdf5_data[fd]->set)) < 0) {
+        if ((status = H5Dclose(hdf5_data[fd]->dataset->set)) < 0) {
             fprintf(stderr,"error closing dataset '%s' %d\n",d->name,status);
             errno = EIO;
             return(-1);
@@ -158,11 +172,12 @@ int hdf5_close(int fd) {
     } else {
         string_set_add(closed_empty_files, d->name, NULL);
     }
-    if ((d->space >=0) && ((status = H5Sclose(d->space)) < 0)) {
+    if ((d->dataset->space >=0) && ((status = H5Sclose(d->dataset->space)) < 0)) {
         fprintf(stderr,"error closing dataspace '%s' %d\n",d->name,status);
         errno = EIO;
         return(-1);
     }
+    free(d->dataset);
     free(hdf5_data[fd]);
     hdf5_data[fd]=NULL;
     while ((last_handle >= 0) && (hdf5_data[last_handle] == NULL)) {
@@ -181,31 +196,31 @@ int hdf5_write(int fd, const void *buf, size_t count) {
     }
     hdf5_data_t * d = hdf5_data[fd];
     if (d->append)
-        d->offset[0]=d->length;
+        d->offset[0]=d->dataset->length;
     int resize = 0;
     int needed_dim = d->offset[0]+count+1;
-    if (needed_dim > d->dims[0]) {
+    if (needed_dim > d->dataset->dims[0]) {
         resize = 1;
-        d->dims[0]=needed_dim;
+        d->dataset->dims[0]=needed_dim;
     }
-    fprintf(stderr,"hdf5_write(%d='%s', %d) %d (%d)\n",fd,d->name,(int)count,(int)d->offset[0],(int)d->length);
-    if (d->set < 0) {
-        d->space = H5Screate_simple(RANK, d->dims, maxdims);
-        d->set = H5Dcreate2(hdf_file, d->name, H5T_NATIVE_CHAR, d->space, H5P_DEFAULT, create_params, H5P_DEFAULT);
+    fprintf(stderr,"hdf5_write(%d='%s', %d) %d (%d)\n",fd,d->name,(int)count,(int)d->offset[0],(int)d->dataset->length);
+    if (d->dataset->set < 0) {
+        d->dataset->space = H5Screate_simple(RANK, d->dataset->dims, maxdims);
+        d->dataset->set = H5Dcreate2(hdf_file, d->name, H5T_NATIVE_CHAR, d->dataset->space, H5P_DEFAULT, create_params, H5P_DEFAULT);
     } else if (resize) {
-        H5Dset_extent(d->set, d->dims);
+        H5Dset_extent(d->dataset->set, d->dataset->dims);
     }
     hsize_t hs_count[RANK];
     hs_count[0]=count;
-    hid_t filespace = H5Dget_space(d->set);
+    hid_t filespace = H5Dget_space(d->dataset->set);
     hid_t dataspace = H5Screate_simple(RANK, hs_count, NULL);
     H5Sselect_hyperslab(filespace, H5S_SELECT_SET, d->offset, NULL, hs_count, NULL);
 
-    H5Dwrite(d->set,H5T_NATIVE_CHAR,dataspace,filespace,H5P_DEFAULT,buf);
+    H5Dwrite(d->dataset->set,H5T_NATIVE_CHAR,dataspace,filespace,H5P_DEFAULT,buf);
     H5Sclose(filespace);
     H5Sclose(dataspace);
-    if ((d->offset[0]+count) > d->length)
-        d->length = d->offset[0]+count;
+    if ((d->offset[0]+count) > d->dataset->length)
+        d->dataset->length = d->offset[0]+count;
     d->offset[0]+=count;
     return(count);
 }
@@ -220,22 +235,22 @@ int hdf5_read(int fd, void *buf, size_t count) {
     }
     hdf5_data_t * d = hdf5_data[fd];
     // end of file
-    if (d->offset[0] >= d->length)
+    if (d->offset[0] >= d->dataset->length)
         return(0);
-    if (d->set < 0)
+    if (d->dataset->set < 0)
         return(0);
-    size_t remaining_count = d->length - d->offset[0];
+    size_t remaining_count = d->dataset->length - d->offset[0];
     if (remaining_count > count)
         remaining_count = count;
-    fprintf(stderr,"hdf5_read(%d='%s', %d) %d (%d)\n",fd,d->name,(int)count,(int)d->offset[0],(int)d->length);
+    fprintf(stderr,"hdf5_read(%d='%s', %d) %d (%d)\n",fd,d->name,(int)count,(int)d->offset[0],(int)d->dataset->length);
 
     hsize_t hs_count[RANK];
     hs_count[0]=remaining_count;
-    hid_t filespace = H5Dget_space(d->set);
+    hid_t filespace = H5Dget_space(d->dataset->set);
     hid_t dataspace = H5Screate_simple(RANK, hs_count, NULL);
     H5Sselect_hyperslab(filespace, H5S_SELECT_SET, d->offset, NULL, hs_count, NULL);
 
-    H5Dread(d->set,H5T_NATIVE_CHAR,dataspace,filespace,H5P_DEFAULT,buf);
+    H5Dread(d->dataset->set,H5T_NATIVE_CHAR,dataspace,filespace,H5P_DEFAULT,buf);
     H5Sclose(filespace);
     H5Sclose(dataspace);
     d->offset[0]+=remaining_count;
@@ -254,7 +269,7 @@ int hdf5_lseek(int fd, off_t offset, int whence) {
             d->offset[0]=offset;
             break;
         case SEEK_END:
-            d->offset[0]=d->length+offset;
+            d->offset[0]=d->dataset->length+offset;
             break;
         case SEEK_CUR:
             d->offset[0]+=offset;
@@ -315,11 +330,11 @@ int hdf5_fstat64(int fd, struct stat64 *buf) {
     hdf5_data_t * d = hdf5_data[fd];
     (*buf)=hdf_file_stat;
     buf->st_blksize=chunk_dims[0];
-    buf->st_size=d->length;
-    buf->st_blocks=d->length / 512 + 1;
-    if (d->set >= 0) {
+    buf->st_size=d->dataset->length;
+    buf->st_blocks=d->dataset->length / 512 + 1;
+    if (d->dataset->set >= 0) {
         H5O_info_t object_info;
-        herr_t status = H5Oget_info(d->set,&object_info);
+        herr_t status = H5Oget_info(d->dataset->set,&object_info);
         if (status < 0) {
             fprintf(stderr,"hdf5_fstat64: error getting status for '%s'\n",d->name);
             errno=EIO;
