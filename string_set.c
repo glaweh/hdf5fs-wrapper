@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "string_set.h"
-int string_set_add(string_set * self,const char *pathname) {
+int string_set_add(string_set * self,const char *pathname, void * attribute) {
     int insert_pos=0;
     if (self->nitems>=CLOSED_EMPTY_MAX-1) {
         fprintf(stderr,"string_set_add: too many closed empty files\n");
@@ -40,6 +40,7 @@ int string_set_add(string_set * self,const char *pathname) {
         return(0);
     }
     strcpy(self->items[insert_pos]->string,pathname);
+    self->items[insert_pos]->attribute = attribute;
     self->nitems++;
     return(1);
 }

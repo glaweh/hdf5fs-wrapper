@@ -159,7 +159,7 @@ int hdf5_close(int fd) {
             return(-1);
         }
     } else {
-        string_set_add(closed_empty_files, d->name);
+        string_set_add(closed_empty_files, d->name, NULL);
     }
     if ((d->space >=0) && ((status = H5Sclose(d->space)) < 0)) {
         fprintf(stderr,"error closing dataspace '%s' %d\n",d->name,status);
