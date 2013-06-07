@@ -23,9 +23,9 @@ string_set * closed_empty_files;
 typedef struct {
     hid_t   space;
     hid_t   set;
-    int     append;
     hsize_t dims[RANK];
-    int length;
+    int     length;
+    int     append;
     hsize_t offset[RANK];
     char  name[PATH_MAX];
 } hdf5_data_t;
