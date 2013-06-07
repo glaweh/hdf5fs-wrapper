@@ -14,7 +14,7 @@ int string_set_add(string_set * self,const char *pathname) {
         while (right>=left) {
             int middle=(right+left)/2;
 //    fprintf(stderr,"string_set_add: middle %d %d %d (%d)\n",middle,left,right,self->nitems);
-            int cmpres=strcmp(self->items[middle],pathname);
+            int cmpres=strcmp(self->items[middle]->string,pathname);
 //    fprintf(stderr,"string_set_add: cmp '%s' '%s',  %d\n",self->items[middle],pathname,cmpres);
             if (cmpres==0)
                 return(1);
@@ -34,12 +34,12 @@ int string_set_add(string_set * self,const char *pathname) {
             self->items[i]=self->items[i-1];
         }
     }
-    self->items[insert_pos]=malloc(strlen(pathname)+1);
+    self->items[insert_pos]=malloc(sizeof(string_set_member) + sizeof(char)*(strlen(pathname)+1));
     if (self->items[insert_pos]==NULL) {
         fprintf(stderr,"string_set_add: malloc error\n");
         return(0);
     }
-    strcpy(self->items[insert_pos],pathname);
+    strcpy(self->items[insert_pos]->string,pathname);
     self->nitems++;
     return(1);
 }
@@ -51,7 +51,7 @@ int string_set_find(string_set * self,const char *pathname) {
     int right=self->nitems-1;
     while (right>=left) {
         int middle=(right+left)/2;
-        int cmpres=strcmp(self->items[middle],pathname);
+        int cmpres=strcmp(self->items[middle]->string,pathname);
         if (cmpres==0) {
             item_pos=middle;
             break;
@@ -78,7 +78,7 @@ int string_set_remove(string_set * self, const char *pathname) {
 void string_set_dump(string_set * self) {
     int i;
     for (i=0;i<self->nitems;i++) {
-        fprintf(stderr,"string_set_dump: %s\n",self->items[i]);
+        fprintf(stderr,"string_set_dump: %s\n",self->items[i]->string);
     }
 }
 int string_set_free(string_set * self) {
