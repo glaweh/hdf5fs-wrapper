@@ -24,7 +24,6 @@ typedef struct {
     hid_t   space;
     hid_t   set;
     int     append;
-    int     truncate;
     hsize_t dims[RANK];
     int length;
     hsize_t offset[RANK];
