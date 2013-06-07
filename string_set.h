@@ -9,6 +9,7 @@ typedef struct {
     int nitems;
     string_set_member * items[CLOSED_EMPTY_MAX];
 } string_set;
+string_set * string_set_new();
 int  string_set_add(string_set * self, const char *pathname,void * attribute);
 int  string_set_remove(string_set * self, const char *pathname);
 int  string_set_find(string_set * self, const char *pathname);

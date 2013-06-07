@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "string_set.h"
+string_set * string_set_new() {
+    string_set * self = malloc(sizeof(string_set));
+    self->nitems=0;
+    return(self);
+}
 int string_set_add(string_set * self,const char *pathname, void * attribute) {
     int insert_pos=0;
     if (self->nitems>=CLOSED_EMPTY_MAX-1) {
@@ -89,5 +94,6 @@ int string_set_free(string_set * self) {
             free(self->items[i]);
         }
     }
+    free(self);
     return(1);
 }

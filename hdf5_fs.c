@@ -64,8 +64,7 @@ int hdf5_fs_init(const char * hdf_filename) {
     if (stat64(hdf_filename,&hdf_file_stat) < 0) {
         fprintf(stderr,"error calling stat64 on '%s', %s\n",hdf_filename,strerror(errno));
     }
-    closed_empty_files=malloc(sizeof(string_set));
-    closed_empty_files->nitems=0;
+    closed_empty_files=string_set_new();
     return(1);
 }
 
@@ -77,7 +76,6 @@ int hdf5_fs_fini() {
     }
     string_set_dump(closed_empty_files);
     string_set_free(closed_empty_files);
-    free(closed_empty_files);
     H5Fclose(hdf_file);
     return(1);
 }
