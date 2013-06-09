@@ -54,13 +54,17 @@ int hdf5_fs_init(const char * hdf_filename) {
     fprintf(stderr,"hdf_file opened: '%s', %d\n",hdf_filename,hdf_file);
 #endif
     if (hdf_file < 0) {
+#ifdef DEBUG
         fprintf(stderr,"hdf_file error\n");
+#endif
         return(-1);
     }
     create_params = H5Pcreate(H5P_DATASET_CREATE);
     status        = H5Pset_chunk(create_params, 1, chunk_dims);
     if (status < 0) {
+#ifdef DEBUG
         fprintf(stderr,"error setting um chunking\n");
+#endif
         return(-1);
     }
     int i;
@@ -68,7 +72,9 @@ int hdf5_fs_init(const char * hdf_filename) {
         hdf5_data[i]=NULL;
     last_handle = -1;
     if (stat64(hdf_filename,&hdf_file_stat) < 0) {
+#ifdef DEBUG
         fprintf(stderr,"error calling stat64 on '%s', %s\n",hdf_filename,strerror(errno));
+#endif
     }
     closed_empty_files=string_set_new();
     return(1);
@@ -91,13 +97,17 @@ int hdf5_open(int fd, const char *pathname, int flags) {
         fprintf(stderr,"fd already in use\n");
         return(-1);
     }
+#ifdef DEBUG_HDF5FS
     fprintf(stderr,"hdf5_open(%d,'%s',%o)\n",fd,pathname,flags);
+#endif
     int set_exists = _hdf5_path_exists(pathname);
 
     hid_t  set=-1;
     if (set_exists) {
         if (((flags & O_CREAT)>0) && ((flags & O_EXCL)>0)) {
+#ifdef DEBUG
             fprintf(stderr,"dataset already exists %d -> '%s'\n",fd,pathname);
+#endif
             errno=EEXIST;
             return(-1);
         }
@@ -105,14 +115,18 @@ int hdf5_open(int fd, const char *pathname, int flags) {
     }
     hdf5_data[fd] = malloc(sizeof(hdf5_data_t));
     if (hdf5_data[fd] == NULL) {
+#ifdef DEBUG
         fprintf(stderr,"error allocating hdf5_data[%d]\n",fd);
+#endif
         errno = ENOMEM;
         return(-1);
     }
     hdf5_data_t * d = hdf5_data[fd];
     d->dataset  = malloc(sizeof(hdf5_dataset_info_t));
     if (hdf5_data[fd]->dataset == NULL) {
+#ifdef DEBUG
         fprintf(stderr,"error allocating hdf5_data[%d]->dataset\n",fd);
+#endif
         errno = ENOMEM;
         return(-1);
     }
@@ -127,7 +141,9 @@ int hdf5_open(int fd, const char *pathname, int flags) {
             d->dataset->dims[0] = 1; // hdf5 does not zero-length datasets. make dims[0]=length+1;
             return(fd);
         } else {
+#ifdef DEBUG
             fprintf(stderr,"error opening dataset '%s' %d\n",hdf5_data[fd]->name,hdf5_data[fd]->dataset->set);
+#endif
             free(hdf5_data[fd]->dataset);
             free(hdf5_data[fd]);
             hdf5_data[fd]=NULL;
@@ -152,7 +168,9 @@ int hdf5_open(int fd, const char *pathname, int flags) {
 int hdf5_close(int fd) {
     int status;
     if (hdf5_data[fd] == NULL) {
+#ifdef DEBUG
         fprintf(stderr,"close on unknown fd %d\n",fd);
+#endif
         errno = EBADF;
         return(-1);
     }
@@ -165,7 +183,9 @@ int hdf5_close(int fd) {
             H5Dset_extent(d->dataset->set, d->dataset->dims);
         }
         if ((status = H5Dclose(hdf5_data[fd]->dataset->set)) < 0) {
+#ifdef DEBUG
             fprintf(stderr,"error closing dataset '%s' %d\n",d->name,status);
+#endif
             errno = EIO;
             return(-1);
         }
@@ -173,7 +193,9 @@ int hdf5_close(int fd) {
         string_set_add(closed_empty_files, d->name, NULL);
     }
     if ((d->dataset->space >=0) && ((status = H5Sclose(d->dataset->space)) < 0)) {
+#ifdef DEBUG
         fprintf(stderr,"error closing dataspace '%s' %d\n",d->name,status);
+#endif
         errno = EIO;
         return(-1);
     }
@@ -190,7 +212,9 @@ int hdf5_write(int fd, const void *buf, size_t count) {
     if (count == 0)
         return(0);
     if (hdf5_data[fd] == NULL) {
+#ifdef DEBUG
         fprintf(stderr,"write on unknown fd %d\n",fd);
+#endif
         errno = EBADF;
         return(-1);
     }
@@ -203,7 +227,9 @@ int hdf5_write(int fd, const void *buf, size_t count) {
         resize = 1;
         d->dataset->dims[0]=needed_dim;
     }
+#ifdef DEBUG_HDF5FS
     fprintf(stderr,"hdf5_write(%d='%s', %d) %d (%d)\n",fd,d->name,(int)count,(int)d->offset[0],(int)d->dataset->length);
+#endif
     if (d->dataset->set < 0) {
         d->dataset->space = H5Screate_simple(RANK, d->dataset->dims, maxdims);
         d->dataset->set = H5Dcreate2(hdf_file, d->name, H5T_NATIVE_CHAR, d->dataset->space, H5P_DEFAULT, create_params, H5P_DEFAULT);
@@ -229,7 +255,9 @@ int hdf5_read(int fd, void *buf, size_t count) {
     if (count == 0)
         return(0);
     if (hdf5_data[fd] == NULL) {
+#ifdef DEBUG
         fprintf(stderr,"write on unknown fd %d\n",fd);
+#endif
         errno = EBADF;
         return(-1);
     }
@@ -242,7 +270,9 @@ int hdf5_read(int fd, void *buf, size_t count) {
     size_t remaining_count = d->dataset->length - d->offset[0];
     if (remaining_count > count)
         remaining_count = count;
+#ifdef DEBUG_HDF5FS
     fprintf(stderr,"hdf5_read(%d='%s', %d) %d (%d)\n",fd,d->name,(int)count,(int)d->offset[0],(int)d->dataset->length);
+#endif
 
     hsize_t hs_count[RANK];
     hs_count[0]=remaining_count;
@@ -259,7 +289,9 @@ int hdf5_read(int fd, void *buf, size_t count) {
 
 int hdf5_lseek(int fd, off_t offset, int whence) {
     if (hdf5_data[fd] == NULL) {
-        fprintf(stderr,"write on unknown fd %d\n",fd);
+#ifdef DEBUG
+        fprintf(stderr,"lseek on unknown fd %d\n",fd);
+#endif
         errno = EBADF;
         return(-1);
     }
@@ -276,11 +308,15 @@ int hdf5_lseek(int fd, off_t offset, int whence) {
             break;
         default:
             errno=EINVAL;
+#ifdef DEBUG
             fprintf(stderr,"hdf5_lseek: illegal whence: %d\n",whence);
+#endif
             return(-1);
             break;
     }
+#ifdef DEBUG_HDF5FS
     fprintf(stderr,"hdf5_lseek(%d='%s',%d,%d) = %d\n",fd,d->name,(int)offset,whence,(int)d->offset[0]);
+#endif
     return(d->offset[0]);
 }
 
@@ -299,7 +335,9 @@ int hdf5_stat64(const char *pathname, struct stat64 *buf) {
     }
     herr_t status = H5Oget_info_by_name(hdf_file,pathname,&object_info,H5P_DEFAULT);
     if (status < 0) {
+#ifdef DEBUG
         fprintf(stderr,"hdf5_stat64: error getting status for '%s'\n",pathname);
+#endif
         errno=ENOENT;
         return(-1);
     }
@@ -317,13 +355,17 @@ int hdf5_stat64(const char *pathname, struct stat64 *buf) {
         buf->st_size=0;
         buf->st_blocks=0;
     }
+#ifdef DEBUG_HDF5FS
     fprintf(stderr,"hdf5_stat64: size of '%s': %d\n",pathname,(int)buf->st_size);
+#endif
     return(0);
 }
 
 int hdf5_fstat64(int fd, struct stat64 *buf) {
     if (hdf5_data[fd] == NULL) {
+#ifdef DEBUG
         fprintf(stderr,"write on unknown fd %d\n",fd);
+#endif
         errno = EBADF;
         return(-1);
     }
@@ -336,7 +378,9 @@ int hdf5_fstat64(int fd, struct stat64 *buf) {
         H5O_info_t object_info;
         herr_t status = H5Oget_info(d->dataset->set,&object_info);
         if (status < 0) {
+#ifdef DEBUG
             fprintf(stderr,"hdf5_fstat64: error getting status for '%s'\n",d->name);
+#endif
             errno=EIO;
             return(-1);
         }
@@ -344,7 +388,9 @@ int hdf5_fstat64(int fd, struct stat64 *buf) {
         buf->st_mtime  =object_info.mtime;
         buf->st_ctime  =object_info.ctime;
     }
+#ifdef DEBUG_HDF5FS
     fprintf(stderr,"hdf5_fstat64: size of '%s': %d\n",d->name,(int)buf->st_size);
+#endif
     return(0);
 }
 

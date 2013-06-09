@@ -9,7 +9,9 @@ char *rel2abs(const char *orig_path, char *new_path) {
         strncpy(tmp_path,orig_path,PATH_MAX);
     } else {
         if (getcwd(tmp_path,PATH_MAX) == NULL) {
+#ifdef DEBUG
             fprintf(stderr,"error calling getwd\n");
+#endif
             return(NULL);
         }
         int len=strnlen(tmp_path,PATH_MAX);

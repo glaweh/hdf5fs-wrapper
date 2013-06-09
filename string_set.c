@@ -10,7 +10,9 @@ string_set * string_set_new() {
 int string_set_add(string_set * self,const char *pathname, void * attribute) {
     int insert_pos=0;
     if (self->nitems>=CLOSED_EMPTY_MAX-1) {
+#ifdef DEBUG
         fprintf(stderr,"string_set_add: too many closed empty files\n");
+#endif
         return(0);
     }
     if (self->nitems!=0) {
@@ -18,9 +20,7 @@ int string_set_add(string_set * self,const char *pathname, void * attribute) {
         int right=self->nitems-1;
         while (right>=left) {
             int middle=(right+left)/2;
-//    fprintf(stderr,"string_set_add: middle %d %d %d (%d)\n",middle,left,right,self->nitems);
             int cmpres=strcmp(self->items[middle]->string,pathname);
-//    fprintf(stderr,"string_set_add: cmp '%s' '%s',  %d\n",self->items[middle],pathname,cmpres);
             if (cmpres==0)
                 return(1);
             if (cmpres > 0) {
@@ -32,7 +32,9 @@ int string_set_add(string_set * self,const char *pathname, void * attribute) {
         insert_pos=left;
     }
 
+#ifdef DEBUG_STRINGSET
     fprintf(stderr,"string_set_add: adding '%s'\n",pathname);
+#endif
     if (insert_pos < self->nitems) {
         int i;
         for (i=self->nitems;i>insert_pos;i--) {
@@ -41,7 +43,9 @@ int string_set_add(string_set * self,const char *pathname, void * attribute) {
     }
     self->items[insert_pos]=malloc(sizeof(string_set_member) + sizeof(char)*(strlen(pathname)+1));
     if (self->items[insert_pos]==NULL) {
+#ifdef DEBUG
         fprintf(stderr,"string_set_add: malloc error\n");
+#endif
         return(0);
     }
     strcpy(self->items[insert_pos]->string,pathname);

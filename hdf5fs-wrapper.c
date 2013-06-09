@@ -168,6 +168,7 @@ int open64(const char *pathname, int flags, ...) {
     fprintf(stderr,"open64_called: '%s'\n",pathname);
 #endif
     if ((match_idx=map_filename(pathname,mapped)) >= 0) {
+#ifdef DEBUG
         char *modestr=WTF_str;
         if ((flags & O_ACCMODE) == O_RDWR) {
             modestr=rdwr_str;
@@ -176,7 +177,6 @@ int open64(const char *pathname, int flags, ...) {
         } else if ((flags & O_ACCMODE) == O_WRONLY) {
             modestr=wron_str;
         }
-#ifdef DEBUG
         fprintf(stderr,"open64_mapped: '%s' to '%s', 0x%x(%s), nfiles: %d\n",pathname,mapped,flags,modestr,nfiles);
 #endif
         int fd;
