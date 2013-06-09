@@ -263,7 +263,7 @@ FILE *fopen(const char *pathname,const char *mode) {
         strncpy(filename_table+PATH_MAX*fd,mapped,PATH_MAX);
         file_table[fd]=file;
         basename_idx[fd]=match_idx;
-        int flags;
+        int flags=O_RDONLY;
         if (mode[1] == '+') {
             switch (mode[0]) {
                 case 'r' :
