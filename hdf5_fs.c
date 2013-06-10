@@ -19,8 +19,9 @@ hsize_t chunk_dims[1]={1024*64};
 hsize_t maxdims[1] = {H5S_UNLIMITED};
 struct stat64 hdf_file_stat;
 string_set * closed_empty_files;
+string_set * datasets;
 
-typedef struct hdf_dataset_info {
+typedef struct hdf5_dataset_info {
     hid_t   space;
     hid_t   set;
     hsize_t dims[RANK];
@@ -39,6 +40,7 @@ typedef struct {
 
 int     last_handle=-1;
 hdf5_data_t * hdf5_data[HANDLES_MAX];
+hdf5_dataset_info_t dataset_info_list;
 
 int _hdf5_path_exists(const char *pathname);
 
