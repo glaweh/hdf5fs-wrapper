@@ -84,6 +84,15 @@ void __attribute__ ((constructor)) my_init() {
     _fseek     = dlsym(RTLD_NEXT, "fseek");
     _ftell     = dlsym(RTLD_NEXT, "ftell");
     ___fxstat64= dlsym(RTLD_NEXT, "__fxstat64");
+    char * env_ptr;
+    env_ptr=getenv("HDF5FS_BASE");
+    if (env_ptr != NULL) {
+        strncpy(scratch_base,env_ptr,PATH_MAX);
+    }
+    env_ptr=getenv("HDF5FS_FILE");
+    if (env_ptr != NULL) {
+        strncpy(hdf_file,env_ptr,PATH_MAX);
+    }
     rel2abs(scratch_base,scratch_abs);
 #ifdef DEBUG
     fprintf(stderr,"scratch_abs: '%s'\n",scratch_abs);
