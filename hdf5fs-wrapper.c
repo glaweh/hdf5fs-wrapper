@@ -95,7 +95,8 @@ void __attribute__ ((constructor)) my_init() {
     }
     rel2abs(scratch_base,scratch_abs);
 #ifdef DEBUG
-    fprintf(stderr,"scratch_abs: '%s'\n",scratch_abs);
+    pid_t pid = getpid();
+    fprintf(stderr,"scratch_abs: '%s', pid %d\n",scratch_abs,(int)pid);
 #endif
     int i;
     for (i=0;i<HANDLES_MAX;i++) handle_table[i]=0;
