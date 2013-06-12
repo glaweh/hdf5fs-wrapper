@@ -19,6 +19,7 @@
 #include "path_util.h"
 #include "hdf5_fs.h"
 #include "wrapper_limits.h"
+#include "env_util.h"
 
 int (*_open64)(const char *, int, ...) = NULL;
 int (*_mkdir)(const char *, mode_t) = NULL;
@@ -37,7 +38,7 @@ long int (*_ftell)(FILE *stream);
 int (*___fxstat64)(int __ver, int __fildes, struct stat64 *__stat_buf);
 
 char scratch_base[PATH_MAX] = "./SCRATCH/*";
-char hdf_file[PATH_MAX] = "./scratch.h5";
+char hdf_file[PATH_MAX] = "./scratch${OMPI_COMM_WORLD_RANK:%04d:0}.h5";
 char tmpdir[PATH_MAX];
 char hdf_abs[PATH_MAX];
 char scratch_abs[PATH_MAX];
@@ -104,7 +105,12 @@ void __attribute__ ((constructor)) my_init() {
     for (i=0;i<HANDLES_MAX*PATH_MAX;i++) filename_table[i]=0;
     for (i=0;i<HANDLES_MAX;i++) basename_idx[i]=0;
     tmpdir[0]=0;
-    rel2abs(hdf_file,hdf_abs);
+    char hdf_expanded[PATH_MAX];
+    if (strn_env_expand(hdf_file,hdf_expanded,PATH_MAX) < 0) {
+        fprintf(stderr,"error expanding hdf filename '%s'\n",hdf_file);
+        exit(1);
+    }
+    rel2abs(hdf_expanded,hdf_abs);
     if (! hdf5_fs_init(hdf_abs)) {
         fprintf(stderr,"error initializing hdf5_fs\n");
         exit(1);
