@@ -2,6 +2,7 @@
 #include <limits.h>
 #include <string.h>
 #include <unistd.h>
+#include "logger.h"
 #include "path_util.h"
 char *rel2abs(const char *orig_path, char *new_path) {
     char tmp_path[PATH_MAX];
@@ -9,9 +10,7 @@ char *rel2abs(const char *orig_path, char *new_path) {
         strncpy(tmp_path,orig_path,PATH_MAX);
     } else {
         if (getcwd(tmp_path,PATH_MAX) == NULL) {
-#ifdef DEBUG
-            fprintf(stderr,"error calling getwd\n");
-#endif
+            LOG_WARN("error calling getwd");
             return(NULL);
         }
         int len=strnlen(tmp_path,PATH_MAX);
@@ -108,7 +107,7 @@ int pathcmp(const char *pattern_path,const char *test_path) {
                 const char *end_tmp_pattern=end_block_pattern;
                 const char *end_tmp_test=end_block_test;
                 while (*(end_tmp_pattern-1) != '*') {
-                    // printf("cmp: %c %c\n",*(end_tmp_pattern-1),*(end_tmp_test-1));
+                    LOG_DBG3("cmp: %c %c",*(end_tmp_pattern-1),*(end_tmp_test-1));
                     if ((*(end_tmp_pattern-1)!=*(end_tmp_test-1)) && (*(end_tmp_pattern-1)!='?')) {
                         return(-1);
                     }
@@ -125,14 +124,14 @@ int pathcmp(const char *pattern_path,const char *test_path) {
                         pattern_len--;
                         end_tmp_pattern--;
                     }
-#ifdef DEBUG_PATHCMP
+#if (LOG_LEVEL >= LOG_DBG3)
                     char tmp_str[PATH_MAX];
                     strncpy(tmp_str,pattern_path,pattern_len);
                     tmp_str[pattern_len]=0;
-                    printf("to_cmp pat: (%d) '%s'\n", pattern_len,tmp_str);
+                    LOG_DBG3("to_cmp pat: (%d) '%s'", pattern_len,tmp_str);
                     strncpy(tmp_str,test_path,test_len);
                     tmp_str[test_len]=0;
-                    printf("to_cmp tst: (%d) '%s'\n", test_len,tmp_str);
+                    LOG_DBG3("to_cmp tst: (%d) '%s'", test_len,tmp_str);
 #endif
                     if (test_len < (pattern_len-pattern_asterisk))
                         return(-1);
@@ -143,9 +142,7 @@ int pathcmp(const char *pattern_path,const char *test_path) {
                             j=0;
                             pattern_path++;
                         }
-#ifdef DEBUG_PATHCMP
-                        printf("cmp p/t: %c %c\n",*pattern_path,*test_path);
-#endif
+                        LOG_DBG3("cmp p/t: %c %c",*pattern_path,*test_path);
                         if ((*pattern_path == *test_path) || (*pattern_path == '?')) {
                             pattern_path++;
                             j++;

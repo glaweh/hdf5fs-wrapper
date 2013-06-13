@@ -16,6 +16,7 @@
 #include <fcntl.h>
 #include <stdarg.h>
 
+#include "logger.h"
 #include "path_util.h"
 #include "hdf5_fs.h"
 #include "wrapper_limits.h"
@@ -95,10 +96,7 @@ void __attribute__ ((constructor)) my_init() {
         strncpy(hdf_file,env_ptr,PATH_MAX);
     }
     rel2abs(scratch_base,scratch_abs);
-#ifdef DEBUG
-    pid_t pid = getpid();
-    fprintf(stderr,"scratch_abs: '%s', pid %d\n",scratch_abs,(int)pid);
-#endif
+    LOG_INFO("scratch_abs: '%s'",scratch_abs);
     int i;
     for (i=0;i<HANDLES_MAX;i++) handle_table[i]=0;
     for (i=0;i<HANDLES_MAX;i++) file_table[i]=NULL;
@@ -107,12 +105,12 @@ void __attribute__ ((constructor)) my_init() {
     tmpdir[0]=0;
     char hdf_expanded[PATH_MAX];
     if (strn_env_expand(hdf_file,hdf_expanded,PATH_MAX) < 0) {
-        fprintf(stderr,"error expanding hdf filename '%s'\n",hdf_file);
+        LOG_FATAL("error expanding hdf filename '%s'",hdf_file);
         exit(1);
     }
     rel2abs(hdf_expanded,hdf_abs);
     if (! hdf5_fs_init(hdf_abs)) {
-        fprintf(stderr,"error initializing hdf5_fs\n");
+        LOG_FATAL("error initializing hdf5_fs");
         exit(1);
     }
 }
@@ -130,9 +128,7 @@ int map_filename(const char *filename, char *mapped) {
     if (tmpdir[0]==0) {
         strncpy(tmpdir,mapped0,PATH_MAX);
         *(tmpdir+(baseptr-mapped0))=0;
-#ifdef DEBUG
-        fprintf(stderr,"tmpdir set to '%s'\n",tmpdir);
-#endif
+        LOG_INFO("tmpdir set to '%s'",tmpdir);
     }
     strncpy(mapped,tmpdir,PATH_MAX);
     char *dstbase=mapped+strnlen(mapped,PATH_MAX);
@@ -141,24 +137,17 @@ int map_filename(const char *filename, char *mapped) {
         dstbase++;
         baseptr++;
     }
-#ifdef DEBUG_WRAPPER
-    fprintf(stderr,"map_filename: %d == pathcmp('%s','%s'), base: '%s'\n",
+    LOG_DBG("%d == pathcmp('%s','%s'), base: '%s'",
             match_index,scratch_abs,mapped,
-            mapped+strlen(tmpdir)
-            );
-#endif
+            mapped+strlen(tmpdir));
     return(strlen(tmpdir));
 }
 
 int mkdir(const char *pathname, mode_t mode) {
     char mapped[PATH_MAX];
-#ifdef DEBUG_WRAPPER
-    fprintf(stderr,"mkdir_called: '%s'\n",pathname);
-#endif
+    LOG_DBG("mkdir_called: '%s'",pathname);
     if (map_filename(pathname,mapped)>=0) {
-#ifdef DEBUG
-        fprintf(stderr,"mkdir_mapped: '%s' to '%s'\n",pathname,mapped);
-#endif
+        LOG_INFO("mapped: '%s' to '%s'",pathname,mapped);
         return(0);
     }
     return _mkdir(pathname,mode);
@@ -180,11 +169,9 @@ int open64(const char *pathname, int flags, ...) {
         va_end(argp);
     }
 
-#ifdef DEBUG_WRAPPER
-    fprintf(stderr,"open64_called: '%s'\n",pathname);
-#endif
+    LOG_DBG("called: '%s'",pathname);
     if ((match_idx=map_filename(pathname,mapped)) >= 0) {
-#ifdef DEBUG
+#if (LOG_LEVEL >= LOG_LEVEL_INFO)
         char *modestr=WTF_str;
         if ((flags & O_ACCMODE) == O_RDWR) {
             modestr=rdwr_str;
@@ -193,7 +180,7 @@ int open64(const char *pathname, int flags, ...) {
         } else if ((flags & O_ACCMODE) == O_WRONLY) {
             modestr=wron_str;
         }
-        fprintf(stderr,"open64_mapped: '%s' to '%s', 0x%x(%s), nfiles: %d\n",pathname,mapped,flags,modestr,nfiles);
+        LOG_INFO("mapped: '%s' to '%s', 0x%x(%s), nfiles: %d",pathname,mapped,flags,modestr,nfiles);
 #endif
         int fd;
 #ifdef BOTH_HDF_AND_FILE
@@ -204,7 +191,7 @@ int open64(const char *pathname, int flags, ...) {
 #endif
         if (fd < 0) return(fd);
         if (fd > HANDLES_MAX) {
-            fprintf(stderr,"filehandle out of range\n");
+            LOG_FATAL("filehandle out of range: %d",fd);
             exit(-1);
         }
         nfiles++;
@@ -220,13 +207,9 @@ int open64(const char *pathname, int flags, ...) {
 int __xstat64(int version, const char *pathname, struct stat64 *buf) {
     char mapped[PATH_MAX];
     int match_idx;
-#ifdef DEBUG_WRAPPER
-    fprintf(stderr,"__xstat64_called: '%s'\n",pathname);
-#endif
+    LOG_DBG("called: '%s'",pathname);
     if ((match_idx=map_filename(pathname,mapped)) >= 0) {
-#ifdef DEBUG
-        fprintf(stderr,"__xstat64_mapped: '%s' to '%s'\n",pathname,mapped);
-#endif
+        LOG_INFO("mapped: '%s' to '%s'",pathname,mapped);
         return(hdf5_stat64(mapped+match_idx,buf));
 //        return(___xstat64(version,mapped,buf));
     }
@@ -235,14 +218,10 @@ int __xstat64(int version, const char *pathname, struct stat64 *buf) {
 
 int unlink(const char *pathname) {
     char mapped[PATH_MAX];
-#ifdef DEBUG_WRAPPER
-    fprintf(stderr,"unlink_called: '%s'\n",pathname);
-#endif
+    LOG_DBG("called: '%s'",pathname);
     int match_index;
     if ((match_index=map_filename(pathname,mapped)) >= 0) {
-#ifdef DEBUG
-        fprintf(stderr,"unlink_mapped: '%s' to '%s'\n",pathname,mapped);
-#endif
+        LOG_INFO("mapped: '%s' to '%s'",pathname,mapped);
         int hres = hdf5_unlink(mapped+match_index);
 #ifdef BOTH_HDF_AND_FILE
         int fres = _unlink(mapped);
@@ -254,13 +233,9 @@ int unlink(const char *pathname) {
 FILE *fopen(const char *pathname,const char *mode) {
     char mapped[PATH_MAX];
     int match_idx;
-#ifdef DEBUG_WRAPPER
-    fprintf(stderr,"fopen_called: %s\n",pathname);
-#endif
+    LOG_DBG("called: '%s'",pathname);
     if ((match_idx=map_filename(pathname,mapped)) >= 0) {
-#ifdef DEBUG
-        fprintf(stderr,"fopen_mapped: '%s' to '%s', mode: %s, nfiles: %d\n",pathname,mapped,mode,nfiles);
-#endif
+        LOG_INFO("mapped: '%s' to '%s', mode: %s, nfiles: %d",pathname,mapped,mode,nfiles);
         FILE *file;
 #ifdef BOTH_HDF_AND_FILE
         file =_fopen(mapped,mode);
@@ -272,7 +247,7 @@ FILE *fopen(const char *pathname,const char *mode) {
         nfiles++;
         int fd = fileno(file);
         if (fd > HANDLES_MAX) {
-            fprintf(stderr,"filehandle out of range\n");
+            LOG_FATAL("filehandle out of range");
             exit(-1);
         }
         handle_table[fd]=1;
@@ -306,7 +281,7 @@ FILE *fopen(const char *pathname,const char *mode) {
             }
         }
         if (hdf5_open(fd,mapped+match_idx,flags) < 0) {
-            fprintf(stderr,"error hdf5_opening '%s'\n",mapped+match_idx);
+            LOG_INFO("error hdf5_opening '%s'",mapped+match_idx);
         }
         return(file);
     }
@@ -315,9 +290,7 @@ FILE *fopen(const char *pathname,const char *mode) {
 int close(int fd) {
     if (! handle_table[fd])
         return(_close(fd));
-#ifdef DEBUG
-    fprintf(stderr,"close: '%s', nfiles %d\n", filename_table+fd*PATH_MAX,nfiles);
-#endif
+    LOG_INFO("called: '%s', nfiles %d", filename_table+fd*PATH_MAX,nfiles);
     nfiles--;
     handle_table[fd]=0;
     file_table[fd]=NULL;
@@ -330,9 +303,7 @@ int fclose(FILE * file) {
     int fd=fileno(file);
     if (! handle_table[fd])
         return(_fclose(file));
-#ifdef DEBUG
-    fprintf(stderr,"fclose: '%s', nfiles %d\n", filename_table+fd*PATH_MAX,nfiles);
-#endif
+    LOG_INFO("called: '%s', nfiles %d", filename_table+fd*PATH_MAX,nfiles);
     handle_table[fd]=0;
     file_table[fd]=NULL;
     basename_idx[fd]=0;
@@ -342,18 +313,14 @@ int fclose(FILE * file) {
     return(_fclose(file));
 }
 void __attribute__ ((destructor)) my_fini(void) {
-#ifdef DEBUG_WRAPPER
-    fprintf(stderr,"my_fini called\n");
-#endif
+    LOG_INFO("my_fini called");
     hdf5_fs_fini();
 }
 size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream) {
     int fd=fileno(stream);
     if (! handle_table[fd])
         return(_fread(ptr,size,nmemb,stream));
-#ifdef DEBUG
-    fprintf(stderr,"fread: '%s'\n", filename_table+fd*PATH_MAX);
-#endif
+    LOG_DBG(stderr,"'%s' %d", filename_table+fd*PATH_MAX, (int)size*nmemb);
     int count = hdf5_read(fd,ptr,size*nmemb);
 #ifdef BOTH_HDF_AND_FILE
     _fseek(stream,count,SEEK_CUR);
@@ -365,9 +332,7 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
     int fd=fileno(stream);
     if (! handle_table[fd])
         return(_fwrite(ptr,size,nmemb,stream));
-#ifdef DEBUG
-    fprintf(stderr,"fwrite: '%s'\n", filename_table+fd*PATH_MAX);
-#endif
+    LOG_DBG("'%s', %d", filename_table+fd*PATH_MAX,(int)size*nmemb);
     size_t fwritten = nmemb;
 #ifdef BOTH_HDF_AND_FILE
     fwritten=_fwrite(ptr,size,nmemb,stream);
@@ -378,9 +343,7 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
 ssize_t read(int fd, void *buf, size_t count) {
     if (! handle_table[fd])
         return(_read(fd,buf,count));
-#ifdef DEBUG
-    fprintf(stderr,"read: '%s'\n", filename_table+fd*PATH_MAX);
-#endif
+    LOG_DBG("'%s', %d", filename_table+fd*PATH_MAX,count);
     int rcount=hdf5_read(fd,buf,count);
 #ifdef BOTH_HDF_AND_FILE
     _lseek64(fd,rcount,SEEK_CUR);
@@ -391,9 +354,7 @@ ssize_t read(int fd, void *buf, size_t count) {
 ssize_t write(int fd, const void *buf, size_t count) {
     if (! handle_table[fd])
         return(_write(fd,buf,count));
-#ifdef DEBUG
-    fprintf(stderr,"write: '%s'\n", filename_table+fd*PATH_MAX);
-#endif
+    LOG_DBG("'%s', %d", filename_table+fd*PATH_MAX, count);
     ssize_t fwritten = count;
 #ifdef BOTH_HDF_AND_FILE
     fwritten=_write(fd,buf,count);
@@ -403,14 +364,12 @@ ssize_t write(int fd, const void *buf, size_t count) {
 off_t lseek64(int fd, off_t offset, int whence) {
     if (! handle_table[fd])
         return(_lseek64(fd,offset,whence));
-#ifdef DEBUG
-    fprintf(stderr,"lseek64: '%s'\n", filename_table+fd*PATH_MAX);
-#endif
+    LOG_DBG("'%s', %d, %d", filename_table+fd*PATH_MAX, (int)offset,(int)whence);
     int hoff = hdf5_lseek(fd,offset,whence);
 #ifdef BOTH_HDF_AND_FILE
     int foff = _lseek64(fd,offset,whence);
     if (hoff != foff) {
-        fprintf(stderr,"lseek64: '%s', difference between hdf/file %d/%d\n",
+        LOG_WARN("difference between hdf/file in '%s': %d/%d",
                 filename_table+fd*PATH_MAX,hoff,foff);
     }
 #endif
@@ -420,14 +379,12 @@ int fseek(FILE *stream, long offset, int whence) {
     int fd = fileno(stream);
     if (! handle_table[fd])
         return(_fseek(stream,offset,whence));
-#ifdef DEBUG
-    fprintf(stderr,"fseek: '%s'\n", filename_table+fd*PATH_MAX);
-#endif
+    LOG_DBG("'%s', %d, %d", filename_table+fd*PATH_MAX,(int)offset,(int)whence);
     int hoff=hdf5_lseek(fd,offset,whence);
 #ifdef BOTH_HDF_AND_FILE
     int foff=_fseek(stream,offset,whence);
     if (hoff != foff) {
-        fprintf(stderr,"fseek: '%s', difference between hdf/file %d/%d\n",
+        LOG_WARN("difference between hdf/file in '%s': %d/%d",
                 filename_table+fd*PATH_MAX,hoff,foff);
     }
 #endif
@@ -437,14 +394,12 @@ long int ftell(FILE *stream) {
     int fd = fileno(stream);
     if (! handle_table[fd])
         return(_ftell(stream));
-#ifdef DEBUG
-    fprintf(stderr,"ftell: '%s'\n", filename_table+fd*PATH_MAX);
-#endif
+    LOG_DBG(stderr,"'%s'", filename_table+fd*PATH_MAX);
     int hoff=hdf5_lseek(fd,0,SEEK_CUR);
 #ifdef BOTH_HDF_AND_FILE
     int foff=_ftell(stream);
     if (hoff != foff) {
-        fprintf(stderr,"ftell: '%s', difference between hdf/file %d/%d\n",
+        LOG_WARN("difference between hdf/file in '%s': %d/%d",
                 filename_table+fd*PATH_MAX,hoff,foff);
     }
 #endif
@@ -453,8 +408,6 @@ long int ftell(FILE *stream) {
 int __fxstat64 (int __ver, int fd, struct stat64 *buf) {
     if (! handle_table[fd])
         return(___fxstat64(__ver,fd,buf));
-#ifdef DEBUG
-    fprintf(stderr,"__fxstat64: '%s'\n", filename_table+fd*PATH_MAX);
-#endif
+    LOG_DBG("'%s'", filename_table+fd*PATH_MAX);
     return(hdf5_fstat64(fd,buf));
 }

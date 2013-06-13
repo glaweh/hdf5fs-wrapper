@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "string_set.h"
+#include "logger.h"
 string_set * string_set_new() {
     string_set * self = malloc(sizeof(string_set));
     self->nitems=0;
@@ -10,9 +11,7 @@ string_set * string_set_new() {
 int string_set_add(string_set * self,const char *pathname, void * attribute) {
     int insert_pos=0;
     if (self->nitems>=CLOSED_EMPTY_MAX-1) {
-#ifdef DEBUG
-        fprintf(stderr,"string_set_add: too many closed empty files\n");
-#endif
+        LOG_WARN("too many items");
         return(0);
     }
     if (self->nitems!=0) {
@@ -32,9 +31,7 @@ int string_set_add(string_set * self,const char *pathname, void * attribute) {
         insert_pos=left;
     }
 
-#ifdef DEBUG_STRINGSET
-    fprintf(stderr,"string_set_add: adding '%s'\n",pathname);
-#endif
+    LOG_DBG("adding '%s'",pathname);
     if (insert_pos < self->nitems) {
         int i;
         for (i=self->nitems;i>insert_pos;i--) {
@@ -43,9 +40,7 @@ int string_set_add(string_set * self,const char *pathname, void * attribute) {
     }
     self->items[insert_pos]=malloc(sizeof(string_set_member) + sizeof(char)*(strlen(pathname)+1));
     if (self->items[insert_pos]==NULL) {
-#ifdef DEBUG
-        fprintf(stderr,"string_set_add: malloc error\n");
-#endif
+        LOG_WARN("malloc error");
         return(0);
     }
     strcpy(self->items[insert_pos]->string,pathname);

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "env_util.h"
+#include "logger.h"
 int strn_env_expand(const char * input, char * output, int length) {
     const char *input_end = input+strnlen(input,length);
     int had_backslash = 0;
@@ -12,9 +13,7 @@ int strn_env_expand(const char * input, char * output, int length) {
                 case '$':
                     (*output)=(*input);
                 default:
-#ifdef DEBUG_ENV_UTIL
-                    fprintf(stderr,"strn_env_expand: escape error\n");
-#endif
+                    LOG_DBG("strn_env_expand: escape error");
                     return(-1);
             }
             had_backslash=0;
@@ -29,15 +28,11 @@ int strn_env_expand(const char * input, char * output, int length) {
             // syntax ${name[:[fstring][:default]]}
             // need at least ${A}
             if ((input_end - input) < 4) {
-#ifdef DEBUG_ENV_UTIL
-                fprintf(stderr,"strn_env_expand: string length plausibility error\n");
-#endif
+                LOG_DBG("strn_env_expand: string length plausibility error");
                 return(-1);
             }
             if ((*(input+1)) != '{') {
-#ifdef DEBUG_ENV_UTIL
-                fprintf(stderr,"strn_env_expand: missing '{' error\n");
-#endif
+                LOG_DBG("missing '{' error");
                 return(-1);
             }
             input+=2;
@@ -58,9 +53,7 @@ int strn_env_expand(const char * input, char * output, int length) {
             }
             env_name[offset]=0;
             if (env_name[0]==0) {
-#ifdef DEBUG_ENV_UTIL
-                fprintf(stderr,"strn_env_expand: empty var name\n");
-#endif
+                LOG_DBG("empty var name");
                 return(-1);
             }
             if ((input<input_end) && ((*input) == ':')) {
@@ -87,9 +80,7 @@ int strn_env_expand(const char * input, char * output, int length) {
                                     def_had_backslash=0;
                                     break;
                                 default:
-#ifdef DEBUG_ENV_UTIL
-                                    fprintf(stderr,"strn_env_expand: def_val escape error\n");
-#endif
+                                    LOG_DBG("def_val escape error");
                                     return(-1);
                             }
                         } else if ((*input) == '\\') {
@@ -107,14 +98,10 @@ int strn_env_expand(const char * input, char * output, int length) {
                 }
                 value[offset]=0;
             }
-#ifdef DEBUG_ENV_UTIL
-            fprintf(stderr,"var: '%s', fstring: '%s', def_val: '%s'\n",env_name,fstring,value);
-#endif
+            LOG_DBG("var: '%s', fstring: '%s', def_val: '%s'",env_name,fstring,value);
             char * env_val = getenv(env_name);
             if ((env_val == NULL) && (have_default == 0)) {
-#ifdef DEBUG_ENV_UTIL
-                fprintf(stderr,"neither var available nor default value set\n");
-#endif
+                LOG_DBG("neither var available nor default value set");
                 return(-1);
             }
             if (env_val != NULL) strcpy(value,env_val);
@@ -131,9 +118,7 @@ int strn_env_expand(const char * input, char * output, int length) {
                         case 'd':
                             vali=strtol(value,&endptr,10);
                             if ((*endptr) != 0) {
-#ifdef DEBUG_ENV_UTIL
-                                fprintf(stderr,"number parse error\n");
-#endif
+                                LOG_DBG("number parse error");
                                 return(-1);
                             }
                             splen=sprintf(output,fstring,vali);
@@ -142,15 +127,11 @@ int strn_env_expand(const char * input, char * output, int length) {
                             splen=sprintf(output,fstring,value);
                             break;
                         default:
-#ifdef DEBUG_ENV_UTIL
-                            fprintf(stderr,"not implemented: '%s'\n",fstring);
-#endif
+                            LOG_DBG("not implemented: '%s'",fstring);
                             return(-1);
                     }
                     if (splen < 0) {
-#ifdef DEBUG_ENV_UTIL
-                        fprintf(stderr,"sprintf error\n");
-#endif
+                        LOG_DBG("sprintf error");
                         return(-1);
                     }
                     output+=splen-1;
