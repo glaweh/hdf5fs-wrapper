@@ -104,6 +104,7 @@ void __attribute__ ((constructor)) hdf5fs_wr_init() {
     for (i=0;i<HANDLES_MAX*PATH_MAX;i++) filename_table[i]=0;
     for (i=0;i<HANDLES_MAX;i++) basename_idx[i]=0;
     tmpdir[0]=0;
+    unsetenv("LD_PRELOAD");
     char hdf_expanded[PATH_MAX];
     if (strn_env_expand(hdf_file,hdf_expanded,PATH_MAX) < 0) {
         LOG_FATAL("error expanding hdf filename '%s'",hdf_file);
