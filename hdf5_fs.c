@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <hdf5.h>
-#include <hdf5_hl.h>
 #include "hdf5_fs.h"
 #include "string_set.h"
 #include "wrapper_limits.h"
@@ -25,8 +24,10 @@ string_set * datasets;
 typedef struct hdf5_dataset_info {
     hid_t   space;
     hid_t   set;
+    hid_t   length_space;
+    hid_t   length_attrib;
     hsize_t dims[RANK];
-    int     length;
+    int64_t length;
     int     refcount;
     struct  hdf5_dataset_info * prev;
     struct  hdf5_dataset_info * next;
@@ -141,11 +142,13 @@ int hdf5_open(int fd, const char *pathname, int flags) {
     } else {
         d->dataset->space = H5Dget_space(set);
         H5Sget_simple_extent_dims(d->dataset->space, d->dataset->dims, NULL);
+        d->dataset->length_attrib=H5Aopen(set,"Filesize",H5P_DEFAULT);
+        d->dataset->length_space=H5Aget_space(d->dataset->length_attrib);
         if (flags & O_TRUNC) {
             d->dataset->length  = 0;
             d->offset[0] = 0;
         } else {
-            H5LTget_attribute_int(hdf_file,pathname,"length",&d->dataset->length);
+            H5Aread(d->dataset->length_attrib,H5T_NATIVE_INT64,&d->dataset->length);
             d->offset[0] = 0;
         }
     }
@@ -162,7 +165,17 @@ int hdf5_close(int fd) {
     }
     hdf5_data_t * d = hdf5_data[fd];
     if (d->dataset->set >= 0) {
-        H5LTset_attribute_int(hdf_file,d->name,"length",&d->dataset->length,1);
+        H5Awrite(d->dataset->length_attrib,H5T_NATIVE_INT64,&d->dataset->length);
+        if ((status = H5Aclose(d->dataset->length_attrib)) < 0) {
+            LOG_WARN("error closing Filesize attrib of '%s', %d",d->name,status);
+            errno = EIO;
+            return(-1);
+        }
+        if ((status = H5Sclose(d->dataset->length_space)) < 0) {
+            LOG_WARN("error closing Filesize space of '%s', %d",d->name,status);
+            errno = EIO;
+            return(-1);
+        }
         hsize_t newdim = d->dataset->length + 1;
         if (newdim != d->dataset->dims[0]) {
             d->dataset->dims[0]=newdim;
@@ -211,6 +224,9 @@ int hdf5_write(int fd, const void *buf, size_t count) {
     if (d->dataset->set < 0) {
         d->dataset->space = H5Screate_simple(RANK, d->dataset->dims, maxdims);
         d->dataset->set = H5Dcreate2(hdf_file, d->name, H5T_NATIVE_CHAR, d->dataset->space, H5P_DEFAULT, create_params, H5P_DEFAULT);
+        d->dataset->length_space=H5Screate(H5S_SCALAR);
+        d->dataset->length_attrib=H5Acreate2(d->dataset->set, "Filesize", H5T_NATIVE_INT64,
+                d->dataset->length_space, H5P_DEFAULT, H5P_DEFAULT);
     } else if (resize) {
         H5Dset_extent(d->dataset->set, d->dataset->dims);
     }
@@ -223,6 +239,7 @@ int hdf5_write(int fd, const void *buf, size_t count) {
     H5Dwrite(d->dataset->set,H5T_NATIVE_CHAR,dataspace,filespace,H5P_DEFAULT,buf);
     H5Sclose(filespace);
     H5Sclose(dataspace);
+    H5Awrite(d->dataset->length_attrib, H5T_NATIVE_INT64, &d->dataset->length);
     if ((d->offset[0]+count) > d->dataset->length)
         d->dataset->length = d->offset[0]+count;
     d->offset[0]+=count;
@@ -313,8 +330,10 @@ int hdf5_stat64(const char *pathname, struct stat64 *buf) {
     buf->st_mtime  =object_info.mtime;
     buf->st_ctime  =object_info.ctime;
     if (object_info.num_attrs > 0) {
-        int fsize;
-        H5LTget_attribute_int(hdf_file,pathname,"length",&fsize);
+        hid_t lena = H5Aopen_by_name(hdf_file,pathname,"Filesize",H5P_DEFAULT,H5P_DEFAULT);
+        int64_t fsize;
+        H5Aread(lena,H5T_NATIVE_INT64,&fsize);
+        H5Aclose(lena);
         buf->st_size=fsize;
         buf->st_blocks=fsize / 512 + 1;
     } else {
