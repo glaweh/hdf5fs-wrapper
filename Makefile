@@ -5,15 +5,15 @@ LDLIBS:=-ldl -lhdf5_hl -lhdf5 -lc
 all: hdf5fs-wrapper.so
 test: test_rel2abs test_pathcmp
 
-hdf5fs-wrapper.so: hdf5fs-wrapper.o path_util.o hdf5_fs.o string_set.o env_util.o logger.o
+hdf5fs-wrapper.so: hdf5fs-wrapper.o path_util.o hdf5_fs.o string_set.o env_util.o logger.o process_info.o
 	$(LD) $(LDFLAGS) -shared $^ $(LDLIBS) -o $@
-hdf5fs-wrapper.o: hdf5fs-wrapper.c logger.h
+hdf5fs-wrapper.o: hdf5fs-wrapper.c logger.h process_info.h
 
-test_rel2abs:    test_rel2abs.o path_util.o logger.o
-test_env_util:   test_env_util.o env_util.o logger.o
-test_pathcmp:    test_pathcmp.o path_util.o logger.o
-test_string_set: test_string_set.o string_set.o logger.o
-test_logger:     test_logger.o logger.o
+test_rel2abs:    test_rel2abs.o path_util.o     logger.o process_info.o
+test_env_util:   test_env_util.o env_util.o     logger.o process_info.o
+test_pathcmp:    test_pathcmp.o path_util.o     logger.o process_info.o
+test_string_set: test_string_set.o string_set.o logger.o process_info.o
+test_logger:     test_logger.o                  logger.o process_info.o
 
 clean:
 	rm -f *.o *.so test_rel2abs test_pathcmp test_string_set
