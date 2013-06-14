@@ -15,6 +15,7 @@
 #include <dlfcn.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <errno.h>
 
 #include "logger.h"
 #include "path_util.h"
@@ -194,11 +195,17 @@ int open64(const char *pathname, int flags, ...) {
             LOG_FATAL("filehandle out of range: %d",fd);
             exit(-1);
         }
+        int res = hdf5_open(fd,mapped+match_idx,flags);
+        if (res < 0) {
+            int hdf5errno = errno;
+            close(fd);
+            errno=hdf5errno;
+            return(res);
+        }
         nfiles++;
         handle_table[fd]=1;
         strncpy(filename_table+PATH_MAX*fd,mapped,PATH_MAX);
         basename_idx[fd]=match_idx;
-        hdf5_open(fd,mapped+match_idx,flags);
         return(fd);
     }
     return(_open64(pathname,flags,mode));
@@ -280,8 +287,13 @@ FILE *fopen(const char *pathname,const char *mode) {
                     break;
             }
         }
-        if (hdf5_open(fd,mapped+match_idx,flags) < 0) {
+        int res;
+        if ((res=hdf5_open(fd,mapped+match_idx,flags)) < 0) {
+            int hdf5errno=errno;
             LOG_INFO("error hdf5_opening '%s'",mapped+match_idx);
+            fclose(file);
+            errno=hdf5errno;
+            return(NULL);
         }
         return(file);
     }
