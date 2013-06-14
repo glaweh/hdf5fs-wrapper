@@ -98,11 +98,14 @@ int hdf5_open(int fd, const char *pathname, int flags) {
     hid_t  set=-1;
     if (set_exists) {
         if (((flags & O_CREAT)>0) && ((flags & O_EXCL)>0)) {
-            LOG_INFO("dataset already exists %d -> '%s'",fd,pathname);
+            LOG_DBG("dataset already exists %d -> '%s'",fd,pathname);
             errno=EEXIST;
             return(-1);
         }
         set = H5Dopen(hdf_file,pathname,H5P_DEFAULT);
+    } else if ((flags & O_CREAT) == 0) {
+        errno=ENOENT;
+        return(-1);
     }
     hdf5_data[fd] = malloc(sizeof(hdf5_data_t));
     if (hdf5_data[fd] == NULL) {
