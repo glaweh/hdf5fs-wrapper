@@ -71,7 +71,7 @@ int   basename_idx[HANDLES_MAX];
     ttyname
 */
 
-void __attribute__ ((constructor)) my_init() {
+void __attribute__ ((constructor)) hdf5fs_wr_init() {
     _open64    = dlsym(RTLD_NEXT, "open64");
     _mkdir     = dlsym(RTLD_NEXT, "mkdir");
     _unlink    = dlsym(RTLD_NEXT, "unlink");
@@ -324,8 +324,8 @@ int fclose(FILE * file) {
     hdf5_close(fd);
     return(_fclose(file));
 }
-void __attribute__ ((destructor)) my_fini(void) {
-    LOG_INFO("my_fini called");
+void __attribute__ ((destructor)) hdf5fs_wr_fini(void) {
+    LOG_DBG("called");
     hdf5_fs_fini();
 }
 size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream) {
