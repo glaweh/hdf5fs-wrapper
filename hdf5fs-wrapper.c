@@ -320,7 +320,7 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream) {
     int fd=fileno(stream);
     if (! handle_table[fd])
         return(_fread(ptr,size,nmemb,stream));
-    LOG_DBG(stderr,"'%s' %d", filename_table+fd*PATH_MAX, (int)size*nmemb);
+    LOG_DBG("'%s' %d", filename_table+fd*PATH_MAX, (int)size*nmemb);
     int count = hdf5_read(fd,ptr,size*nmemb);
 #ifdef BOTH_HDF_AND_FILE
     _fseek(stream,count,SEEK_CUR);
@@ -394,7 +394,7 @@ long int ftell(FILE *stream) {
     int fd = fileno(stream);
     if (! handle_table[fd])
         return(_ftell(stream));
-    LOG_DBG(stderr,"'%s'", filename_table+fd*PATH_MAX);
+    LOG_DBG("'%s'", filename_table+fd*PATH_MAX);
     int hoff=hdf5_lseek(fd,0,SEEK_CUR);
 #ifdef BOTH_HDF_AND_FILE
     int foff=_ftell(stream);
