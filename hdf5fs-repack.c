@@ -225,10 +225,6 @@ hdf5_dataset_info_t * hdf5_dataset_info(hid_t loc_id, const char *name) {
             node->dataset=info;
             LOG_DBG("file '%s' already in list",name);
         }
-//        if (hdf5_dataset_close(name,info) < 0) {
-//            LOG_ERR("error closing file '%s'");
-//        }
-//        free(info);
     } else {
         LOG_ERR("error opening file '%s'");
         free(info);
@@ -241,22 +237,8 @@ static herr_t op_func_L (hid_t loc_id, const char *name, const H5L_info_t *info,
 			 void *operator_data)
 {
     herr_t          status;
-    H5O_info_t      infobuf;
-
-    /*
-     * Get type of the object and display its name and type.
-     * The name of the object is passed to this function by
-     * the Library.
-     */
     hdf5_dataset_info(loc_id,name);
     return(0);
-    status = H5Oget_info_by_name (loc_id, name, &infobuf, H5P_DEFAULT);
-    if(status < 0) return -1;
-    if (infobuf.type != H5O_TYPE_DATASET) return (0);
-//    printf("oname: '%s'\n",name);
-    return(0);
-
-//    return op_func (loc_id, name, &infobuf, operator_data);
 }
 
 int hdf5_ls(hid_t file_id, const char * root_name) {
