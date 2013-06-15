@@ -95,7 +95,6 @@ hid_t hdf5_dataset_open(hid_t loc_id, const char *name, hdf5_dataset_info_t * in
         LOG_ERR("error getting dimensions of '%s'",name);
         goto errlabel;
     }
-    info->length_attrib = H5Aopen(info->set,"Filesize",H5P_DEFAULT);
     if ((info->length_attrib = H5Aopen(info->set,"Filesize",H5P_DEFAULT)) < 0) {
         LOG_ERR("error opening filesize attribute of '%s'",name);
         goto errlabel;
