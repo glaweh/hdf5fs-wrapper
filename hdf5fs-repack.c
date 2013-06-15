@@ -26,20 +26,20 @@ typedef struct hdf5_dataset_info {
     int64_t length_original;
     int     refcount;
     int     rdonly;
-    struct  hdf5_dataset_info * prev;
     struct  hdf5_dataset_info * next;
 } hdf5_dataset_info_t;
 
 typedef struct {
     int n_sets;
     hdf5_dataset_info_t * dataset;
+    char name[0];
 } file_node_t;
 
 KHASH_MAP_INIT_STR(42,file_node_t *)
 
 khash_t(42) * filelist = NULL;
 
-#define DIM_CHUNKED(length,chunk) (length + (chunk - (length % chunk)))
+#define DIM_CHUNKED(length,chunk) ((length) + ((chunk) - ((length) % (chunk))))
 
 hid_t hdf5_dataset_close(const char *name, hdf5_dataset_info_t * info) {
     if (! info->rdonly) {
