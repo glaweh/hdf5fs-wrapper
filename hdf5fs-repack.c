@@ -5,6 +5,7 @@
 #include <errno.h>
 #include "logger.h"
 #include "string_set.h"
+#include "khash.h"
 
 #define MAX_HDF5SRC 1024
 #define RANK 1
@@ -34,6 +35,9 @@ typedef struct {
     hdf5_dataset_info_t * dataset;
 } file_node_t;
 
+KHASH_MAP_INIT_STR(42,file_node_t *)
+
+khash_t(42) * filelist = NULL;
 
 #define DIM_CHUNKED(length,chunk) (length + (chunk - (length % chunk)))
 
@@ -134,6 +138,16 @@ hdf5_dataset_info_t * hdf5_dataset_info(hid_t loc_id, const char *name) {
     hdf5_dataset_info_t * info = malloc(sizeof(hdf5_dataset_info_t));
     if (hdf5_dataset_open(loc_id,name,info) > 0) {
         LOG_INFO("dsinfo %s %d",name,info->length);
+        khiter_t k;
+        int ret, is_missing;
+        k=kh_get(42, filelist, name);
+        is_missing = (k == kh_end(filelist));
+        if (is_missing) {
+            LOG_INFO("file '%s' missing from list",name);
+        } else {
+            LOG_INFO("file '%s' already in list",name);
+        }
+
         if (hdf5_dataset_close(name,info) < 0) {
             LOG_ERR("error closing file '%s'");
         }
@@ -187,6 +201,8 @@ int main(int argc, char *argv[]) {
         LOG_FATAL("error creating target file '%s'",argv[1]);
         return(1);
     }
+
+    filelist = kh_init(42);
     n_hdf_src=0;
     int i;
     for (i=2; i<argc;i++) {
@@ -208,6 +224,7 @@ int main(int argc, char *argv[]) {
         LOG_FATAL("no src files could be opened");
         return(1);
     }
+    kh_destroy(42,filelist);
     for (i=0; i < n_hdf_src; i++) H5Fclose(hdf_src[i]);
     H5Fclose(hdf_dst);
     return(0);
