@@ -1,3 +1,6 @@
 *.o
 *.so
 .*.swp
+hdf5fs-repack
+test_env_util
+test_logger
