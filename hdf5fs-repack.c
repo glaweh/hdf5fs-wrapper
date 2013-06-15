@@ -9,6 +9,7 @@
 
 #define MAX_HDF5SRC 1024
 #define RANK 1
+#define HDF5FS_T H5T_NATIVE_CHAR
 
 int   n_hdf_src;
 hid_t hdf_src[MAX_HDF5SRC];
@@ -49,6 +50,8 @@ hid_t hdf5_dataset_close(const char *name, hdf5_dataset_info_t * info) {
         }
         hsize_t old_dim = info->dims[0];
         info->dims[0] = DIM_CHUNKED(info->length+1,info->chunk[0]);
+        LOG_INFO("resizing %40s, length %6d, chunksize %6d, old_dim %6d, new_dim %6d",
+                name,info->length,info->chunk[0],old_dim,info->dims[0]);
         if ((old_dim != info->dims[0]) && 
                 (H5Dset_extent(info->set, info->dims)<0)) {
             LOG_ERR("error resizing datset for '%s' to %d",name,info->dims[0]);
@@ -79,6 +82,58 @@ hid_t hdf5_dataset_close(const char *name, hdf5_dataset_info_t * info) {
         status = 0;
     }
     return(status);
+}
+
+hsize_t maxdims[1] = {H5S_UNLIMITED};
+
+hid_t hdf5_dataset_create(hid_t loc_id, const char *name, hdf5_dataset_info_t * info) {
+    info->rdonly = 1;
+    info->length = info->length_original = 0;
+    /*
+     * input:
+     *   info->chunk
+     *   info->dims
+     * */
+    if (info->chunk[0] <= 0) {
+        LOG_ERR("no chunk size set for '%s'",name);
+        goto errlabel;
+    }
+    hid_t   create_params = H5Pcreate(H5P_DATASET_CREATE);
+    herr_t         status = H5Pset_chunk(create_params, 1, info->chunk);
+    if (status < 0) {
+        LOG_WARN("error setting up chunking");
+        goto errlabel;
+    }
+    info->dims[0] = DIM_CHUNKED(info->dims[0],info->chunk[0]);
+    if (info->dims[0] == 0) info->dims[0] = info->chunk[0];
+    LOG_INFO("create %40s, chunksize %d, dim %d",name,info->chunk[0],info->dims[0]);
+    if ((info->space = H5Screate_simple(RANK, info->dims, maxdims)) < 0) {
+        LOG_ERR("error creating dataspace for '%s'",name);
+        goto errlabel;
+    }
+    if ((info->set = H5Dcreate2(loc_id,name,HDF5FS_T, info->space, H5P_DEFAULT, create_params, H5P_DEFAULT)) < 0) {
+        LOG_ERR("error creating dataset '%s'",name);
+        goto errlabel;
+    }
+    H5Pclose(create_params);
+    if ((info->length_space = H5Screate(H5S_SCALAR)) < 0) {
+        LOG_ERR("error creating filesize attribute dataspace of '%s'",name);
+        goto errlabel;
+    }
+    if ((info->length_attrib = H5Acreate2(info->set,"Filesize",H5T_NATIVE_INT64,
+                    info->length_space, H5P_DEFAULT, H5P_DEFAULT)) < 0) {
+        LOG_ERR("error creating filesize attribute of '%s'",name);
+        goto errlabel;
+    }
+    if (H5Awrite(info->length_attrib,H5T_NATIVE_INT64,&info->length) < 0) {
+        LOG_ERR("Error resetting filesize attrib for '%s'",name);
+        goto errlabel;
+    }
+    info->rdonly=0;
+    return(info->set);
+    errlabel:
+        hdf5_dataset_close(name,info);
+    return(-1);
 }
 
 hid_t hdf5_dataset_open(hid_t loc_id, const char *name, hdf5_dataset_info_t * info) {
@@ -136,25 +191,50 @@ hdf5_dataset_info_t * hdf5_dataset_info(hid_t loc_id, const char *name) {
     if ((status < 0) || (infobuf.type != H5O_TYPE_DATASET)) return(NULL);
     hdf5_dataset_info_t * info = malloc(sizeof(hdf5_dataset_info_t));
     if (hdf5_dataset_open(loc_id,name,info) > 0) {
-        LOG_INFO("dsinfo %s %d",name,info->length);
+        LOG_DBG("dsinfo %s %d",name,info->length);
         khiter_t k;
         int ret, is_missing;
         k=kh_get(42, filelist, name);
         is_missing = (k == kh_end(filelist));
+        file_node_t * node;
         if (is_missing) {
-            LOG_INFO("file '%s' missing from list",name);
+            node = malloc(sizeof(file_node_t)+strlen(name)+1);
+            if (node == NULL) {
+                LOG_ERR("malloc error in node creation '%s'",name);
+                free(info);
+                return(NULL);
+            }
+            node->n_sets = 1;
+            node->dataset = info;
+            strcpy(node->name,name);
+            k = kh_put(42,filelist,node->name,&ret);
+            if (!ret) {
+                LOG_ERR("error adding hash key '%s'",name);
+                kh_del(42,filelist,k);
+                free(node);
+                free(info);
+                return(NULL);
+            }
+            kh_value(filelist,k)=node;
+            info->next = NULL;
+            LOG_DBG("file '%s' missing from list",name);
         } else {
-            LOG_INFO("file '%s' already in list",name);
+            node=kh_value(filelist,k);
+            info->next=node->dataset;
+            node->n_sets++;
+            node->dataset=info;
+            LOG_DBG("file '%s' already in list",name);
         }
-
-        if (hdf5_dataset_close(name,info) < 0) {
-            LOG_ERR("error closing file '%s'");
-        }
-        free(info);
+//        if (hdf5_dataset_close(name,info) < 0) {
+//            LOG_ERR("error closing file '%s'");
+//        }
+//        free(info);
     } else {
         LOG_ERR("error opening file '%s'");
+        free(info);
+        return(NULL);
     }
-    return(NULL);
+    return(info);
 }
 
 static herr_t op_func_L (hid_t loc_id, const char *name, const H5L_info_t *info,
@@ -183,6 +263,60 @@ int hdf5_ls(hid_t file_id, const char * root_name) {
     herr_t status;
     status = H5Lvisit_by_name(file_id, root_name, H5_INDEX_NAME, H5_ITER_INC, op_func_L, NULL, H5P_DEFAULT );
     return(status);
+}
+
+file_node_t * close_node(file_node_t * node) {
+    hdf5_dataset_info_t * setwalker = node->dataset;
+    while (setwalker != NULL) {
+        hdf5_dataset_info_t * walker_prev = setwalker;
+        setwalker=walker_prev->next;
+        hdf5_dataset_close(node->name,walker_prev);
+        free(walker_prev);
+    }
+    free(node);
+    return(NULL);
+}
+
+void filelist_clean() {
+    khiter_t k;
+    for (k = kh_begin(filelist); k != kh_end(filelist); ++k) {
+        if (kh_exist(filelist, k)) {
+            close_node(kh_value(filelist,k));
+        }
+    }
+    kh_destroy(42,filelist);
+}
+
+hsize_t suggest_chunk_size_from_length(hsize_t old_length) {
+    if (old_length < 16*1024) {
+        return(2*1024);
+    } else if (old_length < 32*1024) {
+        return(4*1024);
+    } else if (old_length < 128*1024) {
+        return(64*1024);
+    } else {
+        return(256*1024);
+    }
+}
+
+herr_t copy_set_stack(hid_t loc_id, file_node_t * node) {
+    hdf5_dataset_info_t target_set;
+    target_set.dims[0]  = node->dataset->length;
+    target_set.chunk[0] = suggest_chunk_size_from_length(node->dataset->length);
+    hdf5_dataset_create(loc_id, node->name, &target_set);
+    target_set.length = node->dataset->length;
+    hdf5_dataset_close(node->name,&target_set);
+    return(0);
+}
+
+herr_t copy_all_files() {
+    khiter_t k;
+    for (k = kh_begin(filelist); k != kh_end(filelist); ++k) {
+        if (kh_exist(filelist, k)) {
+            copy_set_stack(hdf_dst,kh_value(filelist,k));
+        }
+    }
+    return(0);
 }
 
 int main(int argc, char *argv[]) {
@@ -223,7 +357,8 @@ int main(int argc, char *argv[]) {
         LOG_FATAL("no src files could be opened");
         return(1);
     }
-    kh_destroy(42,filelist);
+    copy_all_files();
+    filelist_clean();
     for (i=0; i < n_hdf_src; i++) H5Fclose(hdf_src[i]);
     H5Fclose(hdf_dst);
     return(0);
