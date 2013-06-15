@@ -294,8 +294,10 @@ hsize_t suggest_chunk_size_from_length(hsize_t old_length) {
         return(4*1024);
     } else if (old_length < 128*1024) {
         return(64*1024);
-    } else {
+    } else if (old_length < 10*1024*1024) {
         return(256*1024);
+    } else {
+        return(1024*1024);
     }
 }
 
