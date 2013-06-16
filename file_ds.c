@@ -113,6 +113,7 @@ file_ds_t * file_ds_create(hid_t loc_id, const char *name, hsize_t chunk_size, h
         LOG_ERR("Error resetting filesize attrib for '%s'",name);
         goto errlabel;
     }
+    info->rdonly = 0;
     return(info);
     errlabel:
         H5Pclose(create_params);
