@@ -79,6 +79,8 @@ hid_t hdf5_dataset_close(const char *name, file_dataset_t * info) {
     if ((info->set >= 0) && (H5Dclose(info->set) < 0)) {
         LOG_ERR("error closing dataset '%s'",name);
         status = 0;
+    } else {
+        info->set=-1;
     }
     return(status);
 }
