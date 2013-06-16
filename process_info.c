@@ -19,6 +19,7 @@ int cmdline_info_init() {
         to_be_read-=read_bytes;
         buf_ptr+=read_bytes;
     }
+    fclose(cmdline_file);
     my_cmdline_info.argc=1;
     my_cmdline_info.argv[0]=my_cmdline_info.data;
     int cmdline_length = sizeof(my_cmdline_info.data)-to_be_read;
