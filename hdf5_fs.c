@@ -17,7 +17,6 @@ hid_t   hdf_file;
 hid_t   create_params;
 char    fillvalue = 0;
 hsize_t chunk_dims[1]={1024*64};
-hsize_t maxdims[1] = {H5S_UNLIMITED};
 struct stat64 hdf_file_stat;
 string_set * closed_empty_files;
 string_set * datasets;
@@ -221,7 +220,7 @@ int hdf5_write(int fd, const void *buf, size_t count) {
     }
     LOG_DBG("(%d='%s', %d) %d (%d)\n",fd,d->name,(int)count,(int)d->offset[0],(int)d->dataset->length);
     if (d->dataset->set < 0) {
-        d->dataset->space = H5Screate_simple(RANK, d->dataset->dims, maxdims);
+        d->dataset->space = H5Screate_simple(RANK, d->dataset->dims, __file_ds_maxdims);
         d->dataset->set = H5Dcreate2(hdf_file, d->name, H5T_NATIVE_CHAR, d->dataset->space, H5P_DEFAULT, create_params, H5P_DEFAULT);
         d->dataset->length_space=H5Screate(H5S_SCALAR);
         d->dataset->length_attrib=H5Acreate2(d->dataset->set, "Filesize", H5T_NATIVE_INT64,
