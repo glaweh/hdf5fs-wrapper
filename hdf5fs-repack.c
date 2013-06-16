@@ -379,6 +379,7 @@ int main(int argc, char *argv[]) {
     }
     if (n_hdf_src == 0) {
         LOG_FATAL("no src files could be opened");
+        H5Fclose(hdf_dst);
         return(1);
     }
     copy_all_files();
