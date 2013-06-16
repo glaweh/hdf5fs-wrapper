@@ -229,8 +229,8 @@ herr_t file_ds_copy_contents(file_ds_t * dst, file_ds_t *src) {
     hid_t   readspace = -1;
     while (to_copy > 0) {
         hs_count[0] = (to_copy > copy_block_size ? copy_block_size : to_copy);
-        LOG_INFO("file: %s, length: %d, offset: %d, size: %d",src->name,
-                src->length,offset[0],hs_count[0]);
+        LOG_DBG("file: %s, length: %d, offset: %d, size: %d, chunksize: %d",src->name,
+                src->length,offset[0],hs_count[0], dst->chunk[0]);
         if (H5Sselect_hyperslab(source_space,H5S_SELECT_SET, offset, NULL, hs_count, NULL) < 0) {
             LOG_ERR("error selecting source hyperslab");
             goto errlabel;
