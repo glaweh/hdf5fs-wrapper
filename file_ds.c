@@ -196,7 +196,6 @@ file_ds_t * file_ds_copy(hid_t dst_loc_id, file_ds_t * src, hsize_t chunk_size, 
 }
 
 herr_t file_ds_copy_contents(file_ds_t * dst, file_ds_t *src) {
-    herr_t status;
     if (dst->dims[0] < (src->length+1)) {
         dst->dims[0] = DIM_CHUNKED(src->length+1,dst->chunk[0]);
         if (H5Dset_extent(dst->set, dst->dims) < 0) {
@@ -227,27 +226,31 @@ herr_t file_ds_copy_contents(file_ds_t * dst, file_ds_t *src) {
     hsize_t offset[1] = { 0 };
     hsize_t to_copy = src->length;
     hsize_t hs_count[1];
+    hid_t   readspace = -1;
     while (to_copy > 0) {
         hs_count[0] = (to_copy > copy_block_size ? copy_block_size : to_copy);
         LOG_INFO("file: %s, length: %d, offset: %d, size: %d",src->name,
                 src->length,offset[0],hs_count[0]);
-        status = H5Sselect_hyperslab(source_space,H5S_SELECT_SET, offset, NULL, hs_count, NULL);
-        if (status < 0) {
+        if (H5Sselect_hyperslab(source_space,H5S_SELECT_SET, offset, NULL, hs_count, NULL) < 0) {
             LOG_ERR("error selecting source hyperslab");
-            break;
+            goto errlabel;
         }
-        hid_t readspace = H5Screate_simple(1, hs_count, NULL);
-        status = H5Dread(src->set,H5T_FILE_DS,readspace,source_space,H5P_DEFAULT,buffer);
-        if (status < 0) {
+        if ((readspace = H5Screate_simple(1, hs_count, NULL)) < 0) {
+            LOG_ERR("error creating readspace");
+            goto errlabel;
+        }
+        if (H5Dread(src->set,H5T_FILE_DS,readspace,source_space,H5P_DEFAULT,buffer) < 0) {
             LOG_ERR("error reading source hyperslab");
-            break;
+            goto errlabel;
         }
-        status = H5Sselect_hyperslab(dst_space,H5S_SELECT_SET, offset, NULL, hs_count, NULL);
-        if (status < 0) {
+        if (H5Sselect_hyperslab(dst_space,H5S_SELECT_SET, offset, NULL, hs_count, NULL) < 0) {
             LOG_ERR("error selecting dest hyperslab");
-            break;
+            goto errlabel;
         }
-        status = H5Dwrite(dst->set,H5T_FILE_DS,readspace,dst_space,H5P_DEFAULT,buffer);
+        if (H5Dwrite(dst->set,H5T_FILE_DS,readspace,dst_space,H5P_DEFAULT,buffer) < 0) {
+            LOG_ERR("error writing dest hyperlab");
+            goto errlabel;
+        }
         H5Sclose(readspace);
         to_copy -= hs_count[0];
         offset[0]+=hs_count[0];
@@ -261,5 +264,6 @@ errlabel:
     free(buffer);
     if (source_space >= 0) H5Sclose(source_space);
     if (dst_space >= 0) H5Sclose(dst_space);
+    if (readspace >= 0) H5Sclose(readspace);
     return(-1);
 }
