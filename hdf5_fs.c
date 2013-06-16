@@ -19,20 +19,8 @@ hsize_t chunk_dims[1]={1024*64};
 struct stat64 hdf_file_stat;
 string_set * closed_empty_files;
 
-typedef struct hdf5_dataset_info {
-    hid_t   space;
-    hid_t   set;
-    hid_t   length_space;
-    hid_t   length_attrib;
-    hsize_t dims[RANK];
-    int64_t length;
-    int     refcount;
-    struct  hdf5_dataset_info * prev;
-    struct  hdf5_dataset_info * next;
-} hdf5_dataset_info_t;
-
 typedef struct {
-    hdf5_dataset_info_t * dataset;
+    file_ds_t * dataset;
     int     append;
     hsize_t offset[RANK];
     char  name[PATH_MAX];
@@ -110,12 +98,13 @@ int hdf5_open(int fd, const char *pathname, int flags) {
         return(-1);
     }
     hdf5_data_t * d = hdf5_data[fd];
-    d->dataset  = malloc(sizeof(hdf5_dataset_info_t));
+    d->dataset  = malloc(sizeof(file_ds_t)+strlen(pathname));
     if (hdf5_data[fd]->dataset == NULL) {
         LOG_WARN("error allocating hdf5_data[%d]->dataset",fd);
         errno = ENOMEM;
         return(-1);
     }
+    *d->dataset = __file_ds_initializer;
     strncpy(d->name,pathname,PATH_MAX);
     d->append   = ((flags & O_APPEND) != 0 ? 1 : 0);
     d->dataset->set      = set;
