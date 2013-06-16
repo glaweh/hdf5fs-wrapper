@@ -255,6 +255,7 @@ herr_t file_ds_copy_contents(file_ds_t * dst, file_ds_t *src) {
         to_copy -= hs_count[0];
         offset[0]+=hs_count[0];
     }
+    dst->length = src->length;
 
     free(buffer);
     H5Sclose(source_space);
