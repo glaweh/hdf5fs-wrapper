@@ -27,7 +27,17 @@ typedef struct file_dataset {
     int     rdonly;
     struct  file_dataset * next;
     hid_t   loc_id;
+    char    name[1];
 } file_dataset_t;
+
+const file_dataset_t __file_ds_initializer = {
+    .space = -1, .set   = -1,
+    .length_space = -1, .length_attrib = -1,
+    .dims = { 0 }, .chunk = { 0 },
+    .length = 0, .length_original = 0,
+    .refcount = 0, .rdonly = 1,
+    .next = NULL, .loc_id = -1, .name[0] = 0
+};
 
 typedef struct {
     int n_sets;
@@ -41,43 +51,43 @@ khash_t(42) * filelist = NULL;
 
 #define DIM_CHUNKED(length,chunk) ((length) + ((chunk) - ((length) % (chunk))))
 
-hid_t hdf5_dataset_close(const char *name, file_dataset_t * info) {
+hid_t hdf5_dataset_close(file_dataset_t * info) {
     if (! info->rdonly) {
         if ((info->length != info->length_original) && 
                 (H5Awrite(info->length_attrib,H5T_NATIVE_INT64,&info->length) < 0)) {
-            LOG_ERR("error writing updated filesize attrib for '%s'",name);
+            LOG_ERR("error writing updated filesize attrib for '%s'",info->name);
         }
         hsize_t old_dim = info->dims[0];
         info->dims[0] = DIM_CHUNKED(info->length+1,info->chunk[0]);
         LOG_DBG("resizing %40s, length %6d, chunksize %6d, old_dim %6d, new_dim %6d",
-                name,info->length,info->chunk[0],old_dim,info->dims[0]);
+                info->name,info->length,info->chunk[0],old_dim,info->dims[0]);
         if ((old_dim != info->dims[0]) && 
                 (H5Dset_extent(info->set, info->dims)<0)) {
-            LOG_ERR("error resizing datset for '%s' to %d",name,info->dims[0]);
+            LOG_ERR("error resizing datset for '%s' to %d",info->name,info->dims[0]);
         }
         // FIXME: use H5Dfill to fill the emtpy part
     }
     int status = 1;
     if ((info->length_space >= 0) && (H5Sclose(info->length_space) < 0)) {
-        LOG_ERR("error closing length space for '%s'",name);
+        LOG_ERR("error closing length space for '%s'",info->name);
         status = 0;
     } else {
         info->length_space = -1;
     }
     if ((info->length_attrib >= 0) && (H5Aclose(info->length_attrib) < 0)) {
-        LOG_ERR("error closing length attribute for '%s'",name);
+        LOG_ERR("error closing length attribute for '%s'",info->name);
         status = 0;
     } else {
         info->length_attrib=-1;
     }
     if ((info->space >= 0) && (H5Sclose(info->space) < 0)) {
-        LOG_ERR("error closing data space for '%s'",name);
+        LOG_ERR("error closing data space for '%s'",info->name);
         status = 0;
     } else {
         info->space=-1;
     }
     if ((info->set >= 0) && (H5Dclose(info->set) < 0)) {
-        LOG_ERR("error closing dataset '%s'",name);
+        LOG_ERR("error closing dataset '%s'",info->name);
         status = 0;
     } else {
         info->set=-1;
@@ -87,27 +97,39 @@ hid_t hdf5_dataset_close(const char *name, file_dataset_t * info) {
 
 hsize_t maxdims[1] = {H5S_UNLIMITED};
 
-hid_t hdf5_dataset_create(hid_t loc_id, const char *name, file_dataset_t * info) {
-    info->rdonly = 1;
-    info->length = info->length_original = 0;
-    /*
-     * input:
-     *   info->chunk
-     *   info->dims
-     * */
-    if (info->chunk[0] <= 0) {
+file_dataset_t * file_dataset_create(hid_t loc_id, const char *name, hsize_t chunk_size, hsize_t initial_dim, int deflate) {
+    file_dataset_t * info = malloc(sizeof(file_dataset_t)+strlen(name));
+    if (info == NULL) {
+        LOG_ERR("error allocating file_dataset_t");
+        return(NULL);
+    }
+    *info = __file_ds_initializer;
+    if (chunk_size <= 0) {
         LOG_ERR("no chunk size set for '%s'",name);
         goto errlabel;
     }
+    if (initial_dim < 0) {
+        LOG_ERR("initial_dim<0 set for '%s'",name);
+        goto errlabel;
+    }
+    info->chunk[0]=chunk_size;
     hid_t   create_params = H5Pcreate(H5P_DATASET_CREATE);
     herr_t         status = H5Pset_chunk(create_params, 1, info->chunk);
     if (status < 0) {
         LOG_WARN("error setting up chunking");
         goto errlabel;
     }
-    info->dims[0] = DIM_CHUNKED(info->dims[0],info->chunk[0]);
+    if (deflate > 0) {
+        status=H5Pset_deflate(create_params,deflate);
+        if (status < 0) {
+            LOG_WARN("error setting up compression");
+            goto errlabel;
+        }
+    }
+    info->dims[0] = DIM_CHUNKED(initial_dim,chunk_size);
     if (info->dims[0] == 0) info->dims[0] = info->chunk[0];
     info->loc_id = loc_id;
+    strcpy(info->name,name);
     LOG_DBG("create %40s, chunksize %d, dim %d",name,info->chunk[0],info->dims[0]);
     if ((info->space = H5Screate_simple(RANK, info->dims, maxdims)) < 0) {
         LOG_ERR("error creating dataspace for '%s'",name);
@@ -131,68 +153,79 @@ hid_t hdf5_dataset_create(hid_t loc_id, const char *name, file_dataset_t * info)
         LOG_ERR("Error resetting filesize attrib for '%s'",name);
         goto errlabel;
     }
-    info->rdonly=0;
-    return(info->set);
+    return(info);
     errlabel:
-        hdf5_dataset_close(name,info);
-    return(-1);
+        H5Pclose(create_params);
+        hdf5_dataset_close(info);
+    return(NULL);
 }
 
-hid_t hdf5_dataset_open(hid_t loc_id, const char *name, file_dataset_t * info) {
-    info->rdonly = 1;
-    if ((info->set = H5Dopen(loc_id,name,H5P_DEFAULT)) < 0) {
-        LOG_ERR("error opening dataset '%s'",name);
+file_dataset_t * file_dataset_reopen(file_dataset_t * info) {
+    if ((info->set = H5Dopen(info->loc_id,info->name,H5P_DEFAULT)) < 0) {
+        LOG_ERR("error opening dataset '%s'",info->name);
         goto errlabel;
     }
     if ((info->space = H5Dget_space(info->set)) < 0) {
-        LOG_ERR("error getting dataspace for '%s'",name);
+        LOG_ERR("error getting dataspace for '%s'",info->name);
         goto errlabel;
     }
     if (H5Sget_simple_extent_dims(info->space, info->dims, NULL) < 0) {
-        LOG_ERR("error getting dimensions of '%s'",name);
+        LOG_ERR("error getting dimensions of '%s'",info->name);
         goto errlabel;
     }
     if ((info->length_attrib = H5Aopen(info->set,"Filesize",H5P_DEFAULT)) < 0) {
-        LOG_ERR("error opening filesize attribute of '%s'",name);
+        LOG_ERR("error opening filesize attribute of '%s'",info->name);
         goto errlabel;
     }
     if ((info->length_space = H5Aget_space(info->length_attrib)) < 0) {
-        LOG_ERR("error opening filesize attribute dataspace of '%s'",name);
+        LOG_ERR("error opening filesize attribute dataspace of '%s'",info->name);
         goto errlabel;
     }
     if (H5Aread(info->length_attrib,H5T_NATIVE_INT64,&info->length) < 0) {
-        LOG_ERR("Error reading filesize attrib for '%s'",name);
+        LOG_ERR("Error reading filesize attrib for '%s'",info->name);
         goto errlabel;
     }
     hid_t dcpl;
     if ((dcpl = H5Dget_create_plist(info->set)) < 0) {
-        LOG_ERR("error getting create plist for '%s'",name);
+        LOG_ERR("error getting create plist for '%s'",info->name);
         goto errlabel;
     }
     if (H5D_CHUNKED != H5Pget_layout(dcpl)) {
-        LOG_ERR("dataset '%s' is not chunked",name);
+        LOG_ERR("dataset '%s' is not chunked",info->name);
         goto err_dcpl;
     }
     if (H5Pget_chunk(dcpl,RANK,info->chunk) < 0) {
-        LOG_ERR("error getting chunk properties for '%s'",name);
+        LOG_ERR("error getting chunk properties for '%s'",info->name);
         goto err_dcpl;
     }
     H5Pclose(dcpl);
     info->length_original = info->length;
-    return(info->set);
+    return(info);
     err_dcpl:
         H5Pclose(dcpl);
     errlabel:
-        hdf5_dataset_close(name,info);
-    return(-1);
+        hdf5_dataset_close(info);
+    return(NULL);
+}
+
+file_dataset_t * file_dataset_open(hid_t loc_id, const char *name) {
+    file_dataset_t * info = malloc(sizeof(file_dataset_t)+strlen(name));
+    (*info) = __file_ds_initializer;
+    info->loc_id = loc_id;
+    strcpy(info->name,name);
+    if (file_dataset_reopen(info)==NULL) {
+        free(info);
+        return(NULL);
+    }
+    return(info);
 }
 
 file_dataset_t * file_dataset(hid_t loc_id, const char *name) {
     H5O_info_t      infobuf;
     herr_t          status = H5Oget_info_by_name (loc_id, name, &infobuf, H5P_DEFAULT);
     if ((status < 0) || (infobuf.type != H5O_TYPE_DATASET)) return(NULL);
-    file_dataset_t * info = malloc(sizeof(file_dataset_t));
-    if (hdf5_dataset_open(loc_id,name,info) > 0) {
+    file_dataset_t * info = file_dataset_open(loc_id,name);
+    if (info != NULL) {
         LOG_DBG("dsinfo %s %d",name,info->length);
         khiter_t k;
         int ret, is_missing;
@@ -253,7 +286,7 @@ file_node_t * close_node(file_node_t * node) {
     while (node->dataset != NULL) {
         file_dataset_t * walker = node->dataset;
         node->dataset=node->dataset->next;
-        hdf5_dataset_close(node->name,walker);
+        hdf5_dataset_close(walker);
         free(walker);
     }
     free(node);
@@ -284,19 +317,18 @@ hsize_t suggest_chunk_size_from_length(hsize_t old_length) {
     }
 }
 
-herr_t copy_set_stack(hid_t loc_id, file_node_t * node) {
-    file_dataset_t target_set;
-    target_set.dims[0]  = node->dataset->length;
-    target_set.chunk[0] = suggest_chunk_size_from_length(node->dataset->length);
-    hdf5_dataset_create(loc_id, node->name, &target_set);
-    target_set.length = node->dataset->length;
+herr_t copy_set_stack(hid_t loc_id, file_node_t * node, int compress) {
+    file_dataset_t * target_set = file_dataset_create(loc_id, node->name,
+        suggest_chunk_size_from_length(node->dataset->length),
+        node->dataset->length, compress);
+    target_set->length = node->dataset->length;
 
     hid_t source_space = H5Dget_space(node->dataset->set);
-    hid_t dst_space    = H5Dget_space(target_set.set);
+    hid_t dst_space    = H5Dget_space(target_set->set);
 
     hsize_t copy_block_size = DIM_CHUNKED(
-            ( target_set.length < 10*1024*1024 ? target_set.length : 10*1024*1024),
-            target_set.chunk[0]);
+            ( target_set->length < 10*1024*1024 ? target_set->length : 10*1024*1024),
+            target_set->chunk[0]);
     char *buffer = malloc(copy_block_size);
 
     hsize_t offset[1] = { 0 };
@@ -306,7 +338,7 @@ herr_t copy_set_stack(hid_t loc_id, file_node_t * node) {
     while (to_copy > 0) {
         hs_count[0] = (to_copy > copy_block_size ? copy_block_size : to_copy);
         LOG_INFO("file: %s, length: %d, offset: %d, size: %d",node->name,
-                target_set.length,offset[0],hs_count[0]);
+                target_set->length,offset[0],hs_count[0]);
         status = H5Sselect_hyperslab(source_space,H5S_SELECT_SET, offset, NULL, hs_count, NULL);
         if (status < 0) {
             LOG_ERR("error selecting source hyperslab");
@@ -323,7 +355,7 @@ herr_t copy_set_stack(hid_t loc_id, file_node_t * node) {
             LOG_ERR("error selecting dest hyperslab");
             break;
         }
-        status = H5Dwrite(target_set.set,HDF5FS_T,readspace,dst_space,H5P_DEFAULT,buffer);
+        status = H5Dwrite(target_set->set,HDF5FS_T,readspace,dst_space,H5P_DEFAULT,buffer);
         H5Sclose(readspace);
         to_copy -= hs_count[0];
         offset[0]+=hs_count[0];
@@ -332,7 +364,8 @@ herr_t copy_set_stack(hid_t loc_id, file_node_t * node) {
     free(buffer);
     H5Sclose(source_space);
     H5Sclose(dst_space);
-    hdf5_dataset_close(node->name,&target_set);
+    hdf5_dataset_close(target_set);
+    free(target_set);
     return(0);
 }
 
@@ -340,7 +373,7 @@ herr_t copy_all_files() {
     khiter_t k;
     for (k = kh_begin(filelist); k != kh_end(filelist); ++k) {
         if (kh_exist(filelist, k)) {
-            copy_set_stack(hdf_dst,kh_value(filelist,k));
+            copy_set_stack(hdf_dst,kh_value(filelist,k),3);
         }
     }
     return(0);
