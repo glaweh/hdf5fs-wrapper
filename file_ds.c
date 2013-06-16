@@ -269,3 +269,26 @@ errlabel:
     if (readspace >= 0) H5Sclose(readspace);
     return(-1);
 }
+
+int file_ds_exists(hid_t loc_id, const char *pathname) {
+    if (pathname[0] == 0) return(1);
+    int pathlen=strnlen(pathname,PATH_MAX);
+    if (pathlen == 0) return(1);
+    char testpath[PATH_MAX];
+    strncpy(testpath,pathname,PATH_MAX);
+    int i;
+    htri_t testres;
+    for (i=0;i<pathlen;i++) {
+        if (testpath[i] == '/') {
+            testpath[i] = 0;
+            testres=H5Lexists(loc_id,testpath,H5P_DEFAULT);
+            if (testres <= 0)
+                return(0);
+            testpath[i] = '/';
+        }
+    }
+    testres=H5Lexists(loc_id,testpath,H5P_DEFAULT);
+    if (testres <= 0)
+        return(0);
+    return(1);
+}

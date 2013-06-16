@@ -10,6 +10,7 @@
 #include "string_set.h"
 #include "wrapper_limits.h"
 #include "logger.h"
+#include "file_ds.h"
 
 #define RANK 1
 hid_t   hdf_file;
@@ -43,8 +44,6 @@ typedef struct {
 int     last_handle=-1;
 hdf5_data_t * hdf5_data[HANDLES_MAX];
 hdf5_dataset_info_t dataset_info_list;
-
-int _hdf5_path_exists(const char *pathname);
 
 int hdf5_fs_init(const char * hdf_filename) {
     struct stat hdf_stat;
@@ -94,7 +93,7 @@ int hdf5_open(int fd, const char *pathname, int flags) {
         return(-1);
     }
     LOG_DBG(" %d, '%s', %o", fd,pathname,flags);
-    int set_exists = _hdf5_path_exists(pathname);
+    int set_exists = file_ds_exists(hdf_file,pathname);
 
     hid_t  set=-1;
     if (set_exists) {
@@ -307,7 +306,7 @@ int hdf5_lseek(int fd, off_t offset, int whence) {
 
 int hdf5_stat64(const char *pathname, struct stat64 *buf) {
     H5O_info_t object_info;
-    if (_hdf5_path_exists(pathname) == 0) {
+    if (file_ds_exists(hdf_file,pathname) == 0) {
         if (string_set_find(closed_empty_files, pathname) <= 0) {
             errno=ENOENT;
             return(-1);
@@ -372,7 +371,7 @@ int hdf5_fstat64(int fd, struct stat64 *buf) {
 }
 
 int hdf5_unlink(const char *pathname) {
-    if (_hdf5_path_exists(pathname)==0) {
+    if (file_ds_exists(hdf_file,pathname)==0) {
         if (string_set_remove(closed_empty_files,pathname))
             return(0);
         errno=ENOENT;
@@ -385,26 +384,3 @@ int hdf5_unlink(const char *pathname) {
     }
     return(0);
 }
-
-int _hdf5_path_exists(const char *pathname) {
-    int pathlen=strnlen(pathname,PATH_MAX);
-    if (pathlen == 0) return(1);
-    char testpath[PATH_MAX];
-    strncpy(testpath,pathname,PATH_MAX);
-    int i;
-    htri_t testres;
-    for (i=0;i<pathlen;i++) {
-        if (testpath[i] == '/') {
-            testpath[i] = 0;
-            testres=H5Lexists(hdf_file,testpath,H5P_DEFAULT);
-            if (testres <= 0)
-                return(0);
-            testpath[i] = '/';
-        }
-    }
-    testres=H5Lexists(hdf_file,testpath,H5P_DEFAULT);
-    if (testres <= 0)
-        return(0);
-    return(1);
-}
-

@@ -5,7 +5,7 @@ LDLIBS:=-ldl -lhdf5 -lc
 all: hdf5fs-wrapper.so hdf5fs-repack
 test: test_rel2abs test_pathcmp
 
-hdf5fs-wrapper.so: hdf5fs-wrapper.o path_util.o hdf5_fs.o string_set.o env_util.o logger.o process_info.o
+hdf5fs-wrapper.so: hdf5fs-wrapper.o path_util.o hdf5_fs.o string_set.o env_util.o logger.o process_info.o file_ds.o chunksize.o
 	$(LD) $(LDFLAGS) -shared $^ $(LDLIBS) -o $@
 hdf5fs-wrapper.o: hdf5fs-wrapper.c logger.h process_info.h
 
