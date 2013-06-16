@@ -247,12 +247,11 @@ int hdf5_ls(hid_t file_id, const char * root_name) {
 }
 
 file_node_t * close_node(file_node_t * node) {
-    hdf5_dataset_info_t * setwalker = node->dataset;
-    while (setwalker != NULL) {
-        hdf5_dataset_info_t * walker_prev = setwalker;
-        setwalker=walker_prev->next;
-        hdf5_dataset_close(node->name,walker_prev);
-        free(walker_prev);
+    while (node->dataset != NULL) {
+        hdf5_dataset_info_t * walker = node->dataset;
+        node->dataset=node->dataset->next;
+        hdf5_dataset_close(node->name,walker);
+        free(walker);
     }
     free(node);
     return(NULL);
