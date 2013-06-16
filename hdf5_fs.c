@@ -297,7 +297,7 @@ int hdf5_stat64(const char *pathname, struct stat64 *buf) {
             return(-1);
         }
         (*buf)=hdf_file_stat;
-        buf->st_blksize=chunk_dims[0];
+        buf->st_blksize=4096;
         buf->st_size=0;
         buf->st_blocks=0;
         return(0);
@@ -309,7 +309,7 @@ int hdf5_stat64(const char *pathname, struct stat64 *buf) {
         return(-1);
     }
     (*buf)=hdf_file_stat;
-    buf->st_blksize=chunk_dims[0];
+    buf->st_blksize=4096;
     buf->st_atime  =object_info.atime;
     buf->st_mtime  =object_info.mtime;
     buf->st_ctime  =object_info.ctime;
