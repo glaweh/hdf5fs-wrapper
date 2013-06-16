@@ -11,7 +11,7 @@ const file_ds_t __file_ds_initializer = {
     .refcount = 0, .rdonly = 1,
     .next = NULL, .loc_id = -1, .name[0] = 0
 };
-const hsize_t maxdims[1] = {H5S_UNLIMITED};
+const hsize_t __file_ds_maxdims[1] = {H5S_UNLIMITED};
 
 herr_t file_ds_close(file_ds_t * info) {
     if (! info->rdonly) {
@@ -91,7 +91,7 @@ file_ds_t * file_ds_create(hid_t loc_id, const char *name, hsize_t chunk_size, h
     info->loc_id = loc_id;
     strcpy(info->name,name);
     LOG_DBG("create %40s, chunksize %d, dim %d",name,info->chunk[0],info->dims[0]);
-    if ((info->space = H5Screate_simple(1, info->dims, maxdims)) < 0) {
+    if ((info->space = H5Screate_simple(1, info->dims, __file_ds_maxdims)) < 0) {
         LOG_ERR("error creating dataspace for '%s'",name);
         goto errlabel;
     }
