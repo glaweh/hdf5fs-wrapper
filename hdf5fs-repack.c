@@ -19,7 +19,6 @@ typedef struct file_dataset {
     hid_t   set;
     hid_t   length_space;
     hid_t   length_attrib;
-    hid_t   file;
     hsize_t dims[RANK];
     hsize_t chunk[RANK];
     int64_t length;
@@ -27,6 +26,7 @@ typedef struct file_dataset {
     int     refcount;
     int     rdonly;
     struct  file_dataset * next;
+    hid_t   loc_id;
 } file_dataset_t;
 
 typedef struct {
@@ -107,6 +107,7 @@ hid_t hdf5_dataset_create(hid_t loc_id, const char *name, file_dataset_t * info)
     }
     info->dims[0] = DIM_CHUNKED(info->dims[0],info->chunk[0]);
     if (info->dims[0] == 0) info->dims[0] = info->chunk[0];
+    info->loc_id = loc_id;
     LOG_DBG("create %40s, chunksize %d, dim %d",name,info->chunk[0],info->dims[0]);
     if ((info->space = H5Screate_simple(RANK, info->dims, maxdims)) < 0) {
         LOG_ERR("error creating dataspace for '%s'",name);
