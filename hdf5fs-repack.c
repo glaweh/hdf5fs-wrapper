@@ -4,7 +4,6 @@
 #include <hdf5.h>
 #include <errno.h>
 #include "logger.h"
-#include "string_set.h"
 #include "khash.h"
 
 #define MAX_HDF5SRC 1024
