@@ -15,11 +15,9 @@
 #define RANK 1
 hid_t   hdf_file;
 hid_t   create_params;
-char    fillvalue = 0;
 hsize_t chunk_dims[1]={1024*64};
 struct stat64 hdf_file_stat;
 string_set * closed_empty_files;
-string_set * datasets;
 
 typedef struct hdf5_dataset_info {
     hid_t   space;
@@ -42,7 +40,6 @@ typedef struct {
 
 int     last_handle=-1;
 hdf5_data_t * hdf5_data[HANDLES_MAX];
-hdf5_dataset_info_t dataset_info_list;
 
 int hdf5_fs_init(const char * hdf_filename) {
     struct stat hdf_stat;
