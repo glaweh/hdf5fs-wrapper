@@ -1,5 +1,5 @@
 CC:=colorgcc
-CFLAGS:=$(CFLAGS) -fpic -g -O0 -Wall -Werror -Wno-error=unused-variable -DDEBUG
+CFLAGS:=$(CFLAGS) -fpic -g -O0 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=7
 LDLIBS:=-ldl -lhdf5 -lc
 
 all: hdf5fs-wrapper.so hdf5fs-repack
