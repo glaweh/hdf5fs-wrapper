@@ -57,20 +57,18 @@ herr_t file_ds_close(file_ds_t * info) {
     return(status);
 }
 
-file_ds_t * file_ds_create(hid_t loc_id, const char *name, hsize_t chunk_size, hsize_t initial_dim, int deflate) {
+file_ds_t * file_ds_create(hid_t loc_id, const char *name, hsize_t chunk_size, hsize_t initial_dim, hsize_t expected_length, int deflate) {
     file_ds_t * info = malloc(sizeof(file_ds_t)+strlen(name));
     if (info == NULL) {
         LOG_ERR("error allocating file_ds_t");
         return(NULL);
     }
     *info = __file_ds_initializer;
-    if (chunk_size <= 0) {
-        LOG_ERR("no chunk size set for '%s'",name);
-        goto errlabel;
+    if (chunk_size == 0) {
+        chunk_size = chunksize_suggest(name, expected_length);
     }
     if (initial_dim < 0) {
-        LOG_ERR("initial_dim<0 set for '%s'",name);
-        goto errlabel;
+        initial_dim = 1;
     }
     info->chunk[0]=chunk_size;
     hid_t   create_params = H5Pcreate(H5P_DATASET_CREATE);
@@ -182,9 +180,8 @@ file_ds_t * file_ds_open(hid_t loc_id, const char *name) {
 }
 
 file_ds_t * file_ds_copy(hid_t dst_loc_id, file_ds_t * src, hsize_t chunk_size, int deflate) {
-    if (chunk_size == 0) chunk_size = chunksize_suggest(src->name, src->length);
     file_ds_t * target_set = file_ds_create(dst_loc_id, src->name,
-        chunk_size, src->length, deflate);
+        chunk_size, src->length, src->length, deflate);
     if (target_set == NULL) {
         LOG_ERR("target set creation failed when copying '%s'",src->name);
         return(NULL);
