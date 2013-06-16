@@ -14,7 +14,7 @@ int   n_hdf_src;
 hid_t hdf_src[MAX_HDF5SRC];
 hid_t hdf_dst;
 
-typedef struct hdf5_dataset_info {
+typedef struct file_dataset {
     hid_t   space;
     hid_t   set;
     hid_t   length_space;
@@ -26,12 +26,12 @@ typedef struct hdf5_dataset_info {
     int64_t length_original;
     int     refcount;
     int     rdonly;
-    struct  hdf5_dataset_info * next;
-} hdf5_dataset_info_t;
+    struct  file_dataset * next;
+} file_dataset_t;
 
 typedef struct {
     int n_sets;
-    hdf5_dataset_info_t * dataset;
+    file_dataset_t * dataset;
     char name[0];
 } file_node_t;
 
@@ -41,7 +41,7 @@ khash_t(42) * filelist = NULL;
 
 #define DIM_CHUNKED(length,chunk) ((length) + ((chunk) - ((length) % (chunk))))
 
-hid_t hdf5_dataset_close(const char *name, hdf5_dataset_info_t * info) {
+hid_t hdf5_dataset_close(const char *name, file_dataset_t * info) {
     if (! info->rdonly) {
         if ((info->length != info->length_original) && 
                 (H5Awrite(info->length_attrib,H5T_NATIVE_INT64,&info->length) < 0)) {
@@ -85,7 +85,7 @@ hid_t hdf5_dataset_close(const char *name, hdf5_dataset_info_t * info) {
 
 hsize_t maxdims[1] = {H5S_UNLIMITED};
 
-hid_t hdf5_dataset_create(hid_t loc_id, const char *name, hdf5_dataset_info_t * info) {
+hid_t hdf5_dataset_create(hid_t loc_id, const char *name, file_dataset_t * info) {
     info->rdonly = 1;
     info->length = info->length_original = 0;
     /*
@@ -135,7 +135,7 @@ hid_t hdf5_dataset_create(hid_t loc_id, const char *name, hdf5_dataset_info_t * 
     return(-1);
 }
 
-hid_t hdf5_dataset_open(hid_t loc_id, const char *name, hdf5_dataset_info_t * info) {
+hid_t hdf5_dataset_open(hid_t loc_id, const char *name, file_dataset_t * info) {
     info->rdonly = 1;
     if ((info->set = H5Dopen(loc_id,name,H5P_DEFAULT)) < 0) {
         LOG_ERR("error opening dataset '%s'",name);
@@ -184,11 +184,11 @@ hid_t hdf5_dataset_open(hid_t loc_id, const char *name, hdf5_dataset_info_t * in
     return(-1);
 }
 
-hdf5_dataset_info_t * hdf5_dataset_info(hid_t loc_id, const char *name) {
+file_dataset_t * file_dataset(hid_t loc_id, const char *name) {
     H5O_info_t      infobuf;
     herr_t          status = H5Oget_info_by_name (loc_id, name, &infobuf, H5P_DEFAULT);
     if ((status < 0) || (infobuf.type != H5O_TYPE_DATASET)) return(NULL);
-    hdf5_dataset_info_t * info = malloc(sizeof(hdf5_dataset_info_t));
+    file_dataset_t * info = malloc(sizeof(file_dataset_t));
     if (hdf5_dataset_open(loc_id,name,info) > 0) {
         LOG_DBG("dsinfo %s %d",name,info->length);
         khiter_t k;
@@ -236,7 +236,7 @@ static herr_t op_func_L (hid_t loc_id, const char *name, const H5L_info_t *info,
 			 void *operator_data)
 {
     herr_t          status;
-    hdf5_dataset_info(loc_id,name);
+    file_dataset(loc_id,name);
     return(0);
 }
 
@@ -248,7 +248,7 @@ int hdf5_ls(hid_t file_id, const char * root_name) {
 
 file_node_t * close_node(file_node_t * node) {
     while (node->dataset != NULL) {
-        hdf5_dataset_info_t * walker = node->dataset;
+        file_dataset_t * walker = node->dataset;
         node->dataset=node->dataset->next;
         hdf5_dataset_close(node->name,walker);
         free(walker);
@@ -282,7 +282,7 @@ hsize_t suggest_chunk_size_from_length(hsize_t old_length) {
 }
 
 herr_t copy_set_stack(hid_t loc_id, file_node_t * node) {
-    hdf5_dataset_info_t target_set;
+    file_dataset_t target_set;
     target_set.dims[0]  = node->dataset->length;
     target_set.chunk[0] = suggest_chunk_size_from_length(node->dataset->length);
     hdf5_dataset_create(loc_id, node->name, &target_set);
