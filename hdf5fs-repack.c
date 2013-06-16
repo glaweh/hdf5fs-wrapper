@@ -289,6 +289,48 @@ herr_t copy_set_stack(hid_t loc_id, file_node_t * node) {
     target_set.chunk[0] = suggest_chunk_size_from_length(node->dataset->length);
     hdf5_dataset_create(loc_id, node->name, &target_set);
     target_set.length = node->dataset->length;
+
+    hid_t source_space = H5Dget_space(node->dataset->set);
+    hid_t dst_space    = H5Dget_space(target_set.set);
+
+    hsize_t copy_block_size = DIM_CHUNKED(
+            ( target_set.length < 10*1024*1024 ? target_set.length : 10*1024*1024),
+            target_set.chunk[0]);
+    char *buffer = malloc(copy_block_size);
+
+    hsize_t offset[1] = { 0 };
+    hsize_t to_copy = node->dataset->length;
+    hsize_t hs_count[1];
+    herr_t status;
+    while (to_copy > 0) {
+        hs_count[0] = (to_copy > copy_block_size ? copy_block_size : to_copy);
+        LOG_INFO("file: %s, length: %d, offset: %d, size: %d",node->name,
+                target_set.length,offset[0],hs_count[0]);
+        status = H5Sselect_hyperslab(source_space,H5S_SELECT_SET, offset, NULL, hs_count, NULL);
+        if (status < 0) {
+            LOG_ERR("error selecting source hyperslab");
+            break;
+        }
+        hid_t readspace = H5Screate_simple(RANK, hs_count, NULL);
+        status = H5Dread(node->dataset->set,HDF5FS_T,readspace,source_space,H5P_DEFAULT,buffer);
+        if (status < 0) {
+            LOG_ERR("error reading source hyperslab");
+            break;
+        }
+        status = H5Sselect_hyperslab(dst_space,H5S_SELECT_SET, offset, NULL, hs_count, NULL);
+        if (status < 0) {
+            LOG_ERR("error selecting dest hyperslab");
+            break;
+        }
+        status = H5Dwrite(target_set.set,HDF5FS_T,readspace,dst_space,H5P_DEFAULT,buffer);
+        H5Sclose(readspace);
+        to_copy -= hs_count[0];
+        offset[0]+=hs_count[0];
+    }
+
+    free(buffer);
+    H5Sclose(source_space);
+    H5Sclose(dst_space);
     hdf5_dataset_close(node->name,&target_set);
     return(0);
 }
