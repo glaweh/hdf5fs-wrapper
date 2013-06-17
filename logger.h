@@ -12,7 +12,7 @@
 #define LOG_LEVEL_DBG2     (6)
 #define LOG_LEVEL_DBG3     (7)
 
-void log_msg_function(const char *function_name, const char *fstring, ...);
+void log_msg_function(const char *function_name, const char *fstring, ...) __attribute__ ((format (printf, 2, 3)));
 
 #if (LOG_LEVEL >= LOG_LEVEL_FATAL)
 #define LOG_FATAL(...) log_msg_function(__func__,__VA_ARGS__)
