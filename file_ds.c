@@ -1,5 +1,7 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include "logger.h"
 #include "file_ds.h"
 #include "chunksize.h"
@@ -376,4 +378,71 @@ errlabel:
     if (filespace >= 0) H5Sclose(filespace);
     if (dataspace >= 0) H5Sclose(dataspace);
     return(-3);
+}
+
+hssize_t file_ds_export(file_ds_t * src, const char * filename) {
+    if (src->set < 0) return(-1);
+    FILE * export_file = fopen(filename,"wb");
+    if (export_file == NULL) {
+        LOG_ERR("error opening export file '%s': %s",filename,strerror(errno));
+    }
+    hsize_t copy_block_size = DIM_CHUNKED(10*1024*1024,src->chunk[0]);
+    if (copy_block_size > src->length) copy_block_size = src->length;
+    char *buffer = malloc(copy_block_size);
+    if (buffer == NULL) {
+        LOG_ERR("error allocating copy buffer for '%s', size %llu",src->name,copy_block_size);
+        return(-2);
+    }
+    hid_t source_space = -1;
+    if ((source_space=H5Dget_space(src->set)) < 0) {
+        LOG_ERR("error getting source space for '%s'",src->name);
+        goto errlabel;
+    }
+    hsize_t offset[1] = { 0 };
+    hsize_t to_copy = src->length;
+    hsize_t hs_count[1];
+    hid_t   readspace = -1;
+    while (to_copy > 0) {
+        hs_count[0] = (to_copy > copy_block_size ? copy_block_size : to_copy);
+        LOG_DBG("file: %s, length: %"PRIi64", offset: %llu, size: %llu",src->name,
+                src->length,offset[0],hs_count[0]);
+        if (H5Sselect_hyperslab(source_space,H5S_SELECT_SET, offset, NULL, hs_count, NULL) < 0) {
+            LOG_ERR("error selecting source hyperslab");
+            goto errlabel;
+        }
+        if ((readspace = H5Screate_simple(1, hs_count, NULL)) < 0) {
+            LOG_ERR("error creating readspace");
+            goto errlabel;
+        }
+        if (H5Dread(src->set,H5T_FILE_DS,readspace,source_space,H5P_DEFAULT,buffer) < 0) {
+            LOG_ERR("error reading source hyperslab");
+            goto errlabel;
+        }
+        size_t to_write = hs_count[0];
+        char * write_ptr = buffer;
+        while (to_write > 0) {
+            size_t n_written = fwrite(write_ptr,1,to_write,export_file);
+            if ((n_written < to_write) && (ferror(export_file)!=0)) {
+                LOG_ERR("error writing to file '%s'",filename);
+                clearerr(export_file);
+                goto errlabel;
+            }
+            write_ptr+=n_written;
+            to_write-=n_written;
+        }
+        H5Sclose(readspace);
+        to_copy -= hs_count[0];
+        offset[0]+=hs_count[0];
+    }
+    fclose(export_file);
+    free(buffer);
+    H5Sclose(source_space);
+    return(1);
+errlabel:
+    if (export_file != NULL) fclose(export_file);
+    free(buffer);
+    if (source_space >= 0) H5Sclose(source_space);
+    if (readspace >= 0) H5Sclose(readspace);
+    return(-1);
+
 }

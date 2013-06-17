@@ -33,4 +33,5 @@ herr_t file_ds_copy_contents(file_ds_t * dst, file_ds_t *src);
 int file_ds_exists(hid_t loc_id, const char *pathname);
 hssize_t file_ds_read(file_ds_t * file_ds, hsize_t offset, void * buf, hsize_t count);
 hssize_t file_ds_write(file_ds_t * file_ds, hsize_t offset, const void *buf, hsize_t count);
+hssize_t file_ds_export(file_ds_t * src, const char * filename);
 #endif
