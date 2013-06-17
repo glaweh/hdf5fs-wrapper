@@ -21,11 +21,12 @@ herr_t file_ds_close(file_ds_t * info) {
         }
         hsize_t old_dim = info->dims[0];
         info->dims[0] = DIM_CHUNKED(info->length+1,info->chunk[0]);
-        LOG_DBG("resizing %40s, length %6d, chunksize %6d, old_dim %6d, new_dim %6d",
+        if (old_dim != info->dims[0]) {
+            LOG_DBG("resizing %40s, length %6d, chunksize %6d, old_dim %6d, new_dim %6d",
                 info->name,info->length,info->chunk[0],old_dim,info->dims[0]);
-        if ((old_dim != info->dims[0]) && 
-                (H5Dset_extent(info->set, info->dims)<0)) {
-            LOG_ERR("error resizing datset for '%s' to %d",info->name,info->dims[0]);
+            if (H5Dset_extent(info->set, info->dims)<0) {
+                LOG_ERR("error resizing datset for '%s' to %d",info->name,info->dims[0]);
+            }
         }
         // FIXME: use H5Dfill to fill the emtpy part
     }
