@@ -291,7 +291,7 @@ int file_ds_exists(hid_t loc_id, const char *pathname) {
     return(1);
 }
 
-hsize_t file_ds_read(file_ds_t * file_ds, hsize_t offset, void * buf, hsize_t count) {
+hssize_t file_ds_read(file_ds_t * file_ds, hsize_t offset, void * buf, hsize_t count) {
     if (file_ds->set < 0) return(-1);
     if (count == 0) return(0);
     hssize_t remaining_count = file_ds->length - offset;
@@ -329,7 +329,7 @@ errlabel:
     return(-2);
 }
 
-hsize_t file_ds_write(file_ds_t * file_ds, hsize_t offset, const void *buf, hsize_t count) {
+hssize_t file_ds_write(file_ds_t * file_ds, hsize_t offset, const void *buf, hsize_t count) {
     if (file_ds->set < 0) return(-1);
     if (file_ds->rdonly) return(-1);
     if (count == 0) return(0);
