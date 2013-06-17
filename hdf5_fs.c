@@ -29,7 +29,6 @@ hdf5_data_t * hdf5_data[HANDLES_MAX];
 
 int hdf5_fs_init(const char * hdf_filename) {
     struct stat hdf_stat;
-    herr_t status;
     if ((stat(hdf_filename,&hdf_stat)>=0) && (H5Fis_hdf5(hdf_filename) >= 0)) {
         hdf_file = H5Fopen(hdf_filename,H5F_ACC_RDWR,H5P_DEFAULT);
     } else {
@@ -70,8 +69,6 @@ int hdf5_open(int fd, const char *pathname, int flags) {
     }
     LOG_DBG(" %d, '%s', %o", fd,pathname,flags);
     int set_exists = file_ds_exists(hdf_file,pathname);
-
-    hid_t  set=-1;
     if (set_exists) {
         if (((flags & O_CREAT)>0) && ((flags & O_EXCL)>0)) {
             LOG_DBG("dataset already exists %d -> '%s'",fd,pathname);
@@ -116,7 +113,6 @@ int hdf5_open(int fd, const char *pathname, int flags) {
 }
 
 int hdf5_close(int fd) {
-    int status;
     if (hdf5_data[fd] == NULL) {
         LOG_WARN("unknown fd %d",fd);
         errno = EBADF;

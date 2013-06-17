@@ -74,7 +74,6 @@ file_ds_t * file_ds(hid_t loc_id, const char *name) {
 static herr_t op_func_L (hid_t loc_id, const char *name, const H5L_info_t *info,
 			 void *operator_data)
 {
-    herr_t          status;
     file_ds(loc_id,name);
     return(0);
 }
