@@ -207,7 +207,7 @@ int hdf5_write(int fd, const void *buf, size_t count) {
     LOG_DBG("(%d='%s', %d) %d (%d)\n",fd,d->name,(int)count,(int)d->offset[0],(int)d->dataset->length);
     if (d->dataset->set < 0) {
         d->dataset->space = H5Screate_simple(RANK, d->dataset->dims, __file_ds_maxdims);
-        d->dataset->set = H5Dcreate2(hdf_file, d->name, H5T_NATIVE_CHAR, d->dataset->space, H5P_DEFAULT, create_params, H5P_DEFAULT);
+        d->dataset->set = H5Dcreate2(hdf_file, d->name, H5T_FILE_DS, d->dataset->space, H5P_DEFAULT, create_params, H5P_DEFAULT);
         d->dataset->length_space=H5Screate(H5S_SCALAR);
         d->dataset->length_attrib=H5Acreate2(d->dataset->set, "Filesize", H5T_NATIVE_INT64,
                 d->dataset->length_space, H5P_DEFAULT, H5P_DEFAULT);
@@ -220,7 +220,7 @@ int hdf5_write(int fd, const void *buf, size_t count) {
     hid_t dataspace = H5Screate_simple(RANK, hs_count, NULL);
     H5Sselect_hyperslab(filespace, H5S_SELECT_SET, d->offset, NULL, hs_count, NULL);
 
-    H5Dwrite(d->dataset->set,H5T_NATIVE_CHAR,dataspace,filespace,H5P_DEFAULT,buf);
+    H5Dwrite(d->dataset->set,H5T_FILE_DS,dataspace,filespace,H5P_DEFAULT,buf);
     H5Sclose(filespace);
     H5Sclose(dataspace);
     H5Awrite(d->dataset->length_attrib, H5T_NATIVE_INT64, &d->dataset->length);
@@ -255,7 +255,7 @@ int hdf5_read(int fd, void *buf, size_t count) {
     hid_t dataspace = H5Screate_simple(RANK, hs_count, NULL);
     H5Sselect_hyperslab(filespace, H5S_SELECT_SET, d->offset, NULL, hs_count, NULL);
 
-    H5Dread(d->dataset->set,H5T_NATIVE_CHAR,dataspace,filespace,H5P_DEFAULT,buf);
+    H5Dread(d->dataset->set,H5T_FILE_DS,dataspace,filespace,H5P_DEFAULT,buf);
     H5Sclose(filespace);
     H5Sclose(dataspace);
     d->offset[0]+=remaining_count;
