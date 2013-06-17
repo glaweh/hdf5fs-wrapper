@@ -160,31 +160,23 @@ int hdf5_write(int fd, const void *buf, size_t count) {
         }
     } else {
         if (d->append) d->offset[0]=d->dataset->length;
-        hsize_t needed_dim = DIM_CHUNKED(d->offset[0]+count+1,d->dataset->chunk[0]);
-        if (needed_dim > d->dataset->dims[0]) {
-            d->dataset->dims[0]=needed_dim;
-            if (H5Dset_extent(d->dataset->set, d->dataset->dims) < 0) {
-                LOG_ERR("error resizing dataset '%s'",d->name);
-                errno = EIO;
-                return(-1);
-            }
-        }
     }
-    LOG_DBG("(%d='%s', %d) %d (%d)\n",fd,d->name,(int)count,(int)d->offset[0],(int)d->dataset->length);
-    hsize_t hs_count[RANK];
-    hs_count[0]=count;
-    hid_t filespace = H5Dget_space(d->dataset->set);
-    hid_t dataspace = H5Screate_simple(RANK, hs_count, NULL);
-    H5Sselect_hyperslab(filespace, H5S_SELECT_SET, d->offset, NULL, hs_count, NULL);
-
-    H5Dwrite(d->dataset->set,H5T_FILE_DS,dataspace,filespace,H5P_DEFAULT,buf);
-    H5Sclose(filespace);
-    H5Sclose(dataspace);
-    H5Awrite(d->dataset->length_attrib, H5T_NATIVE_INT64, &d->dataset->length);
-    if ((d->offset[0]+count) > d->dataset->length)
-        d->dataset->length = d->offset[0]+count;
-    d->offset[0]+=count;
-    return(count);
+    hsize_t bytes_written = file_ds_write(d->dataset,d->offset[0],buf,count);
+    if (bytes_written >= 0) {
+        d->offset[0]+=bytes_written;
+        return((int)bytes_written);
+    } else if (bytes_written == -1) {
+        errno=EBADF;
+        return(-1);
+    } else if (bytes_written == -2) {
+        errno=EFBIG;
+        return(-1);
+    } else if (bytes_written == -3) {
+        errno=EIO;
+        return(-1);
+    }
+    errno = EINVAL;
+    return(-1);
 }
 
 int hdf5_read(int fd, void *buf, size_t count) {
