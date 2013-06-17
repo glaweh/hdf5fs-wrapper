@@ -188,8 +188,6 @@ int hdf5_write(int fd, const void *buf, size_t count) {
 }
 
 int hdf5_read(int fd, void *buf, size_t count) {
-    if (count == 0)
-        return(0);
     if (hdf5_data[fd] == NULL) {
         LOG_WARN("write on unknown fd %d",fd);
         errno = EBADF;
@@ -201,26 +199,19 @@ int hdf5_read(int fd, void *buf, size_t count) {
         LOG_DBG("unitialized dataset '%s'",d->name);
         return(0);
     }
-    if (d->offset[0] >= d->dataset->length) {
-        LOG_DBG("read beyond end '%s', len %d, offset %d",d->name,d->dataset->length,d->offset[0]);
-        return(0);
+    hsize_t bytes_read = file_ds_read(d->dataset,d->offset[0],buf,count);
+    if (bytes_read >= 0) {
+        d->offset[0]+=bytes_read;
+        return((int)bytes_read);
+    } else if (bytes_read == -1) {
+        errno=EBADF;
+        return(-1);
+    } else if (bytes_read == -2) {
+        errno=EIO;
+        return(-1);
     }
-    size_t remaining_count = d->dataset->length - d->offset[0];
-    if (remaining_count > count)
-        remaining_count = count;
-    LOG_DBG("(%d='%s', %d) %d (%d)",fd,d->name,(int)count,(int)d->offset[0],(int)d->dataset->length);
-
-    hsize_t hs_count[RANK];
-    hs_count[0]=remaining_count;
-    hid_t filespace = H5Dget_space(d->dataset->set);
-    hid_t dataspace = H5Screate_simple(RANK, hs_count, NULL);
-    H5Sselect_hyperslab(filespace, H5S_SELECT_SET, d->offset, NULL, hs_count, NULL);
-
-    H5Dread(d->dataset->set,H5T_FILE_DS,dataspace,filespace,H5P_DEFAULT,buf);
-    H5Sclose(filespace);
-    H5Sclose(dataspace);
-    d->offset[0]+=remaining_count;
-    return(remaining_count);
+    errno = EINVAL;
+    return(-1);
 }
 
 int hdf5_lseek(int fd, off_t offset, int whence) {

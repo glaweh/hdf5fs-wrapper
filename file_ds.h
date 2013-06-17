@@ -31,4 +31,5 @@ file_ds_t * file_ds_open(hid_t loc_id, const char *name);
 file_ds_t * file_ds_copy(hid_t dst_loc_id, file_ds_t * src, hsize_t chunk_size, int deflate);
 herr_t file_ds_copy_contents(file_ds_t * dst, file_ds_t *src);
 int file_ds_exists(hid_t loc_id, const char *pathname);
+hsize_t file_ds_read(file_ds_t * file_ds, hsize_t offset, void * buf, hsize_t count);
 #endif

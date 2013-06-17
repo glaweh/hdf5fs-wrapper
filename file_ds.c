@@ -289,3 +289,41 @@ int file_ds_exists(hid_t loc_id, const char *pathname) {
         return(0);
     return(1);
 }
+
+hsize_t file_ds_read(file_ds_t * file_ds, hsize_t offset, void * buf, hsize_t count) {
+    if (file_ds->set < 0) return(-1);
+    if (count == 0) return(0);
+    hsize_t remaining_count = file_ds->length - offset;
+    if (remaining_count <= 0) return(0);
+    if (remaining_count > count) remaining_count = count;
+    LOG_DBG("'%s', offset: %d, count: %d, length: %d, remcnt: %d",
+            file_ds->name,(int)offset,(int)count,(int)file_ds->length,(int)remaining_count);
+    hsize_t hs_offset[1], hs_count[1];
+    hs_offset[0]=offset;
+    hs_count[0]=remaining_count;
+    hid_t filespace=-1;
+    hid_t dataspace=-1;
+    if ((filespace=H5Dget_space(file_ds->set)) < 0) {
+        LOG_WARN("error getting filespace for '%s'",file_ds->name);
+        goto errlabel;
+    }
+    if ((dataspace = H5Screate_simple(1, hs_count, NULL)) < 0) {
+        LOG_WARN("error getting dataspace for '%s'",file_ds->name);
+        goto errlabel;
+    }
+    if (H5Sselect_hyperslab(filespace, H5S_SELECT_SET, hs_offset, NULL, hs_count, NULL) < 0) {
+        LOG_WARN("error selecting hyperslab for '%s'",file_ds->name);
+        goto errlabel;
+    }
+    if (H5Dread(file_ds->set,H5T_FILE_DS,dataspace,filespace,H5P_DEFAULT,buf) < 0) {
+        LOG_WARN("error reading data from '%s'",file_ds->name);
+        goto errlabel;
+    }
+    H5Sclose(filespace);
+    H5Sclose(dataspace);
+    return(remaining_count);
+errlabel:
+    if (filespace >= 0) H5Sclose(filespace);
+    if (dataspace >= 0) H5Sclose(dataspace);
+    return(-2);
+}
