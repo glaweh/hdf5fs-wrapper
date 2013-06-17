@@ -22,10 +22,10 @@ herr_t file_ds_close(file_ds_t * info) {
         hsize_t old_dim = info->dims[0];
         info->dims[0] = DIM_CHUNKED(info->length+1,info->chunk[0]);
         if (old_dim != info->dims[0]) {
-            LOG_DBG("resizing %40s, length %6d, chunksize %6d, old_dim %6d, new_dim %6d",
+            LOG_DBG("resizing %40s, length %6"PRIi64", chunksize %6llu, old_dim %6llu, new_dim %6llu",
                 info->name,info->length,info->chunk[0],old_dim,info->dims[0]);
             if (H5Dset_extent(info->set, info->dims)<0) {
-                LOG_ERR("error resizing datset for '%s' to %d",info->name,info->dims[0]);
+                LOG_ERR("error resizing datset for '%s' to %llu",info->name,info->dims[0]);
             }
         }
         // FIXME: use H5Dfill to fill the emtpy part
@@ -89,7 +89,7 @@ file_ds_t * file_ds_create(hid_t loc_id, const char *name, hsize_t chunk_size, h
     if (info->dims[0] == 0) info->dims[0] = info->chunk[0];
     info->loc_id = loc_id;
     strcpy(info->name,name);
-    LOG_DBG("create %40s, chunksize %d, dim %d",name,info->chunk[0],info->dims[0]);
+    LOG_DBG("create %40s, chunksize %llu, dim %llu",name,info->chunk[0],info->dims[0]);
     if ((info->space = H5Screate_simple(1, info->dims, __file_ds_maxdims)) < 0) {
         LOG_ERR("error creating dataspace for '%s'",name);
         goto errlabel;
@@ -208,7 +208,7 @@ herr_t file_ds_copy_contents(file_ds_t * dst, file_ds_t *src) {
     if (copy_block_size > src->length) copy_block_size = src->length;
     char *buffer = malloc(copy_block_size);
     if (buffer == NULL) {
-        LOG_ERR("error allocating copy buffer for '%s', size %d",src->name,copy_block_size);
+        LOG_ERR("error allocating copy buffer for '%s', size %llu",src->name,copy_block_size);
         return(-1);
     }
     hid_t source_space = -1;
@@ -228,7 +228,7 @@ herr_t file_ds_copy_contents(file_ds_t * dst, file_ds_t *src) {
     hid_t   readspace = -1;
     while (to_copy > 0) {
         hs_count[0] = (to_copy > copy_block_size ? copy_block_size : to_copy);
-        LOG_DBG("file: %s, length: %d, offset: %d, size: %d, chunksize: %d",src->name,
+        LOG_DBG("file: %s, length: %"PRIi64", offset: %llu, size: %llu, chunksize: %llu",src->name,
                 src->length,offset[0],hs_count[0], dst->chunk[0]);
         if (H5Sselect_hyperslab(source_space,H5S_SELECT_SET, offset, NULL, hs_count, NULL) < 0) {
             LOG_ERR("error selecting source hyperslab");
@@ -294,11 +294,11 @@ int file_ds_exists(hid_t loc_id, const char *pathname) {
 hsize_t file_ds_read(file_ds_t * file_ds, hsize_t offset, void * buf, hsize_t count) {
     if (file_ds->set < 0) return(-1);
     if (count == 0) return(0);
-    hsize_t remaining_count = file_ds->length - offset;
+    hssize_t remaining_count = file_ds->length - offset;
     if (remaining_count <= 0) return(0);
     if (remaining_count > count) remaining_count = count;
-    LOG_DBG("'%s', offset: %d, count: %d, length: %d, remcnt: %d",
-            file_ds->name,(int)offset,(int)count,(int)file_ds->length,(int)remaining_count);
+    LOG_DBG("'%s', offset: %llu, count: %llu, length: %"PRIi64", remcnt: %lld",
+            file_ds->name,offset,count,file_ds->length,remaining_count);
     hsize_t hs_offset[1], hs_count[1];
     hs_offset[0]=offset;
     hs_count[0]=remaining_count;

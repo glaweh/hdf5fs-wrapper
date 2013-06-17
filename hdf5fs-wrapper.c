@@ -333,7 +333,7 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream) {
     int fd=fileno(stream);
     if (! handle_table[fd])
         return(_fread(ptr,size,nmemb,stream));
-    LOG_DBG2("'%s' %d", filename_table+fd*PATH_MAX, (int)size*nmemb);
+    LOG_DBG2("'%s' %zd", filename_table+fd*PATH_MAX, size*nmemb);
     int count = hdf5_read(fd,ptr,size*nmemb);
 #ifdef BOTH_HDF_AND_FILE
     _fseek(stream,count,SEEK_CUR);
@@ -345,7 +345,7 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
     int fd=fileno(stream);
     if (! handle_table[fd])
         return(_fwrite(ptr,size,nmemb,stream));
-    LOG_DBG2("'%s', %d", filename_table+fd*PATH_MAX,(int)size*nmemb);
+    LOG_DBG2("'%s', %zd", filename_table+fd*PATH_MAX,size*nmemb);
     size_t fwritten = nmemb;
 #ifdef BOTH_HDF_AND_FILE
     fwritten=_fwrite(ptr,size,nmemb,stream);
@@ -356,7 +356,7 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream) {
 ssize_t read(int fd, void *buf, size_t count) {
     if (! handle_table[fd])
         return(_read(fd,buf,count));
-    LOG_DBG2("'%s', %d", filename_table+fd*PATH_MAX,count);
+    LOG_DBG2("'%s', %zd", filename_table+fd*PATH_MAX,count);
     int rcount=hdf5_read(fd,buf,count);
 #ifdef BOTH_HDF_AND_FILE
     _lseek64(fd,rcount,SEEK_CUR);
@@ -367,7 +367,7 @@ ssize_t read(int fd, void *buf, size_t count) {
 ssize_t write(int fd, const void *buf, size_t count) {
     if (! handle_table[fd])
         return(_write(fd,buf,count));
-    LOG_DBG2("'%s', %d", filename_table+fd*PATH_MAX, count);
+    LOG_DBG2("'%s', %zd", filename_table+fd*PATH_MAX, count);
     ssize_t fwritten = count;
 #ifdef BOTH_HDF_AND_FILE
     fwritten=_write(fd,buf,count);

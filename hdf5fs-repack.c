@@ -29,7 +29,7 @@ file_ds_t * file_ds(hid_t loc_id, const char *name) {
     if ((status < 0) || (infobuf.type != H5O_TYPE_DATASET)) return(NULL);
     file_ds_t * info = file_ds_open(loc_id,name);
     if (info != NULL) {
-        LOG_DBG("dsinfo %s %d",name,info->length);
+        LOG_DBG("dsinfo %s %"PRIi64"",name,info->length);
         khiter_t k;
         int ret, is_missing;
         k=kh_get(42, filelist, name);
@@ -64,7 +64,7 @@ file_ds_t * file_ds(hid_t loc_id, const char *name) {
             LOG_DBG("file '%s' already in list",name);
         }
     } else {
-        LOG_ERR("error opening file '%s'");
+        LOG_ERR("error opening file '%s'",name);
         free(info);
         return(NULL);
     }
