@@ -14,8 +14,6 @@
 
 #define RANK 1
 hid_t   hdf_file;
-hid_t   create_params;
-hsize_t chunk_dims[1]={1024*64};
 struct stat64 hdf_file_stat;
 string_set * closed_empty_files;
 
@@ -40,12 +38,6 @@ int hdf5_fs_init(const char * hdf_filename) {
     LOG_INFO("hdf_file opened: '%s', %d",hdf_filename,hdf_file);
     if (hdf_file < 0) {
         LOG_WARN("hdf_file error");
-        return(-1);
-    }
-    create_params = H5Pcreate(H5P_DATASET_CREATE);
-    status        = H5Pset_chunk(create_params, 1, chunk_dims);
-    if (status < 0) {
-        LOG_WARN("error setting um chunking");
         return(-1);
     }
     int i;
