@@ -338,6 +338,7 @@ hsize_t file_ds_write(file_ds_t * file_ds, hsize_t offset, const void *buf, hsiz
     if (file_ds->dims[0] < (newlength+1)) {
         hsize_t newdims[1];
         newdims[0] = DIM_CHUNKED(newlength+1,file_ds->chunk[0]);
+        LOG_DBG("resizing dataset '%s' from %d to %d",file_ds->name,(int)file_ds->dims[0],(int)newdims[0]);
         if (H5Dset_extent(file_ds->set, newdims) < 0) {
             LOG_ERR("error resizing dataset '%s'",file_ds->name);
             return(-2);
