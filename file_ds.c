@@ -3,7 +3,7 @@
 #include <string.h>
 #include <errno.h>
 #include "logger.h"
-#include "file_ds.h"
+#include "hfile_ds.h"
 #include "chunksize.h"
 const hfile_ds_t __hfile_ds_initializer = {
     .space = -1, .set   = -1,

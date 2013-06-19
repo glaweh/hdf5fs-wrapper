@@ -3,7 +3,7 @@
 #include <sys/stat.h>
 #include <hdf5.h>
 #include <errno.h>
-#include "file_ds.h"
+#include "hfile_ds.h"
 #include "logger.h"
 #include "khash.h"
 

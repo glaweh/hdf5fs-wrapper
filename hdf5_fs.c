@@ -10,7 +10,7 @@
 #include "string_set.h"
 #include "wrapper_limits.h"
 #include "logger.h"
-#include "file_ds.h"
+#include "hfile_ds.h"
 
 #define RANK 1
 hid_t   hdf_file;
