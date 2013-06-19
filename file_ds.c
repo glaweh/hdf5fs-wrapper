@@ -5,7 +5,7 @@
 #include "logger.h"
 #include "file_ds.h"
 #include "chunksize.h"
-const file_ds_t __file_ds_initializer = {
+const hfile_ds_t __hfile_ds_initializer = {
     .space = -1, .set   = -1,
     .length_space = -1, .length_attrib = -1,
     .dims = { 0 }, .chunk = { 0 },
@@ -13,9 +13,9 @@ const file_ds_t __file_ds_initializer = {
     .refcount = 0, .rdonly = 1,
     .next = NULL, .loc_id = -1, .name[0] = 0
 };
-const hsize_t __file_ds_maxdims[1] = {H5S_UNLIMITED};
+const hsize_t __hfile_ds_maxdims[1] = {H5S_UNLIMITED};
 
-herr_t file_ds_close(file_ds_t * info) {
+herr_t hfile_ds_close(hfile_ds_t * info) {
     if (! info->rdonly) {
         if ((info->length != info->length_original) && 
                 (H5Awrite(info->length_attrib,H5T_NATIVE_INT64,&info->length) < 0)) {
@@ -60,13 +60,13 @@ herr_t file_ds_close(file_ds_t * info) {
     return(status);
 }
 
-file_ds_t * file_ds_create(hid_t loc_id, const char *name, hsize_t chunk_size, hsize_t initial_dim, hsize_t expected_length, int deflate) {
-    file_ds_t * info = malloc(sizeof(file_ds_t)+strlen(name));
+hfile_ds_t * hfile_ds_create(hid_t loc_id, const char *name, hsize_t chunk_size, hsize_t initial_dim, hsize_t expected_length, int deflate) {
+    hfile_ds_t * info = malloc(sizeof(hfile_ds_t)+strlen(name));
     if (info == NULL) {
-        LOG_ERR("error allocating file_ds_t");
+        LOG_ERR("error allocating hfile_ds_t");
         return(NULL);
     }
-    *info = __file_ds_initializer;
+    *info = __hfile_ds_initializer;
     if (chunk_size == 0) {
         chunk_size = chunksize_suggest(name, expected_length);
     }
@@ -92,11 +92,11 @@ file_ds_t * file_ds_create(hid_t loc_id, const char *name, hsize_t chunk_size, h
     info->loc_id = loc_id;
     strcpy(info->name,name);
     LOG_DBG("create %40s, chunksize %llu, dim %llu",name,info->chunk[0],info->dims[0]);
-    if ((info->space = H5Screate_simple(1, info->dims, __file_ds_maxdims)) < 0) {
+    if ((info->space = H5Screate_simple(1, info->dims, __hfile_ds_maxdims)) < 0) {
         LOG_ERR("error creating dataspace for '%s'",name);
         goto errlabel;
     }
-    if ((info->set = H5Dcreate2(loc_id,name,H5T_FILE_DS, info->space, H5P_DEFAULT, create_params, H5P_DEFAULT)) < 0) {
+    if ((info->set = H5Dcreate2(loc_id,name,H5T_HFILE_DS, info->space, H5P_DEFAULT, create_params, H5P_DEFAULT)) < 0) {
         LOG_ERR("error creating dataset '%s'",name);
         goto errlabel;
     }
@@ -118,11 +118,11 @@ file_ds_t * file_ds_create(hid_t loc_id, const char *name, hsize_t chunk_size, h
     return(info);
     errlabel:
         H5Pclose(create_params);
-        file_ds_close(info);
+        hfile_ds_close(info);
     return(NULL);
 }
 
-file_ds_t * file_ds_reopen(file_ds_t * info) {
+hfile_ds_t * hfile_ds_reopen(hfile_ds_t * info) {
     if ((info->set = H5Dopen(info->loc_id,info->name,H5P_DEFAULT)) < 0) {
         LOG_ERR("error opening dataset '%s'",info->name);
         goto errlabel;
@@ -166,37 +166,37 @@ file_ds_t * file_ds_reopen(file_ds_t * info) {
     err_dcpl:
         H5Pclose(dcpl);
     errlabel:
-        file_ds_close(info);
+        hfile_ds_close(info);
     return(NULL);
 }
 
-file_ds_t * file_ds_open(hid_t loc_id, const char *name) {
-    file_ds_t * info = malloc(sizeof(file_ds_t)+strlen(name));
-    (*info) = __file_ds_initializer;
+hfile_ds_t * hfile_ds_open(hid_t loc_id, const char *name) {
+    hfile_ds_t * info = malloc(sizeof(hfile_ds_t)+strlen(name));
+    (*info) = __hfile_ds_initializer;
     info->loc_id = loc_id;
     strcpy(info->name,name);
-    if (file_ds_reopen(info)==NULL) {
+    if (hfile_ds_reopen(info)==NULL) {
         free(info);
         return(NULL);
     }
     return(info);
 }
 
-file_ds_t * file_ds_copy(hid_t dst_loc_id, file_ds_t * src, hsize_t chunk_size, int deflate) {
-    file_ds_t * target_set = file_ds_create(dst_loc_id, src->name,
+hfile_ds_t * hfile_ds_copy(hid_t dst_loc_id, hfile_ds_t * src, hsize_t chunk_size, int deflate) {
+    hfile_ds_t * target_set = hfile_ds_create(dst_loc_id, src->name,
         chunk_size, src->length, src->length, deflate);
     if (target_set == NULL) {
         LOG_ERR("target set creation failed when copying '%s'",src->name);
         return(NULL);
     }
-    if (file_ds_copy_contents(target_set,src) < 0) {
-        file_ds_close(target_set);
+    if (hfile_ds_copy_contents(target_set,src) < 0) {
+        hfile_ds_close(target_set);
         return(NULL);
     }
     return(target_set);
 }
 
-herr_t file_ds_copy_contents(file_ds_t * dst, file_ds_t *src) {
+herr_t hfile_ds_copy_contents(hfile_ds_t * dst, hfile_ds_t *src) {
     if (dst->dims[0] < (src->length+1)) {
         dst->dims[0] = DIM_CHUNKED(src->length+1,dst->chunk[0]);
         if (H5Dset_extent(dst->set, dst->dims) < 0) {
@@ -240,7 +240,7 @@ herr_t file_ds_copy_contents(file_ds_t * dst, file_ds_t *src) {
             LOG_ERR("error creating readspace");
             goto errlabel;
         }
-        if (H5Dread(src->set,H5T_FILE_DS,readspace,source_space,H5P_DEFAULT,buffer) < 0) {
+        if (H5Dread(src->set,H5T_HFILE_DS,readspace,source_space,H5P_DEFAULT,buffer) < 0) {
             LOG_ERR("error reading source hyperslab");
             goto errlabel;
         }
@@ -248,7 +248,7 @@ herr_t file_ds_copy_contents(file_ds_t * dst, file_ds_t *src) {
             LOG_ERR("error selecting dest hyperslab");
             goto errlabel;
         }
-        if (H5Dwrite(dst->set,H5T_FILE_DS,readspace,dst_space,H5P_DEFAULT,buffer) < 0) {
+        if (H5Dwrite(dst->set,H5T_HFILE_DS,readspace,dst_space,H5P_DEFAULT,buffer) < 0) {
             LOG_ERR("error writing dest hyperlab");
             goto errlabel;
         }
@@ -270,7 +270,7 @@ errlabel:
     return(-1);
 }
 
-int file_ds_exists(hid_t loc_id, const char *pathname) {
+int hfile_ds_exists(hid_t loc_id, const char *pathname) {
     if (pathname[0] == 0) return(1);
     int pathlen=strnlen(pathname,PATH_MAX);
     if (pathlen == 0) return(1);
@@ -293,33 +293,33 @@ int file_ds_exists(hid_t loc_id, const char *pathname) {
     return(1);
 }
 
-hssize_t file_ds_read(file_ds_t * file_ds, hsize_t offset, void * buf, hsize_t count) {
-    if (file_ds->set < 0) return(-1);
+hssize_t hfile_ds_read(hfile_ds_t * hfile_ds, hsize_t offset, void * buf, hsize_t count) {
+    if (hfile_ds->set < 0) return(-1);
     if (count == 0) return(0);
-    hssize_t remaining_count = file_ds->length - offset;
+    hssize_t remaining_count = hfile_ds->length - offset;
     if (remaining_count <= 0) return(0);
     if (remaining_count > count) remaining_count = count;
     LOG_DBG("'%s', offset: %llu, count: %llu, length: %"PRIi64", remcnt: %lld",
-            file_ds->name,offset,count,file_ds->length,remaining_count);
+            hfile_ds->name,offset,count,hfile_ds->length,remaining_count);
     hsize_t hs_offset[1], hs_count[1];
     hs_offset[0]=offset;
     hs_count[0]=remaining_count;
     hid_t filespace=-1;
     hid_t dataspace=-1;
-    if ((filespace=H5Dget_space(file_ds->set)) < 0) {
-        LOG_WARN("error getting filespace for '%s'",file_ds->name);
+    if ((filespace=H5Dget_space(hfile_ds->set)) < 0) {
+        LOG_WARN("error getting filespace for '%s'",hfile_ds->name);
         goto errlabel;
     }
     if ((dataspace = H5Screate_simple(1, hs_count, NULL)) < 0) {
-        LOG_WARN("error getting dataspace for '%s'",file_ds->name);
+        LOG_WARN("error getting dataspace for '%s'",hfile_ds->name);
         goto errlabel;
     }
     if (H5Sselect_hyperslab(filespace, H5S_SELECT_SET, hs_offset, NULL, hs_count, NULL) < 0) {
-        LOG_WARN("error selecting hyperslab for '%s'",file_ds->name);
+        LOG_WARN("error selecting hyperslab for '%s'",hfile_ds->name);
         goto errlabel;
     }
-    if (H5Dread(file_ds->set,H5T_FILE_DS,dataspace,filespace,H5P_DEFAULT,buf) < 0) {
-        LOG_WARN("error reading data from '%s'",file_ds->name);
+    if (H5Dread(hfile_ds->set,H5T_HFILE_DS,dataspace,filespace,H5P_DEFAULT,buf) < 0) {
+        LOG_WARN("error reading data from '%s'",hfile_ds->name);
         goto errlabel;
     }
     H5Sclose(filespace);
@@ -331,46 +331,46 @@ errlabel:
     return(-2);
 }
 
-hssize_t file_ds_write(file_ds_t * file_ds, hsize_t offset, const void *buf, hsize_t count) {
-    if (file_ds->set < 0) return(-1);
-    if (file_ds->rdonly) return(-1);
+hssize_t hfile_ds_write(hfile_ds_t * hfile_ds, hsize_t offset, const void *buf, hsize_t count) {
+    if (hfile_ds->set < 0) return(-1);
+    if (hfile_ds->rdonly) return(-1);
     if (count == 0) return(0);
     hsize_t newlength = offset+count;
-    if (newlength < file_ds->length) newlength = file_ds->length;
-    if (file_ds->dims[0] < (newlength+1)) {
+    if (newlength < hfile_ds->length) newlength = hfile_ds->length;
+    if (hfile_ds->dims[0] < (newlength+1)) {
         hsize_t newdims[1];
-        newdims[0] = DIM_CHUNKED(newlength+1,file_ds->chunk[0]);
-        LOG_DBG("resizing dataset '%s' from %d to %d",file_ds->name,(int)file_ds->dims[0],(int)newdims[0]);
-        if (H5Dset_extent(file_ds->set, newdims) < 0) {
-            LOG_ERR("error resizing dataset '%s'",file_ds->name);
+        newdims[0] = DIM_CHUNKED(newlength+1,hfile_ds->chunk[0]);
+        LOG_DBG("resizing dataset '%s' from %d to %d",hfile_ds->name,(int)hfile_ds->dims[0],(int)newdims[0]);
+        if (H5Dset_extent(hfile_ds->set, newdims) < 0) {
+            LOG_ERR("error resizing dataset '%s'",hfile_ds->name);
             return(-2);
         }
-        file_ds->dims[0]=newdims[0];
+        hfile_ds->dims[0]=newdims[0];
     }
     LOG_DBG("'%s', offset: %d, count: %d, length: %d, newlength: %d",
-            file_ds->name,(int)offset,(int)count,(int)file_ds->length,(int)newlength);
+            hfile_ds->name,(int)offset,(int)count,(int)hfile_ds->length,(int)newlength);
     hsize_t hs_offset[1], hs_count[1];
     hs_offset[0]=offset;
     hs_count[0]=count;
     hid_t filespace=-1;
     hid_t dataspace=-1;
-    if ((filespace=H5Dget_space(file_ds->set)) < 0) {
-        LOG_WARN("error getting filespace for '%s'",file_ds->name);
+    if ((filespace=H5Dget_space(hfile_ds->set)) < 0) {
+        LOG_WARN("error getting filespace for '%s'",hfile_ds->name);
         goto errlabel;
     }
     if ((dataspace = H5Screate_simple(1, hs_count, NULL)) < 0) {
-        LOG_WARN("error getting dataspace for '%s'",file_ds->name);
+        LOG_WARN("error getting dataspace for '%s'",hfile_ds->name);
         goto errlabel;
     }
     if (H5Sselect_hyperslab(filespace, H5S_SELECT_SET, hs_offset, NULL, hs_count, NULL) < 0) {
-        LOG_WARN("error selecting hyperslab for '%s'",file_ds->name);
+        LOG_WARN("error selecting hyperslab for '%s'",hfile_ds->name);
         goto errlabel;
     }
-    if (H5Dwrite(file_ds->set,H5T_FILE_DS,dataspace,filespace,H5P_DEFAULT,buf) < 0) {
-        LOG_WARN("error writing data to '%s'",file_ds->name);
+    if (H5Dwrite(hfile_ds->set,H5T_HFILE_DS,dataspace,filespace,H5P_DEFAULT,buf) < 0) {
+        LOG_WARN("error writing data to '%s'",hfile_ds->name);
         goto errlabel;
     }
-    file_ds->length=newlength;
+    hfile_ds->length=newlength;
     H5Sclose(filespace);
     H5Sclose(dataspace);
     return(count);
@@ -380,7 +380,7 @@ errlabel:
     return(-3);
 }
 
-hssize_t file_ds_export(file_ds_t * src, const char * filename) {
+hssize_t hfile_ds_export(hfile_ds_t * src, const char * filename) {
     if (src->set < 0) return(-1);
     FILE * export_file = fopen(filename,"wb");
     if (export_file == NULL) {
@@ -414,7 +414,7 @@ hssize_t file_ds_export(file_ds_t * src, const char * filename) {
             LOG_ERR("error creating readspace");
             goto errlabel;
         }
-        if (H5Dread(src->set,H5T_FILE_DS,readspace,source_space,H5P_DEFAULT,buffer) < 0) {
+        if (H5Dread(src->set,H5T_HFILE_DS,readspace,source_space,H5P_DEFAULT,buffer) < 0) {
             LOG_ERR("error reading source hyperslab");
             goto errlabel;
         }

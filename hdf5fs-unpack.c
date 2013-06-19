@@ -14,7 +14,7 @@ hid_t hdf_src[MAX_HDF5SRC];
 
 typedef struct {
     int n_sets;
-    file_ds_t * dataset;
+    hfile_ds_t * dataset;
     char name[0];
 } file_node_t;
 
@@ -22,11 +22,11 @@ KHASH_MAP_INIT_STR(42,file_node_t *)
 
 khash_t(42) * filelist = NULL;
 
-file_ds_t * file_ds(hid_t loc_id, const char *name) {
+hfile_ds_t * hfile_ds(hid_t loc_id, const char *name) {
     H5O_info_t      infobuf;
     herr_t          status = H5Oget_info_by_name (loc_id, name, &infobuf, H5P_DEFAULT);
     if ((status < 0) || (infobuf.type != H5O_TYPE_DATASET)) return(NULL);
-    file_ds_t * info = file_ds_open(loc_id,name);
+    hfile_ds_t * info = hfile_ds_open(loc_id,name);
     if (info != NULL) {
         LOG_DBG("dsinfo %s %"PRIi64"",name,info->length);
         khiter_t k;
@@ -73,7 +73,7 @@ file_ds_t * file_ds(hid_t loc_id, const char *name) {
 static herr_t op_func_L (hid_t loc_id, const char *name, const H5L_info_t *info,
 			 void *operator_data)
 {
-    file_ds(loc_id,name);
+    hfile_ds(loc_id,name);
     return(0);
 }
 
@@ -85,9 +85,9 @@ int hdf5_ls(hid_t file_id, const char * root_name) {
 
 file_node_t * close_node(file_node_t * node) {
     while (node->dataset != NULL) {
-        file_ds_t * walker = node->dataset;
+        hfile_ds_t * walker = node->dataset;
         node->dataset=node->dataset->next;
-        file_ds_close(walker);
+        hfile_ds_close(walker);
         free(walker);
     }
     free(node);
@@ -126,7 +126,7 @@ herr_t unpack_set_stack(file_node_t * node) {
             export_name[i]='/';
         }
     }
-    int status = file_ds_export(node->dataset,export_name);
+    int status = hfile_ds_export(node->dataset,export_name);
     if (status < 0) {
         LOG_ERR("error exporting dataset '%s'",export_name);
         return(-1);

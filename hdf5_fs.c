@@ -18,7 +18,7 @@ struct stat64 hdf_file_stat;
 string_set * closed_empty_files;
 
 typedef struct {
-    file_ds_t * dataset;
+    hfile_ds_t * dataset;
     int     append;
     hsize_t offset[RANK];
     char  name[PATH_MAX];
@@ -68,7 +68,7 @@ int hdf5_open(int fd, const char *pathname, int flags) {
         return(-1);
     }
     LOG_DBG(" %d, '%s', %o", fd,pathname,flags);
-    int set_exists = file_ds_exists(hdf_file,pathname);
+    int set_exists = hfile_ds_exists(hdf_file,pathname);
     if (set_exists) {
         if (((flags & O_CREAT)>0) && ((flags & O_EXCL)>0)) {
             LOG_DBG("dataset already exists %d -> '%s'",fd,pathname);
@@ -89,9 +89,9 @@ int hdf5_open(int fd, const char *pathname, int flags) {
     hdf5_data_t * d = hdf5_data[fd];
     d->dataset = NULL;
     if (set_exists) {
-        d->dataset = file_ds_open(hdf_file,pathname);
+        d->dataset = hfile_ds_open(hdf_file,pathname);
         if (d->dataset == NULL) {
-            LOG_WARN("error opening file_ds '%s'",pathname);
+            LOG_WARN("error opening hfile_ds '%s'",pathname);
             errno = EIO;
             free(d);
             hdf5_data[fd] = NULL;
@@ -120,7 +120,7 @@ int hdf5_close(int fd) {
     }
     hdf5_data_t * d = hdf5_data[fd];
     if (d->dataset != NULL) {
-        if (! file_ds_close(d->dataset)) {
+        if (! hfile_ds_close(d->dataset)) {
             LOG_WARN("error closing dataset '%s'",d->name);
             errno = EIO;
             return(-1);
@@ -148,7 +148,7 @@ int hdf5_write(int fd, const void *buf, size_t count) {
     }
     hdf5_data_t * d = hdf5_data[fd];
     if (d->dataset == NULL) {
-        d->dataset = file_ds_create(hdf_file, d->name, 0, count+1, 0, 0);
+        d->dataset = hfile_ds_create(hdf_file, d->name, 0, count+1, 0, 0);
         if (d->dataset == NULL) {
             LOG_ERR("error creating dataset '%s'",d->name);
             errno = EIO;
@@ -157,7 +157,7 @@ int hdf5_write(int fd, const void *buf, size_t count) {
     } else {
         if (d->append) d->offset[0]=d->dataset->length;
     }
-    hsize_t bytes_written = file_ds_write(d->dataset,d->offset[0],buf,count);
+    hsize_t bytes_written = hfile_ds_write(d->dataset,d->offset[0],buf,count);
     if (bytes_written >= 0) {
         d->offset[0]+=bytes_written;
         return((int)bytes_written);
@@ -187,7 +187,7 @@ int hdf5_read(int fd, void *buf, size_t count) {
         LOG_DBG("unitialized dataset '%s'",d->name);
         return(0);
     }
-    hsize_t bytes_read = file_ds_read(d->dataset,d->offset[0],buf,count);
+    hsize_t bytes_read = hfile_ds_read(d->dataset,d->offset[0],buf,count);
     if (bytes_read >= 0) {
         d->offset[0]+=bytes_read;
         return((int)bytes_read);
@@ -231,7 +231,7 @@ int hdf5_lseek(int fd, off_t offset, int whence) {
 
 int hdf5_stat64(const char *pathname, struct stat64 *buf) {
     H5O_info_t object_info;
-    if (file_ds_exists(hdf_file,pathname) == 0) {
+    if (hfile_ds_exists(hdf_file,pathname) == 0) {
         if (string_set_find(closed_empty_files, pathname) <= 0) {
             errno=ENOENT;
             return(-1);
@@ -301,7 +301,7 @@ int hdf5_fstat64(int fd, struct stat64 *buf) {
 }
 
 int hdf5_unlink(const char *pathname) {
-    if (file_ds_exists(hdf_file,pathname)==0) {
+    if (hfile_ds_exists(hdf_file,pathname)==0) {
         if (string_set_remove(closed_empty_files,pathname))
             return(0);
         errno=ENOENT;
