@@ -16,6 +16,10 @@ const hfile_ds_t __hfile_ds_initializer = {
 const hsize_t __hfile_ds_maxdims[1] = {H5S_UNLIMITED};
 
 herr_t hfile_ds_close(hfile_ds_t * info) {
+    if (info->set < 0) {
+        LOG_DBG("file dataset '%s' already closed",info->name);
+        return(1);
+    }
     if (! info->rdonly) {
         if ((info->length != info->length_original) && 
                 (H5Awrite(info->length_attrib,H5T_NATIVE_INT64,&info->length) < 0)) {
@@ -123,6 +127,9 @@ hfile_ds_t * hfile_ds_create(hid_t loc_id, const char *name, hsize_t chunk_size,
 }
 
 hfile_ds_t * hfile_ds_reopen(hfile_ds_t * info) {
+    if (info->set >= 0) {
+        return(info);
+    }
     if ((info->set = H5Dopen(info->loc_id,info->name,H5P_DEFAULT)) < 0) {
         LOG_ERR("error opening dataset '%s'",info->name);
         goto errlabel;
