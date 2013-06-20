@@ -14,7 +14,7 @@ hid_t hdf_src[MAX_HDF5SRC];
 
 hdirent_t * root = NULL;
 
-herr_t unpack_set_stack(hdirent_t * node) {
+int unpack_set_stack(const char * parent, hdirent_t * node, void * op_data) {
     char export_name[PATH_MAX];
     strcpy(export_name,node->name);
     int i,name_len;
@@ -43,16 +43,6 @@ herr_t unpack_set_stack(hdirent_t * node) {
         return(-1);
     }
     hfile_ds_close(node->dataset);
-    return(0);
-}
-
-herr_t unpack_all_files() {
-    khiter_t k;
-    for (k = kh_begin(root->dirents); k != kh_end(root->dirents); ++k) {
-        if (kh_exist(root->dirents, k)) {
-            unpack_set_stack(kh_value(root->dirents,k));
-        }
-    }
     return(0);
 }
 
@@ -85,7 +75,7 @@ int main(int argc, char *argv[]) {
         LOG_FATAL("no src files could be opened");
         return(1);
     }
-    unpack_all_files();
+    hdir_foreach_file(root,HDIRENT_ITERATE_UNORDERED,unpack_set_stack,NULL);
     hdir_free(root);
     for (i=0; i < n_hdf_src; i++) H5Fclose(hdf_src[i]);
     return(0);

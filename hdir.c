@@ -113,3 +113,28 @@ int hdir_add_hdf5(hdirent_t * parent, hid_t file_id, int rdonly) {
     status = H5Lvisit_by_name(file_id, "/", H5_INDEX_NAME, H5_ITER_INC, __hdir_add_hdf5_cb, &cb_data, H5P_DEFAULT );
     return(status);
 }
+
+int hdir_foreach_file(hdirent_t * root, int order, hdirent_iterate_t op, void * op_data) {
+    khiter_t k;
+    if ((root->type != HDIRENT_DIR) || (root->dirents == NULL)) {
+        LOG_ERR("hdir_foreach_file need dir dirent argument");
+        return(0);
+    }
+    hdirent_t * dirent;
+    if (order!=HDIRENT_ITERATE_UNORDERED) {
+        LOG_WARN("falling back to unordered iteration");
+    }
+    int res = 0;
+    for (k = kh_begin(root->dirents); k!=kh_end(root->dirents); ++k) {
+        if (!kh_exist(root->dirents,k)) continue;
+        dirent = kh_value(root->dirents,k);
+        if (dirent->type == HDIRENT_FILE) {
+            res = op(root->name,dirent,op_data);
+        } else if (dirent->type == HDIRENT_DIR) {
+            LOG_INFO("no recursion implemented");
+            res = 0;
+        }
+        if (res != 0) break;
+    }
+    return(res);
+}
