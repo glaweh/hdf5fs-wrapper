@@ -10,11 +10,12 @@
 #include "string_set.h"
 #include "wrapper_limits.h"
 #include "logger.h"
-#include "hfile_ds.h"
+#include "hstack_tree.h"
 
 #define RANK 1
-hid_t   hdf_file;
 struct stat64 hdf_file_stat;
+hstack_tree_t * tree;
+
 string_set * closed_empty_files;
 
 typedef struct {
@@ -28,17 +29,16 @@ int     last_handle=-1;
 hdf5_data_t * hdf5_data[HANDLES_MAX];
 
 int hdf5_fs_init(const char * hdf_filename) {
-    struct stat hdf_stat;
-    if ((stat(hdf_filename,&hdf_stat)>=0) && (H5Fis_hdf5(hdf_filename) >= 0)) {
-        hdf_file = H5Fopen(hdf_filename,H5F_ACC_RDWR,H5P_DEFAULT);
-    } else {
-        hdf_file = H5Fcreate(hdf_filename,H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    }
-    LOG_INFO("hdf_file opened: '%s', %d",hdf_filename,hdf_file);
-    if (hdf_file < 0) {
-        LOG_WARN("hdf_file error");
+    tree=hstack_tree_new();
+    if (tree == NULL) {
+        LOG_ERR("error creating hstack_tree for '%s'",hdf_filename);
         return(-1);
     }
+    if (hstack_tree_add(tree,hdf_filename,O_RDWR | O_CREAT) < 0) {
+        LOG_ERR("error opening '%s'",hdf_filename);
+        return(-1);
+    }
+    LOG_INFO("hdf_file opened: '%s', %d",hdf_filename,tree->hdf->hdf_id);
     int i;
     for (i=0;i<HANDLES_MAX;i++)
         hdf5_data[i]=NULL;
@@ -58,7 +58,7 @@ int hdf5_fs_fini() {
     }
     string_set_dump(closed_empty_files);
     string_set_free(closed_empty_files);
-    H5Fclose(hdf_file);
+    hstack_tree_close(tree);
     return(1);
 }
 
@@ -68,7 +68,7 @@ int hdf5_open(int fd, const char *pathname, int flags) {
         return(-1);
     }
     LOG_DBG(" %d, '%s', %o", fd,pathname,flags);
-    int set_exists = hfile_ds_exists(hdf_file,pathname);
+    int set_exists = hfile_ds_exists(tree->hdf->hdf_id,pathname);
     if (set_exists) {
         if (((flags & O_CREAT)>0) && ((flags & O_EXCL)>0)) {
             LOG_DBG("dataset already exists %d -> '%s'",fd,pathname);
@@ -89,7 +89,7 @@ int hdf5_open(int fd, const char *pathname, int flags) {
     hdf5_data_t * d = hdf5_data[fd];
     d->dataset = NULL;
     if (set_exists) {
-        d->dataset = hfile_ds_open(hdf_file,pathname);
+        d->dataset = hfile_ds_open(tree->hdf->hdf_id,pathname);
         if (d->dataset == NULL) {
             LOG_WARN("error opening hfile_ds '%s'",pathname);
             errno = EIO;
@@ -148,7 +148,7 @@ int hdf5_write(int fd, const void *buf, size_t count) {
     }
     hdf5_data_t * d = hdf5_data[fd];
     if (d->dataset == NULL) {
-        d->dataset = hfile_ds_create(hdf_file, d->name, 0, count+1, 0, 0);
+        d->dataset = hfile_ds_create(tree->hdf->hdf_id, d->name, 0, count+1, 0, 0);
         if (d->dataset == NULL) {
             LOG_ERR("error creating dataset '%s'",d->name);
             errno = EIO;
@@ -231,7 +231,7 @@ int hdf5_lseek(int fd, off_t offset, int whence) {
 
 int hdf5_stat64(const char *pathname, struct stat64 *buf) {
     H5O_info_t object_info;
-    if (hfile_ds_exists(hdf_file,pathname) == 0) {
+    if (hfile_ds_exists(tree->hdf->hdf_id,pathname) == 0) {
         if (string_set_find(closed_empty_files, pathname) <= 0) {
             errno=ENOENT;
             return(-1);
@@ -242,7 +242,7 @@ int hdf5_stat64(const char *pathname, struct stat64 *buf) {
         buf->st_blocks=0;
         return(0);
     }
-    herr_t status = H5Oget_info_by_name(hdf_file,pathname,&object_info,H5P_DEFAULT);
+    herr_t status = H5Oget_info_by_name(tree->hdf->hdf_id,pathname,&object_info,H5P_DEFAULT);
     if (status < 0) {
         LOG_WARN("error getting status for '%s'",pathname);
         errno=ENOENT;
@@ -254,7 +254,7 @@ int hdf5_stat64(const char *pathname, struct stat64 *buf) {
     buf->st_mtime  =object_info.mtime;
     buf->st_ctime  =object_info.ctime;
     if (object_info.num_attrs > 0) {
-        hid_t lena = H5Aopen_by_name(hdf_file,pathname,"Filesize",H5P_DEFAULT,H5P_DEFAULT);
+        hid_t lena = H5Aopen_by_name(tree->hdf->hdf_id,pathname,"Filesize",H5P_DEFAULT,H5P_DEFAULT);
         int64_t fsize;
         H5Aread(lena,H5T_NATIVE_INT64,&fsize);
         H5Aclose(lena);
@@ -301,13 +301,13 @@ int hdf5_fstat64(int fd, struct stat64 *buf) {
 }
 
 int hdf5_unlink(const char *pathname) {
-    if (hfile_ds_exists(hdf_file,pathname)==0) {
+    if (hfile_ds_exists(tree->hdf->hdf_id,pathname)==0) {
         if (string_set_remove(closed_empty_files,pathname))
             return(0);
         errno=ENOENT;
         return(-1);
     }
-    herr_t res = H5Ldelete(hdf_file,pathname,H5P_DEFAULT);
+    herr_t res = H5Ldelete(tree->hdf->hdf_id,pathname,H5P_DEFAULT);
     if (res < 0) {
         errno=EIO;
         return(-1);
