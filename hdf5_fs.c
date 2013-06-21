@@ -12,7 +12,6 @@
 #include "logger.h"
 #include "hstack_tree.h"
 
-#define RANK 1
 struct stat64 hdf_file_stat;
 hstack_tree_t * tree;
 
@@ -21,7 +20,7 @@ string_set * closed_empty_files;
 typedef struct {
     hfile_ds_t * dataset;
     int     append;
-    hsize_t offset[RANK];
+    hsize_t offset;
     char  name[PATH_MAX];
 } hdf5_data_t;
 
@@ -103,7 +102,7 @@ int hdf5_open(int fd, const char *pathname, int flags) {
 
     strncpy(d->name,pathname,PATH_MAX);
     d->append   = ((flags & O_APPEND) != 0 ? 1 : 0);
-    d->offset[0]= 0;
+    d->offset = 0;
     if (d->dataset!=NULL) {
         if (flags & O_TRUNC) d->dataset->length  = 0;
         d->dataset->rdonly = ((flags & O_ACCMODE) == O_RDONLY);
@@ -155,11 +154,11 @@ int hdf5_write(int fd, const void *buf, size_t count) {
             return(-1);
         }
     } else {
-        if (d->append) d->offset[0]=d->dataset->length;
+        if (d->append) d->offset=d->dataset->length;
     }
-    hsize_t bytes_written = hfile_ds_write(d->dataset,d->offset[0],buf,count);
+    hsize_t bytes_written = hfile_ds_write(d->dataset,d->offset,buf,count);
     if (bytes_written >= 0) {
-        d->offset[0]+=bytes_written;
+        d->offset+=bytes_written;
         return((int)bytes_written);
     } else if (bytes_written == -1) {
         errno=EBADF;
@@ -187,9 +186,9 @@ int hdf5_read(int fd, void *buf, size_t count) {
         LOG_DBG("unitialized dataset '%s'",d->name);
         return(0);
     }
-    hsize_t bytes_read = hfile_ds_read(d->dataset,d->offset[0],buf,count);
+    hsize_t bytes_read = hfile_ds_read(d->dataset,d->offset,buf,count);
     if (bytes_read >= 0) {
-        d->offset[0]+=bytes_read;
+        d->offset+=bytes_read;
         return((int)bytes_read);
     } else if (bytes_read == -1) {
         errno=EBADF;
@@ -211,13 +210,13 @@ int hdf5_lseek(int fd, off_t offset, int whence) {
     hdf5_data_t * d = hdf5_data[fd];
     switch (whence) {
         case SEEK_SET:
-            d->offset[0]=offset;
+            d->offset=offset;
             break;
         case SEEK_END:
-            d->offset[0]=(d->dataset == NULL ? offset : d->dataset->length+offset);
+            d->offset=(d->dataset == NULL ? offset : d->dataset->length+offset);
             break;
         case SEEK_CUR:
-            d->offset[0]+=offset;
+            d->offset+=offset;
             break;
         default:
             errno=EINVAL;
@@ -226,7 +225,7 @@ int hdf5_lseek(int fd, off_t offset, int whence) {
             break;
     }
     LOG_DBG("(%d='%s',%d,%d) = %d",fd,d->name,(int)offset,whence,(int)d->offset[0]);
-    return(d->offset[0]);
+    return(d->offset);
 }
 
 int hdf5_stat64(const char *pathname, struct stat64 *buf) {
