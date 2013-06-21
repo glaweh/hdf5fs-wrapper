@@ -18,12 +18,14 @@ hstack_tree_t * tree;
 string_set * closed_empty_files;
 
 typedef struct {
-    hfile_ds_t * dataset;
+    hdirent_t * hdirent;
     int     append;
     int     rdonly;
     hsize_t offset;
-    char  name[PATH_MAX];
 } hdf5_data_t;
+hdf5_data_t __hdf5_data_t_initializer = {
+    .hdirent = NULL, .append = 0, .rdonly = 1, .offset = 0
+};
 
 int     last_handle=-1;
 hdf5_data_t * hdf5_data[HANDLES_MAX];
@@ -68,7 +70,8 @@ int hdf5_open(int fd, const char *pathname, int flags) {
         return(-1);
     }
     LOG_DBG(" %d, '%s', %o", fd,pathname,flags);
-    int set_exists = hfile_ds_exists(tree->hdf->hdf_id,pathname);
+    hdirent_t * existing_dirent = hdir_get_dirent(tree->root,pathname);
+    int set_exists = (existing_dirent != NULL);
     if (set_exists) {
         if (((flags & O_CREAT)>0) && ((flags & O_EXCL)>0)) {
             LOG_DBG("dataset already exists %d -> '%s'",fd,pathname);
@@ -76,6 +79,9 @@ int hdf5_open(int fd, const char *pathname, int flags) {
             return(-1);
         }
         LOG_DBG("set '%s' exists",pathname);
+        if (existing_dirent->dataset != NULL) {
+            hfile_ds_reopen(existing_dirent->dataset);
+        }
     } else if ((flags & O_CREAT) == 0) {
         errno=ENOENT;
         return(-1);
@@ -87,27 +93,18 @@ int hdf5_open(int fd, const char *pathname, int flags) {
         return(-1);
     }
     hdf5_data_t * d = hdf5_data[fd];
-    d->dataset = NULL;
+    *d = __hdf5_data_t_initializer;
     if (set_exists) {
-        d->dataset = hfile_ds_open(tree->hdf->hdf_id,pathname);
-        if (d->dataset == NULL) {
-            LOG_WARN("error opening hfile_ds '%s'",pathname);
-            errno = EIO;
-            free(d);
-            hdf5_data[fd] = NULL;
-            return(-1);
-        } else {
-            LOG_DBG("deferring creation of dataset '%s' to first write",pathname);
+        d->hdirent = existing_dirent;
+        if ((existing_dirent->dataset!=NULL) && (flags & O_TRUNC)) {
+            existing_dirent->dataset->length  = 0;
         }
+    } else {
+        d->hdirent = hdir_add_dirent(tree->root,pathname,NULL);
     }
-
-    strncpy(d->name,pathname,PATH_MAX);
     d->append   = ((flags & O_APPEND) != 0 ? 1 : 0);
     d->rdonly   = ((flags & O_ACCMODE) == O_RDONLY);
     d->offset = 0;
-    if (d->dataset!=NULL) {
-        if (flags & O_TRUNC) d->dataset->length  = 0;
-    }
     if (fd > last_handle) last_handle = fd;
     return(fd);
 }
@@ -119,17 +116,16 @@ int hdf5_close(int fd) {
         return(-1);
     }
     hdf5_data_t * d = hdf5_data[fd];
-    if (d->dataset != NULL) {
-        if (! hfile_ds_close(d->dataset)) {
-            LOG_WARN("error closing dataset '%s'",d->name);
+    if (d->hdirent->dataset != NULL) {
+        if (! hfile_ds_close(d->hdirent->dataset)) {
+            LOG_WARN("error closing dataset '%s'",d->hdirent->name);
             errno = EIO;
             return(-1);
         }
     } else {
-        string_set_add(closed_empty_files, d->name, NULL);
+        string_set_add(closed_empty_files, d->hdirent->name, NULL);
     }
-    free(d->dataset);
-    LOG_DBG(" %d, '%s", fd,d->name);
+    LOG_DBG(" %d, '%s", fd,d->hdirent->name);
     free(hdf5_data[fd]);
     hdf5_data[fd]=NULL;
     while ((last_handle >= 0) && (hdf5_data[last_handle] == NULL)) {
@@ -147,17 +143,24 @@ int hdf5_write(int fd, const void *buf, size_t count) {
         return(-1);
     }
     hdf5_data_t * d = hdf5_data[fd];
-    if (d->dataset == NULL) {
-        d->dataset = hfile_ds_create(tree->hdf->hdf_id, d->name, 0, count+1, 0, 0);
-        if (d->dataset == NULL) {
-            LOG_ERR("error creating dataset '%s'",d->name);
+    if (d->rdonly) {
+        LOG_DBG("write on read-only fd '%s'",d->hdirent->name);
+        errno = EBADF;
+        return(-1);
+    }
+    hfile_ds_t * ds = d->hdirent->dataset;
+    if (ds == NULL) {
+        ds = hfile_ds_create(tree->hdf->hdf_id, d->hdirent->name, 0, count+1, 0, 0);
+        if (ds == NULL) {
+            LOG_ERR("error creating dataset '%s'",d->hdirent->name);
             errno = EIO;
             return(-1);
         }
+        hdir_add_dirent(tree->root,d->hdirent->name,ds);
     } else {
-        if (d->append) d->offset=d->dataset->length;
+        if (d->append) d->offset=d->hdirent->dataset->length;
     }
-    hsize_t bytes_written = hfile_ds_write(d->dataset,d->offset,buf,count);
+    hsize_t bytes_written = hfile_ds_write(ds,d->offset,buf,count);
     if (bytes_written >= 0) {
         d->offset+=bytes_written;
         return((int)bytes_written);
@@ -182,12 +185,13 @@ int hdf5_read(int fd, void *buf, size_t count) {
         return(-1);
     }
     hdf5_data_t * d = hdf5_data[fd];
+    hfile_ds_t * ds = d->hdirent->dataset;
     // end of file
-    if (d->dataset == NULL) {
-        LOG_DBG("unitialized dataset '%s'",d->name);
+    if (ds == NULL) {
+        LOG_DBG("unitialized dataset '%s'",d->hdirent->name);
         return(0);
     }
-    hsize_t bytes_read = hfile_ds_read(d->dataset,d->offset,buf,count);
+    hsize_t bytes_read = hfile_ds_read(ds,d->offset,buf,count);
     if (bytes_read >= 0) {
         d->offset+=bytes_read;
         return((int)bytes_read);
@@ -214,7 +218,7 @@ int hdf5_lseek(int fd, off_t offset, int whence) {
             d->offset=offset;
             break;
         case SEEK_END:
-            d->offset=(d->dataset == NULL ? offset : d->dataset->length+offset);
+            d->offset=(d->hdirent->dataset == NULL ? offset : d->hdirent->dataset->length+offset);
             break;
         case SEEK_CUR:
             d->offset+=offset;
@@ -225,7 +229,7 @@ int hdf5_lseek(int fd, off_t offset, int whence) {
             return(-1);
             break;
     }
-    LOG_DBG("(%d='%s',%d,%d) = %d",fd,d->name,(int)offset,whence,(int)d->offset[0]);
+    LOG_DBG("(%d='%s',%d,%d) = %d",fd,d->hdirent->name,(int)offset,whence,(int)d->offset);
     return(d->offset);
 }
 
@@ -275,20 +279,18 @@ int hdf5_fstat64(int fd, struct stat64 *buf) {
         return(-1);
     }
     hdf5_data_t * d = hdf5_data[fd];
+    hfile_ds_t  * ds = d->hdirent->dataset;
     (*buf)=hdf_file_stat;
-    if (d->dataset == NULL) {
+    if (ds == NULL) {
         buf->st_blksize = 4096;
         buf->st_size = 0;
     } else {
-        buf->st_blksize = d->dataset->chunk[0];
-        buf->st_size    = d->dataset->length;
-    }
-    buf->st_blocks=buf->st_size / 512 + 1;
-    if ((d->dataset != NULL) && (d->dataset->set >= 0)) {
+        buf->st_blksize = ds->chunk[0];
+        buf->st_size    = ds->length;
         H5O_info_t object_info;
-        herr_t status = H5Oget_info(d->dataset->set,&object_info);
+        herr_t status = H5Oget_info(ds->set,&object_info);
         if (status < 0) {
-            LOG_WARN("error getting status for '%s'",d->name);
+            LOG_WARN("error getting status for '%s'",d->hdirent->name);
             errno=EIO;
             return(-1);
         }
@@ -296,7 +298,8 @@ int hdf5_fstat64(int fd, struct stat64 *buf) {
         buf->st_mtime  =object_info.mtime;
         buf->st_ctime  =object_info.ctime;
     }
-    LOG_DBG("size of '%s': %d",d->name,(int)buf->st_size);
+    buf->st_blocks=buf->st_size / 512 + 1;
+    LOG_DBG("size of '%s': %d",d->hdirent->name,(int)buf->st_size);
     return(0);
 }
 
