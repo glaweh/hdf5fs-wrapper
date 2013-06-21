@@ -20,6 +20,7 @@ string_set * closed_empty_files;
 typedef struct {
     hfile_ds_t * dataset;
     int     append;
+    int     rdonly;
     hsize_t offset;
     char  name[PATH_MAX];
 } hdf5_data_t;
@@ -102,10 +103,10 @@ int hdf5_open(int fd, const char *pathname, int flags) {
 
     strncpy(d->name,pathname,PATH_MAX);
     d->append   = ((flags & O_APPEND) != 0 ? 1 : 0);
+    d->rdonly   = ((flags & O_ACCMODE) == O_RDONLY);
     d->offset = 0;
     if (d->dataset!=NULL) {
         if (flags & O_TRUNC) d->dataset->length  = 0;
-        d->dataset->rdonly = ((flags & O_ACCMODE) == O_RDONLY);
     }
     if (fd > last_handle) last_handle = fd;
     return(fd);
