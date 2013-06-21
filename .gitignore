@@ -2,5 +2,6 @@
 *.so
 .*.swp
 hdf5fs-repack
+hdf5fs-unpack
 test_env_util
 test_logger
