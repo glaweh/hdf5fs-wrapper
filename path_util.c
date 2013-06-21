@@ -2,6 +2,7 @@
 #include <limits.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #include "logger.h"
 #include "path_util.h"
 char *rel2abs(const char *orig_path, char *new_path) {
@@ -165,4 +166,43 @@ int pathcmp(const char *pattern_path,const char *test_path) {
     }
     if (*pattern_path == 0) return(test_path - test_path_base);
     return(-1);
+}
+int mkpath(const char * path) {
+    struct stat dirstat;
+    // short circuit: path exists
+    if (stat(path,&dirstat) >= 0) {
+        if (S_ISDIR(dirstat.st_mode)) {
+            return(1);
+        } else {
+            LOG_ERR("'%s' exists and is not a directory",path);
+            return(0);
+        }
+    }
+    char work_path[PATH_MAX];
+    strcpy(work_path,path);
+    int path_len=strlen(path);
+    if ((path_len > 0) && (work_path[path_len-1] != '/')) {
+        work_path[path_len]='/';
+        work_path[path_len+1]=0;
+        path_len++;
+    }
+    int i;
+    for (i=0; i < path_len; i++) {
+        if (work_path[i]=='/') {
+            work_path[i]=0;
+            if (stat(work_path,&dirstat) >= 0) {
+                if (! S_ISDIR(dirstat.st_mode)) {
+                    LOG_ERR("'%s' exists and is not a directory",work_path);
+                    return(0);
+                }
+            } else {
+                if (mkdir(work_path,0770) < 0) {
+                    LOG_ERR("error creating directory '%s'",work_path);
+                    return(0);
+                }
+            }
+            work_path[i]='/';
+        }
+    }
+    return(1);
 }

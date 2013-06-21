@@ -9,8 +9,8 @@ hdf5fs-wrapper.so: hdf5fs-wrapper.o path_util.o hdf5_fs.o string_set.o env_util.
 	$(LD) $(LDFLAGS) -shared $^ $(LDLIBS) -o $@
 hdf5fs-wrapper.o: hdf5fs-wrapper.c logger.h process_info.h
 
-hdf5fs-repack: hdf5fs-repack.o logger.h process_info.h logger.o process_info.o hfile_ds.o chunksize.o hdir.o
-hdf5fs-unpack: hdf5fs-unpack.o logger.h process_info.h logger.o process_info.o hfile_ds.o chunksize.o hdir.o
+hdf5fs-repack: hdf5fs-repack.o logger.h process_info.h logger.o process_info.o hfile_ds.o chunksize.o hdir.o path_util.o
+hdf5fs-unpack: hdf5fs-unpack.o logger.h process_info.h logger.o process_info.o hfile_ds.o chunksize.o hdir.o path_util.o
 
 test_rel2abs:    test_rel2abs.o path_util.o     logger.o process_info.o
 test_env_util:   test_env_util.o env_util.o     logger.o process_info.o

@@ -18,23 +18,9 @@ int unpack_set_stack(const char * parent, hdirent_t * node, void * op_data) {
     char export_name[PATH_MAX];
     strcpy(export_name,node->name);
     int i,name_len;
-    struct stat dirstat;
     name_len = strlen(export_name);
     for (i=0; i<name_len; i++) {
-        if (export_name[i]=='%') {
-            export_name[i]=0;
-            if (stat(export_name,&dirstat) >= 0) {
-                if (! S_ISDIR(dirstat.st_mode)) {
-                    LOG_ERR("'%s' exists and is not a directory",export_name);
-                    return(-1);
-                }
-            } else {
-                if (mkdir(export_name,0770) < 0) {
-                    LOG_ERR("error creating directory '%s'",export_name);
-                }
-            }
-            export_name[i]='/';
-        }
+        if (export_name[i]=='%') export_name[i]='/';
     }
     hfile_ds_reopen(node->dataset);
     int status = hfile_ds_export(node->dataset,export_name);

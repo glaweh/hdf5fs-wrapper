@@ -5,6 +5,7 @@
 #include "logger.h"
 #include "hfile_ds.h"
 #include "chunksize.h"
+#include "path_util.h"
 const hfile_ds_t __hfile_ds_initializer = {
     .space = -1, .set   = -1,
     .length_space = -1, .length_attrib = -1,
@@ -389,6 +390,24 @@ errlabel:
 
 hssize_t hfile_ds_export(hfile_ds_t * src, const char * filename) {
     if (src->set < 0) return(-1);
+    char export_name[PATH_MAX];
+    strcpy(export_name,filename);
+    // create dir if necessary
+    int name_len=strlen(filename);
+    int i;
+    for (i=name_len; i > 0; i--) {
+        if (export_name[i] == '/') break;
+    }
+    if (export_name[i]=='/') {
+        char bkp = export_name[i+1];
+        export_name[i+1]=0;
+        if (! mkpath(export_name)) {
+            LOG_ERR("error creating dir '%s'",export_name);
+            return(-1);
+        }
+        export_name[i+1]=bkp;
+    }
+
     FILE * export_file = fopen(filename,"wb");
     if (export_file == NULL) {
         LOG_ERR("error opening export file '%s': %s",filename,strerror(errno));
