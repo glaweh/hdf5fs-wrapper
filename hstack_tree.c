@@ -15,15 +15,15 @@ hstack_tree_t * hstack_tree_new() {
     return(tree);
 }
 
-typedef struct __hdir_add_hdf5_cb_data {
+typedef struct __hstack_tree_add_cb_data {
     int rdonly;
     hid_t file_id;
     hdirent_t * parent;
-} __hdir_add_hdf5_cb_data_t;
+} __hstack_tree_add_cb_data_t;
 
-static herr_t __hdir_add_hdf5_cb(hid_t loc_id, const char *name, const H5L_info_t *info, void *operator_data)
+static herr_t __hstack_tree_add_cb(hid_t loc_id, const char *name, const H5L_info_t *info, void *operator_data)
 {
-    __hdir_add_hdf5_cb_data_t * cb_data = operator_data;
+    __hstack_tree_add_cb_data_t * cb_data = operator_data;
     H5O_info_t      infobuf;
     herr_t          status = H5Oget_info_by_name (loc_id, name, &infobuf, H5P_DEFAULT);
     if ((status < 0) || (infobuf.type != H5O_TYPE_DATASET)) return(0);
@@ -37,16 +37,6 @@ static herr_t __hdir_add_hdf5_cb(hid_t loc_id, const char *name, const H5L_info_
         return(0);
     }
     return(0);
-}
-
-int hdir_add_hdf5(hdirent_t * parent, hid_t file_id, int rdonly) {
-    herr_t status;
-    __hdir_add_hdf5_cb_data_t cb_data;
-    cb_data.parent = parent;
-    cb_data.rdonly = rdonly;
-    cb_data.file_id = file_id;
-    status = H5Lvisit_by_name(file_id, "/", H5_INDEX_NAME, H5_ITER_INC, __hdir_add_hdf5_cb, &cb_data, H5P_DEFAULT );
-    return(status);
 }
 
 int hstack_tree_add(hstack_tree_t * tree, const char *hdf5name, int flags) {
@@ -94,15 +84,23 @@ int hstack_tree_add(hstack_tree_t * tree, const char *hdf5name, int flags) {
     *hdf5file = __hstack_tree_hdf5file_initializer;
     strcpy(hdf5file->name,hdf5name);
     hdf5file->hdf_id = this_hdf;
+    __hstack_tree_add_cb_data_t cb_data;
+    cb_data.parent = tree->root;
+    cb_data.file_id = this_hdf;
     if ((flags & O_ACCMODE) == O_RDONLY) {
         hdf5file->next = tree->hdf_ro;
         tree->hdf_ro = hdf5file;
-        hdir_add_hdf5(tree->root,this_hdf,1);
+        cb_data.rdonly = 1;
     } else {
         tree->hdf_rw = hdf5file;
-        hdir_add_hdf5(tree->root,this_hdf,0);
+        cb_data.rdonly = 0;
     }
-    return(1);
+    // scan the datasets
+    herr_t status = H5Lvisit_by_name(this_hdf, "/", H5_INDEX_NAME, H5_ITER_INC, __hstack_tree_add_cb, &cb_data, H5P_DEFAULT );
+    if (status >= 0) {
+        return(1);
+    }
+    return(0);
 }
 int hstack_tree_close(hstack_tree_t * tree) {
     hdir_free(tree->root);
