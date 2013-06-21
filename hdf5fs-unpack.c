@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
             if ( this_src >=0 ) {
                 hdf_src[n_hdf_src]=this_src;
                 n_hdf_src++;
-                printf("==== %s ====\n",argv[i]);
+                fprintf(stderr,"==== %s ====\n",argv[i]);
                 hdir_add_hdf5(root,this_src,1);
             } else {
                 LOG_WARN("error opening src file '%s'",argv[i]);
