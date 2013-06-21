@@ -3,12 +3,12 @@
 #include "hdir.h"
 typedef struct hstack_tree_hdf5file {
     hid_t hdf_id;
+    int   rdonly;
     struct hstack_tree_hdf5file * next;
     char name[1];
 } hstack_tree_hdf5file_t;
 typedef struct hstack_tree {
-    hstack_tree_hdf5file_t * hdf_rw;
-    hstack_tree_hdf5file_t * hdf_ro;
+    hstack_tree_hdf5file_t * hdf;
     hdirent_t * root;
 } hstack_tree_t;
 hstack_tree_t * hstack_tree_new();

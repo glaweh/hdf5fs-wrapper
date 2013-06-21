@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
         return(1);
     }
     copy_set_stack_data_t css_data;
-    css_data.target_file = tree->hdf_rw->hdf_id;
+    css_data.target_file = tree->hdf->hdf_id;
     css_data.compress    = 3;
     hdir_foreach_file(tree->root,HDIRENT_ITERATE_UNORDERED,
             copy_set_stack,&css_data);

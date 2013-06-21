@@ -3,10 +3,10 @@
 #include "hstack_tree.h"
 #include "logger.h"
 hstack_tree_hdf5file_t __hstack_tree_hdf5file_initializer = {
-    .hdf_id = -1, .next = NULL, .name = { 0 }
+    .hdf_id = -1, .next = NULL, .rdonly = 1, .name = { 0 }
 };
 hstack_tree_t __hstack_tree_initializer = {
-    .hdf_rw = NULL, .hdf_ro = NULL, .root = NULL
+    .hdf = NULL, .root = NULL
 };
 hstack_tree_t * hstack_tree_new() {
     hstack_tree_t * tree = malloc(sizeof(hstack_tree_t));
@@ -16,8 +16,7 @@ hstack_tree_t * hstack_tree_new() {
 }
 
 typedef struct __hstack_tree_add_cb_data {
-    int rdonly;
-    hid_t file_id;
+    hstack_tree_hdf5file_t * hdf;
     hdirent_t * parent;
 } __hstack_tree_add_cb_data_t;
 
@@ -27,11 +26,11 @@ static herr_t __hstack_tree_add_cb(hid_t loc_id, const char *name, const H5L_inf
     H5O_info_t      infobuf;
     herr_t          status = H5Oget_info_by_name (loc_id, name, &infobuf, H5P_DEFAULT);
     if ((status < 0) || (infobuf.type != H5O_TYPE_DATASET)) return(0);
-    hfile_ds_t * hfile_ds = hfile_ds_open(cb_data->file_id,name);
+    hfile_ds_t * hfile_ds = hfile_ds_open(cb_data->hdf->hdf_id,name);
     if (hfile_ds != NULL) {
         hdir_add_hfile_ds(cb_data->parent,hfile_ds);
         hfile_ds_close(hfile_ds);
-        hfile_ds->rdonly=cb_data->rdonly;
+        hfile_ds->rdonly=cb_data->hdf->rdonly;
     } else {
         LOG_ERR("error opening file '%s'",name);
         return(0);
@@ -40,11 +39,11 @@ static herr_t __hstack_tree_add_cb(hid_t loc_id, const char *name, const H5L_inf
 }
 
 int hstack_tree_add(hstack_tree_t * tree, const char *hdf5name, int flags) {
-    if (tree->hdf_rw != NULL) {
+    if ((tree->hdf != NULL) && (tree->hdf->rdonly == 0)) {
         if ((flags & O_ACCMODE) == O_RDONLY) {
-            LOG_ERR("Cannot add ro file '%s' after rw file '%s'",hdf5name,tree->hdf_rw->name);
+            LOG_ERR("Cannot add ro file '%s' after rw file '%s'",hdf5name,tree->hdf->name);
         } else {
-            LOG_ERR("Cannot add rw file '%s' after rw file '%s'",hdf5name,tree->hdf_rw->name);
+            LOG_ERR("Cannot add rw file '%s' after rw file '%s'",hdf5name,tree->hdf->name);
         }
         return(-1);
     }
@@ -84,17 +83,12 @@ int hstack_tree_add(hstack_tree_t * tree, const char *hdf5name, int flags) {
     *hdf5file = __hstack_tree_hdf5file_initializer;
     strcpy(hdf5file->name,hdf5name);
     hdf5file->hdf_id = this_hdf;
+    hdf5file->rdonly = ((flags & O_ACCMODE) == O_RDONLY);
+    hdf5file->next   = tree->hdf;
+    tree->hdf        = hdf5file;
     __hstack_tree_add_cb_data_t cb_data;
     cb_data.parent = tree->root;
-    cb_data.file_id = this_hdf;
-    if ((flags & O_ACCMODE) == O_RDONLY) {
-        hdf5file->next = tree->hdf_ro;
-        tree->hdf_ro = hdf5file;
-        cb_data.rdonly = 1;
-    } else {
-        tree->hdf_rw = hdf5file;
-        cb_data.rdonly = 0;
-    }
+    cb_data.hdf    = hdf5file;
     // scan the datasets
     herr_t status = H5Lvisit_by_name(this_hdf, "/", H5_INDEX_NAME, H5_ITER_INC, __hstack_tree_add_cb, &cb_data, H5P_DEFAULT );
     if (status >= 0) {
@@ -104,15 +98,10 @@ int hstack_tree_add(hstack_tree_t * tree, const char *hdf5name, int flags) {
 }
 int hstack_tree_close(hstack_tree_t * tree) {
     hdir_free(tree->root);
-    if (tree->hdf_rw != NULL) {
-        H5Fclose(tree->hdf_rw->hdf_id);
-        free(tree->hdf_rw);
-        tree->hdf_rw = NULL;
-    }
-    while (tree->hdf_ro != NULL) {
-        hstack_tree_hdf5file_t * walker = tree->hdf_ro;
+    while (tree->hdf != NULL) {
+        hstack_tree_hdf5file_t * walker = tree->hdf;
         H5Fclose(walker->hdf_id);
-        tree->hdf_ro = walker->next;
+        tree->hdf = walker->next;
         free(walker);
     }
     free(tree);
