@@ -17,18 +17,18 @@ hdirent_t * hdir_new(const char * name) {
     hdir->dirents=kh_init(HDIR);
     return(hdir);
 }
-hdirent_t * hdir_add_hfile_ds(hdirent_t * parent, hfile_ds_t * hfile_ds) {
-    khiter_t k = kh_get(HDIR, parent->dirents, hfile_ds->name);
+hdirent_t * hdir_add_dirent(hdirent_t * parent, const char *name, hfile_ds_t * hfile_ds) {
+    khiter_t k = kh_get(HDIR, parent->dirents, name);
     hdirent_t * hdirent;
     if (k == kh_end(parent->dirents)) {
         // no dirent, so add new entry
-        hdirent = malloc(sizeof(hdirent_t)+strlen(hfile_ds->name));
+        hdirent = malloc(sizeof(hdirent_t)+strlen(name));
         if (hdirent == NULL) {
             LOG_ERR("malloc error");
             return(NULL);
         }
         *hdirent = __hdirent_initializer_file;
-        strcpy(hdirent->name,hfile_ds->name);
+        strcpy(hdirent->name,name);
         int ret;
         k = kh_put(HDIR,parent->dirents,hdirent->name,&ret);
         if (! ret) {
@@ -40,8 +40,10 @@ hdirent_t * hdir_add_hfile_ds(hdirent_t * parent, hfile_ds_t * hfile_ds) {
     } else {
         hdirent=kh_value(parent->dirents,k);
     }
-    hfile_ds->next = hdirent->dataset;
-    hdirent->dataset=hfile_ds;
+    if (hfile_ds!=NULL) {
+        hfile_ds->next = hdirent->dataset;
+        hdirent->dataset=hfile_ds;
+    }
     hdirent->n_sets++;
     return(hdirent);
 }

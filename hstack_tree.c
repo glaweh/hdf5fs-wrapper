@@ -28,7 +28,7 @@ static herr_t __hstack_tree_add_cb(hid_t loc_id, const char *name, const H5L_inf
     if ((status < 0) || (infobuf.type != H5O_TYPE_DATASET)) return(0);
     hfile_ds_t * hfile_ds = hfile_ds_open(cb_data->hdf->hdf_id,name);
     if (hfile_ds != NULL) {
-        hdir_add_hfile_ds(cb_data->parent,hfile_ds);
+        hdir_add_dirent(cb_data->parent,name,hfile_ds);
         hfile_ds_close(hfile_ds);
         hfile_ds->rdonly=cb_data->hdf->rdonly;
     } else {
