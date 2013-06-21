@@ -3,16 +3,14 @@
 #include <sys/stat.h>
 #include <hdf5.h>
 #include <errno.h>
+#include <fcntl.h>
 #include "hfile_ds.h"
 #include "logger.h"
-#include "hdir.h"
-
-#define MAX_HDF5SRC 1024
+#include "hstack_tree.h"
 
 int   n_hdf_src;
-hid_t hdf_src[MAX_HDF5SRC];
 
-hdirent_t * root = NULL;
+hstack_tree_t * tree = NULL;
 
 int unpack_set_stack(const char * parent, hdirent_t * node, void * op_data) {
     char export_name[PATH_MAX];
@@ -37,32 +35,19 @@ int main(int argc, char *argv[]) {
         fprintf(stderr,"usage: %s <src1> [src2] [src3] [src4]...\n",argv[0]);
         return(1);
     }
-
+    tree = hstack_tree_new();
     n_hdf_src=0;
     int i;
-    struct stat hdf_file_stat;
-    root = hdir_new("/");
     for (i=1; i<argc;i++) {
-        if (stat(argv[i],&hdf_file_stat) == 0) {
-            hid_t this_src = H5Fopen(argv[i],H5F_ACC_RDONLY,H5P_DEFAULT);
-            if ( this_src >=0 ) {
-                hdf_src[n_hdf_src]=this_src;
-                n_hdf_src++;
-                fprintf(stderr,"==== %s ====\n",argv[i]);
-                hdir_add_hdf5(root,this_src,1);
-            } else {
-                LOG_WARN("error opening src file '%s'",argv[i]);
-            }
-        } else {
-            LOG_WARN("missing src file '%s'",argv[i]);
-        }
+        if (hstack_tree_add(tree,argv[i],O_RDONLY) == 1) n_hdf_src++;
     }
     if (n_hdf_src == 0) {
         LOG_FATAL("no src files could be opened");
+        hstack_tree_close(tree);
         return(1);
     }
-    hdir_foreach_file(root,HDIRENT_ITERATE_UNORDERED,unpack_set_stack,NULL);
-    hdir_free(root);
-    for (i=0; i < n_hdf_src; i++) H5Fclose(hdf_src[i]);
+    hdir_foreach_file(tree->root,HDIRENT_ITERATE_UNORDERED,
+            unpack_set_stack,NULL);
+    hstack_tree_close(tree);
     return(0);
 }
