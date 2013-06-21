@@ -80,40 +80,6 @@ int hdir_free(hdirent_t * dirent) {
     return(result);
 }
 
-typedef struct __hdir_add_hdf5_cb_data {
-    int rdonly;
-    hid_t file_id;
-    hdirent_t * parent;
-} __hdir_add_hdf5_cb_data_t;
-
-static herr_t __hdir_add_hdf5_cb(hid_t loc_id, const char *name, const H5L_info_t *info, void *operator_data)
-{
-    __hdir_add_hdf5_cb_data_t * cb_data = operator_data;
-    H5O_info_t      infobuf;
-    herr_t          status = H5Oget_info_by_name (loc_id, name, &infobuf, H5P_DEFAULT);
-    if ((status < 0) || (infobuf.type != H5O_TYPE_DATASET)) return(0);
-    hfile_ds_t * hfile_ds = hfile_ds_open(cb_data->file_id,name);
-    if (hfile_ds != NULL) {
-        hdir_add_hfile_ds(cb_data->parent,hfile_ds);
-        hfile_ds_close(hfile_ds);
-        hfile_ds->rdonly=cb_data->rdonly;
-    } else {
-        LOG_ERR("error opening file '%s'",name);
-        return(0);
-    }
-    return(0);
-}
-
-int hdir_add_hdf5(hdirent_t * parent, hid_t file_id, int rdonly) {
-    herr_t status;
-    __hdir_add_hdf5_cb_data_t cb_data;
-    cb_data.parent = parent;
-    cb_data.rdonly = rdonly;
-    cb_data.file_id = file_id;
-    status = H5Lvisit_by_name(file_id, "/", H5_INDEX_NAME, H5_ITER_INC, __hdir_add_hdf5_cb, &cb_data, H5P_DEFAULT );
-    return(status);
-}
-
 int hdir_foreach_file(hdirent_t * root, int order, hdirent_iterate_t op, void * op_data) {
     khiter_t k;
     if ((root->type != HDIRENT_DIR) || (root->dirents == NULL)) {

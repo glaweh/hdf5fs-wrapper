@@ -29,6 +29,5 @@ hdirent_t * hdir_new(const char * name);
 hdirent_t * hdir_add_hfile_ds(hdirent_t * parent, hfile_ds_t * hfile_ds);
 hdirent_t * hdir_get_dirent(hdirent_t * parent, const char * name);
 int         hdir_free(hdirent_t * root);
-int         hdir_add_hdf5(hdirent_t * parent, hid_t hdf5_file, int rdonly);
 int         hdir_foreach_file(hdirent_t * root,int order,hdirent_iterate_t op, void * op_data);
 #endif
