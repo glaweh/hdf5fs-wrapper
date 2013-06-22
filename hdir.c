@@ -1,10 +1,12 @@
+#include <time.h>
 #include "logger.h"
 #include "hdir.h"
+#include "chunksize.h"
 hdirent_t __hdirent_initializer_file = {
-    .type = HDIRENT_FILE, .n_sets = 0, .dataset = NULL, .refcount=1, .name = { 0 }
+    .type = HDIRENT_FILE, .n_sets = 0, .dataset = NULL, .refcount=1, .name = { 0 }, .mtime = 0, .ctime = 0, .atime = 0, .chunk_size = 512
 };
 hdirent_t __hdirent_initializer_dir = {
-    .type = HDIRENT_DIR, .dir_iterator = -1, .dirents = NULL, .refcount=1, .name = { 0 }
+    .type = HDIRENT_DIR, .dir_iterator = -1, .dirents = NULL, .refcount=1, .name = { 0 }, .mtime = 0, .ctime = 0, .atime = 0, .chunk_size = 512
 };
 hdirent_t * hdir_new(const char * name) {
     hdirent_t * hdir = malloc(sizeof(hdirent_t)+strlen(name));
@@ -41,8 +43,18 @@ hdirent_t * hdir_add_dirent(hdirent_t * parent, const char *name, hfile_ds_t * h
         hdirent=kh_value(parent->dirents,k);
     }
     if (hfile_ds!=NULL) {
-        hfile_ds->next = hdirent->dataset;
-        hdirent->dataset=hfile_ds;
+        hfile_ds->next   = hdirent->dataset;
+        hdirent->dataset = hfile_ds;
+        hdirent->atime   = hfile_ds->atime;
+        hdirent->ctime   = hfile_ds->ctime;
+        hdirent->mtime   = hfile_ds->mtime;
+        hdirent->chunk_size = hfile_ds->chunk[0];
+    } else {
+        time_t now = time(NULL);
+        hdirent->atime = now;
+        hdirent->ctime = now;
+        hdirent->mtime = now;
+        hdirent->chunk_size = chunksize_suggest(name,0);
     }
     hdirent->n_sets++;
     return(hdirent);
@@ -106,3 +118,32 @@ int hdir_foreach_file(hdirent_t * root, int order, hdirent_iterate_t op, void * 
     }
     return(res);
 }
+#define STAT_HELPER(stattype) \
+int hdir_##stattype##_helper(hdirent_t * node, struct stattype * sstat) {\
+    if (node->type == HDIRENT_FILE) {\
+        sstat->st_mode = S_IFREG | S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;\
+        if (node->dataset == NULL) {\
+            sstat->st_size = 0;\
+            sstat->st_blocks = 0;\
+        } else {\
+            hfile_ds_update_timestamps(node->dataset);\
+            node->atime=node->dataset->atime;\
+            node->ctime=node->dataset->ctime;\
+            node->mtime=node->dataset->mtime;\
+            sstat->st_size = node->dataset->length;\
+            sstat->st_blocks = node->dataset->dims[0] / 512;\
+        }\
+    } else {\
+        sstat->st_mode = S_IFDIR | S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;\
+        sstat->st_size = 0;\
+        sstat->st_blocks = 0;\
+    }\
+    sstat->st_atime=node->atime;\
+    sstat->st_ctime=node->ctime;\
+    sstat->st_mtime=node->mtime;\
+    sstat->st_blksize=node->chunk_size;\
+    return(0);\
+}
+
+STAT_HELPER(stat)
+STAT_HELPER(stat64)
