@@ -7,15 +7,12 @@
 #include <errno.h>
 #include <hdf5.h>
 #include "hdf5_fs.h"
-#include "string_set.h"
 #include "wrapper_limits.h"
 #include "logger.h"
 #include "hstack_tree.h"
 
 struct stat64 hdf_file_stat;
 hstack_tree_t * tree;
-
-string_set * closed_empty_files;
 
 typedef struct {
     hdirent_t * hdirent;
@@ -48,7 +45,6 @@ int hdf5_fs_init(const char * hdf_filename) {
     if (stat64(hdf_filename,&hdf_file_stat) < 0) {
         LOG_WARN("error calling stat64 on '%s', %s",hdf_filename,strerror(errno));
     }
-    closed_empty_files=string_set_new();
     return(1);
 }
 
@@ -58,8 +54,6 @@ int hdf5_fs_fini() {
         if (hdf5_data[i] != NULL)
             hdf5_close(i);
     }
-    string_set_dump(closed_empty_files);
-    string_set_free(closed_empty_files);
     hstack_tree_close(tree);
     return(1);
 }
@@ -122,8 +116,6 @@ int hdf5_close(int fd) {
             errno = EIO;
             return(-1);
         }
-    } else {
-        string_set_add(closed_empty_files, d->hdirent->name, NULL);
     }
     LOG_DBG(" %d, '%s", fd,d->hdirent->name);
     free(hdf5_data[fd]);
@@ -260,8 +252,6 @@ int hdf5_fstat64(int fd, struct stat64 *buf) {
 
 int hdf5_unlink(const char *pathname) {
     if (hfile_ds_exists(tree->hdf->hdf_id,pathname)==0) {
-        if (string_set_remove(closed_empty_files,pathname))
-            return(0);
         errno=ENOENT;
         return(-1);
     }
