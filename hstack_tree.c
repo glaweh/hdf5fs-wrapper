@@ -1,3 +1,4 @@
+#define __USE_LARGEFILE64
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "hstack_tree.h"

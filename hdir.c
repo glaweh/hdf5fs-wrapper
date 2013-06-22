@@ -1,4 +1,6 @@
 #include <time.h>
+#define __USE_LARGEFILE64
+#include <sys/stat.h>
 #include "logger.h"
 #include "hdir.h"
 #include "chunksize.h"

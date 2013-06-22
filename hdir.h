@@ -1,7 +1,5 @@
 #ifndef HDIR_H
 #define HDIR_H
-#define __USE_LARGEFILE64
-#include <sys/stat.h>
 #include "hfile_ds.h"
 #include "khash.h"
 #define HDIRENT_FILE 1
@@ -31,6 +29,8 @@ typedef struct hdirent {
 #define HDIRENT_ITERATE_ALPHA_DESC 2
 typedef int (*hdirent_iterate_t)(const char *parent, hdirent_t * dirent, void * op_data);
 
+typedef struct stat stat_t;
+typedef struct stat64 stat64_t;
 hdirent_t * hdir_new(const char * name);
 hdirent_t * hdir_add_dirent(hdirent_t * parent, const char * name, hfile_ds_t * hfile_ds);
 hdirent_t * hdir_get_dirent(hdirent_t * parent, const char * name);
