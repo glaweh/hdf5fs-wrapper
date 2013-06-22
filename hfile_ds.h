@@ -14,6 +14,9 @@ typedef struct hfile_ds {
     int64_t length_original;
     int     rdonly;
     struct  hfile_ds * next;
+    time_t  atime;
+    time_t  mtime;
+    time_t  ctime;
     hid_t   loc_id;
     char    name[1];
 } hfile_ds_t;
@@ -33,4 +36,5 @@ int          hfile_ds_exists(hid_t loc_id, const char *pathname);
 hssize_t     hfile_ds_read(hfile_ds_t * hfile_ds, hsize_t offset, void * buf, hsize_t count);
 hssize_t     hfile_ds_write(hfile_ds_t * hfile_ds, hsize_t offset, const void *buf, hsize_t count);
 hssize_t     hfile_ds_export(hfile_ds_t * src, const char * filename);
+void         hfile_ds_update_timestamps(hfile_ds_t * ds);
 #endif

@@ -12,6 +12,7 @@ const hfile_ds_t __hfile_ds_initializer = {
     .dims = { 0 }, .chunk = { 0 },
     .length = 0, .length_original = 0,
     .rdonly = 1,
+    .atime = 0, .mtime = 0, .ctime = 0,
     .next = NULL, .loc_id = -1, .name[0] = 0
 };
 const hsize_t __hfile_ds_maxdims[1] = {H5S_UNLIMITED};
@@ -56,6 +57,7 @@ herr_t hfile_ds_close(hfile_ds_t * info) {
     } else {
         info->space=-1;
     }
+    hfile_ds_update_timestamps(info);
     if ((info->set >= 0) && (H5Dclose(info->set) < 0)) {
         LOG_ERR("error closing dataset '%s'",info->name);
         status = 0;
@@ -135,6 +137,10 @@ hfile_ds_t * hfile_ds_reopen(hfile_ds_t * info) {
         LOG_ERR("error opening dataset '%s'",info->name);
         goto errlabel;
     }
+    int rdold = info->rdonly;
+    info->rdonly = 0;
+    hfile_ds_update_timestamps(info);
+    info->rdonly = rdold;
     if ((info->space = H5Dget_space(info->set)) < 0) {
         LOG_ERR("error getting dataspace for '%s'",info->name);
         goto errlabel;
@@ -471,4 +477,12 @@ errlabel:
     if (readspace >= 0) H5Sclose(readspace);
     return(-1);
 
+}
+void hfile_ds_update_timestamps(hfile_ds_t * ds) {
+    H5O_info_t objinfo;
+    if ((ds->set < 0) || (ds->rdonly == 1)) return;
+    H5Oget_info(ds->set,&objinfo);
+    ds->atime=objinfo.atime;
+    ds->mtime=objinfo.mtime;
+    ds->ctime=objinfo.ctime;
 }
