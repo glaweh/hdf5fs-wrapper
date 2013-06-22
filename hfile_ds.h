@@ -12,7 +12,6 @@ typedef struct hfile_ds {
     hsize_t chunk[1];
     int64_t length;
     int64_t length_original;
-    int     refcount;
     int     rdonly;
     struct  hfile_ds * next;
     hid_t   loc_id;

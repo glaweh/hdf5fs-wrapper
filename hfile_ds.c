@@ -11,7 +11,7 @@ const hfile_ds_t __hfile_ds_initializer = {
     .length_space = -1, .length_attrib = -1,
     .dims = { 0 }, .chunk = { 0 },
     .length = 0, .length_original = 0,
-    .refcount = 0, .rdonly = 1,
+    .rdonly = 1,
     .next = NULL, .loc_id = -1, .name[0] = 0
 };
 const hsize_t __hfile_ds_maxdims[1] = {H5S_UNLIMITED};
