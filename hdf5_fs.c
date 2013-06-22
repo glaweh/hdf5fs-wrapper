@@ -234,40 +234,13 @@ int hdf5_lseek(int fd, off_t offset, int whence) {
 }
 
 int hdf5_stat64(const char *pathname, struct stat64 *buf) {
-    H5O_info_t object_info;
-    if (hfile_ds_exists(tree->hdf->hdf_id,pathname) == 0) {
-        if (string_set_find(closed_empty_files, pathname) <= 0) {
-            errno=ENOENT;
-            return(-1);
-        }
-        (*buf)=hdf_file_stat;
-        buf->st_blksize=4096;
-        buf->st_size=0;
-        buf->st_blocks=0;
-        return(0);
-    }
-    herr_t status = H5Oget_info_by_name(tree->hdf->hdf_id,pathname,&object_info,H5P_DEFAULT);
-    if (status < 0) {
-        LOG_WARN("error getting status for '%s'",pathname);
+    hdirent_t * hdirent = hdir_get_dirent(tree->root, pathname);
+    if (hdirent == NULL) {
         errno=ENOENT;
         return(-1);
     }
     (*buf)=hdf_file_stat;
-    buf->st_blksize=4096;
-    buf->st_atime  =object_info.atime;
-    buf->st_mtime  =object_info.mtime;
-    buf->st_ctime  =object_info.ctime;
-    if (object_info.num_attrs > 0) {
-        hid_t lena = H5Aopen_by_name(tree->hdf->hdf_id,pathname,"Filesize",H5P_DEFAULT,H5P_DEFAULT);
-        int64_t fsize;
-        H5Aread(lena,H5T_NATIVE_INT64,&fsize);
-        H5Aclose(lena);
-        buf->st_size=fsize;
-        buf->st_blocks=fsize / 512 + 1;
-    } else {
-        buf->st_size=0;
-        buf->st_blocks=0;
-    }
+    hdir_stat64_helper(hdirent,buf);
     LOG_DBG("size of '%s': %d",pathname,(int)buf->st_size);
     return(0);
 }
@@ -278,27 +251,9 @@ int hdf5_fstat64(int fd, struct stat64 *buf) {
         errno = EBADF;
         return(-1);
     }
-    hdf5_data_t * d = hdf5_data[fd];
-    hfile_ds_t  * ds = d->hdirent->dataset;
+    hdirent_t * hdirent = hdf5_data[fd]->hdirent;
     (*buf)=hdf_file_stat;
-    if (ds == NULL) {
-        buf->st_blksize = 4096;
-        buf->st_size = 0;
-    } else {
-        buf->st_blksize = ds->chunk[0];
-        buf->st_size    = ds->length;
-        H5O_info_t object_info;
-        herr_t status = H5Oget_info(ds->set,&object_info);
-        if (status < 0) {
-            LOG_WARN("error getting status for '%s'",d->hdirent->name);
-            errno=EIO;
-            return(-1);
-        }
-        buf->st_atime  =object_info.atime;
-        buf->st_mtime  =object_info.mtime;
-        buf->st_ctime  =object_info.ctime;
-    }
-    buf->st_blocks=buf->st_size / 512 + 1;
+    hdir_stat64_helper(hdirent,buf);
     LOG_DBG("size of '%s': %d",d->hdirent->name,(int)buf->st_size);
     return(0);
 }
