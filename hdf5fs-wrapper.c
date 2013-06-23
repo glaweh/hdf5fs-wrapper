@@ -39,8 +39,12 @@ int (*_fseek)(FILE *stream, long offset, int whence);
 long int (*_ftell)(FILE *stream);
 int (*___fxstat64)(int __ver, int __fildes, struct stat64 *__stat_buf);
 
+#define HDF_RO_LIMIT 10
 char scratch_base[PATH_MAX] = "./SCRATCH/*";
 char hdf_file[PATH_MAX] = "./scratch${OMPI_COMM_WORLD_RANK:%04d:0}.h5";
+char * hdf_ro_stack[HDF_RO_LIMIT];
+int hdf_nro = 0;
+char hdf_ro_stack_abs[HDF_RO_LIMIT*PATH_MAX];
 char tmpdir[PATH_MAX];
 char hdf_abs[PATH_MAX];
 char scratch_abs[PATH_MAX];
@@ -106,12 +110,36 @@ void __attribute__ ((constructor)) hdf5fs_wr_init() {
     tmpdir[0]=0;
     unsetenv("LD_PRELOAD");
     char hdf_expanded[PATH_MAX];
+    env_ptr=getenv("HDF5FS_RO");
+    if (env_ptr!=NULL) {
+        char * src_begin = env_ptr;
+        char * dst_end   = hdf_ro_stack_abs;
+        while (src_begin != 0) {
+            char * src_end = src_begin;
+            while ((*src_end != ':') && (*src_end != 0)) {
+                src_end++;
+            }
+            int we_are_at_end = (*src_end == 0);
+            *src_end = 0;
+            if (strn_env_expand(src_begin,hdf_expanded,PATH_MAX) < 0) {
+                LOG_FATAL("error expanding hdf ro filename '%s'",src_begin);
+                exit(1);
+            }
+            hdf_ro_stack[hdf_nro]=rel2abs(hdf_expanded,dst_end);
+            dst_end+=strlen(hdf_ro_stack[hdf_nro])+1;
+            LOG_DBG("expanded hdf ro '%s' to '%s'",src_begin,hdf_ro_stack[hdf_nro]);
+            hdf_nro++;
+            if (we_are_at_end) break;
+            *src_end = ':';
+            src_begin = src_end+1;
+        }
+    }
     if (strn_env_expand(hdf_file,hdf_expanded,PATH_MAX) < 0) {
         LOG_FATAL("error expanding hdf filename '%s'",hdf_file);
         exit(1);
     }
     rel2abs(hdf_expanded,hdf_abs);
-    if (! hdf5_fs_init(hdf_abs)) {
+    if (! hdf5_fs_init(hdf_abs,hdf_nro,hdf_ro_stack)) {
         LOG_FATAL("error initializing hdf5_fs");
         exit(1);
     }

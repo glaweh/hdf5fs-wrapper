@@ -27,18 +27,25 @@ hdf5_data_t __hdf5_data_t_initializer = {
 int     last_handle=-1;
 hdf5_data_t * hdf5_data[HANDLES_MAX];
 
-int hdf5_fs_init(const char * hdf_filename) {
+int hdf5_fs_init(const char * hdf_filename,int nro, char * hdf_ro_stack[]) {
     tree=hstack_tree_new();
     if (tree == NULL) {
         LOG_ERR("error creating hstack_tree for '%s'",hdf_filename);
         return(-1);
+    }
+    int i;
+    for (i=0;i<nro;i++) {
+        if (hstack_tree_add(tree,hdf_ro_stack[i],O_RDONLY) < 0) {
+            LOG_ERR("error opening '%s'",hdf_ro_stack[i]);
+            return(-1);
+        }
+        LOG_INFO("hdf_ro opened: '%s', %d",hdf_ro_stack[i],tree->hdf->hdf_id);
     }
     if (hstack_tree_add(tree,hdf_filename,O_RDWR | O_CREAT) < 0) {
         LOG_ERR("error opening '%s'",hdf_filename);
         return(-1);
     }
     LOG_INFO("hdf_file opened: '%s', %d",hdf_filename,tree->hdf->hdf_id);
-    int i;
     for (i=0;i<HANDLES_MAX;i++)
         hdf5_data[i]=NULL;
     last_handle = -1;
