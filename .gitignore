@@ -1,6 +1,7 @@
 *.o
 *.so
 .*.swp
+wrapper-gen/io-wrapper.c
 hdf5fs-repack
 hdf5fs-unpack
 test_env_util
