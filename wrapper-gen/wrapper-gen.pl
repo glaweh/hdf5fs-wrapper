@@ -8,7 +8,6 @@ open (my $out_fh,'>',$io_wrapper) or die "fukk: $io_wrapper";
 my %type = (
     PATHNAME => 'char*',
     FD       => 'int',
-    SDIRENT  => 'struct dirent',
     DIR      => 'DIR',
     FILE     => 'FILE',
 );
