@@ -1,4 +1,6 @@
+#define _GNU_SOURCE
 #define __USE_LARGEFILE64
+#include <dlfcn.h>
 #include <dirent.h>
 #include <libio.h>
 #include <stdio.h>
@@ -6,10 +8,12 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <wchar.h>
+#include <stdarg.h>
 
 #define PATHNAME char*
 #define FD int
 #define SDIRENT struct dirent
+#define SDIRENT64 struct dirent64
 
 // dirent.h
 int
@@ -32,23 +36,25 @@ SDIRENT*
         DIR*
             dh
         );
-SDIRENT*
+SDIRENT64*
     readdir64(
         DIR*
             dh
         );
 int
     scandir(
-        const PATHNAME,
-        SDIRENT ***namelist,
+        const PATHNAME
+            dirp,
+        SDIRENT***
+            namelist,
         int
             (*filter)(const struct dirent *),
         int
             (*compar)(const struct dirent **, const struct dirent **)
         ); 
 // fcntl.h
-//varargs:
-//  mode_t mode
+//vat: mode_t
+//van: mode
 FD
     open(
         PATHNAME
@@ -57,8 +63,8 @@ FD
             flags,
         ...
         );
-//varargs:
-//  mode_t mode
+//vat: mode_t
+//van: mode
 FD
     open64(
         PATHNAME
@@ -76,7 +82,8 @@ int
         );
 int 
     _IO_putc(
-        int data,
+        int
+            data,
         _IO_FILE*
             stream
         );
@@ -135,7 +142,7 @@ FILE*
         const char*
             mode
         );
-//varargs:printf
+//vaforward
 int
     fprintf(
         FILE*
@@ -264,8 +271,8 @@ int
         );
 
 // sys/ioctl.h
-//varargs:
-//  char *argp
+//vat: char
+//van: *arg
 int
     ioctl(
         FD
@@ -309,7 +316,7 @@ int
             vers,
         FD
             fd,
-        struct stat *
+        struct stat64 *
             buf
         );
 int
@@ -318,7 +325,7 @@ int
             vers,
         const PATHNAME
             name,
-        struct stat *
+        struct stat64 *
             buf
         );
 int
@@ -327,7 +334,7 @@ int
             vers,
         const PATHNAME
             name,
-        struct stat *
+        struct stat64 *
             buf
         );
 int
@@ -447,6 +454,7 @@ int
         );
 void
     sync(
+        void
         );
 void
     syncfs(
