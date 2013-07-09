@@ -1,6 +1,6 @@
+//begin_preamble
 #define _GNU_SOURCE
 #define __USE_LARGEFILE64
-#include <dlfcn.h>
 #include <dirent.h>
 #include <libio.h>
 #include <stdio.h>
@@ -8,13 +8,11 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <wchar.h>
-#include <stdarg.h>
 #include <fcntl.h>
 
 #define PATHNAME char*
 #define FD int
-#define SDIRENT struct dirent
-#define SDIRENT64 struct dirent64
+//end_preamble
 
 // dirent.h
 int
@@ -32,12 +30,12 @@ DIR*
         FD
             fd
         );
-SDIRENT*
+struct dirent*
     readdir(
         DIR*
             dh
         );
-SDIRENT64*
+struct dirent64*
     readdir64(
         DIR*
             dh
@@ -46,7 +44,7 @@ int
     scandir(
         const PATHNAME
             dirp,
-        SDIRENT***
+        struct dirent***
             namelist,
         int
             (*filter)(const struct dirent *),
@@ -54,7 +52,7 @@ int
             (*compar)(const struct dirent **, const struct dirent **)
         ); 
 // fcntl.h
-//vac: (flags & O_CREAT)
+//vac: (flags & O_CREAT ? 1 : 0)
 //vat: mode_t
 //van: mode
 FD
@@ -65,7 +63,7 @@ FD
             flags,
         ...
         );
-//vac: (flags & O_CREAT)
+//vac: (flags & O_CREAT ? 1 : 0)
 //vat: mode_t
 //van: mode
 FD

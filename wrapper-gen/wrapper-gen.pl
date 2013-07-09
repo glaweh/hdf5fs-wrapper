@@ -2,9 +2,8 @@
 use strict;
 use warnings;
 my $io_calls_template = 'io-calls.c';
-my $io_wrapper = 'io-wrapper.c';
+my $io_wrapper = 'wrapper_func_auto.c';
 open (my $in_fh,'<',$io_calls_template) or die "fukk: $io_calls_template";
-open (my $out_fh,'>',$io_wrapper) or die "fukk: $io_wrapper";
 my %type = (
     PATHNAME => 'char*',
     FD       => 'int',
@@ -15,13 +14,18 @@ my @orig_ptr;
 my @orig_init;
 my %func_i;
 my @funcs;
-my $line;
 my $vaforward=0;
 my ($vac,@vat,@van);
 my $ret_type;
 my $func_name;
 my (@argt,@argn);
 my $in_proto = 0;
+
+open(my $header_fh,'>','real_func_auto.h');
+print $header_fh <<"CCODE";
+#ifndef REAL_FUNC_AUTO_H
+#define REAL_FUNC_AUTO_H
+CCODE
 
 sub function_process() {
     my @func_args;
@@ -43,8 +47,10 @@ sub function_process() {
     my $chaincall_arg=join(', ',@nonvar_args);
     my $orig_func_name="__real_${func_name}";
     my $orig_func="$ret_type (*$orig_func_name)($func_arg);";
+    print $header_fh "extern $orig_func\n";
     push @orig_ptr,$orig_func;
     push @orig_init,"$orig_func_name = dlsym(RTLD_NEXT, \"$func_name\");";
+    push @orig_init,"if ($orig_func_name == NULL) { fprintf(stderr,\"cannot resolve $func_name\\n\");exit(1); };";
     $orig_func_name="__real_v${func_name}" if ($vaforward);
     unless (exists $func_i{$func_name}) {
         my $funcbody='';
@@ -86,7 +92,6 @@ $ret_type $func_name($func_arg) {
             #construct chaincall
             $funcbody.="    switch (va_count) {\n";
             for (my $i=$#vat+1;$i>0;$i--) {
-                print STDERR "da\n";
                 $funcbody.="        case $i:\n            retval=$orig_func_name($chaincall_arg, " . join(", ",@van[0..($i-1)]) . ");\n";
                 $funcbody.="            break;\n";
             }
@@ -105,10 +110,22 @@ $ret_type $func_name($func_arg) {
 }
 
 my $lineno = 0;
-while ($line = <$in_fh>) {
+my $in_preamble = 0;
+while (<$in_fh>) {
     $lineno++;
-    $_=$line;
     chomp;
+    if (/^\/\/begin_preamble/) {
+        $in_preamble = 1;
+        next;
+    }
+    if ($in_preamble) {
+        if (/^\/\/end_preamble/) {
+            $in_preamble = 0;
+            next;
+        }
+        print $header_fh "$_\n";
+        next;
+    }
     if (/^\/\/vaforward/) {
         $vaforward=1;
         next;
@@ -129,6 +146,7 @@ while ($line = <$in_fh>) {
         push @orig_ptr,$_;
         push @orig_init,$_;
         push @funcs,$_;
+        print $header_fh "$_\n";
         next;
     }
     if (/^#/) {
@@ -140,7 +158,6 @@ while ($line = <$in_fh>) {
     if ($_ eq ');') {
         my $andiff = $#argt-$#argn;
         if (($#argt>=0) and ($andiff > 0)) {
-            print STDERR "$func_name: andiff $andiff\n";
             push @argn,(('') x $andiff);
         }
         function_process();
@@ -171,14 +188,36 @@ while ($line = <$in_fh>) {
         $in_proto=1;
     }
 }
+print $header_fh <<"CCODE";
+#endif
+CCODE
+close($header_fh);
+
+my $out_fh;
+open($out_fh,'>','real_func_auto.c');
+print $out_fh <<"CCODE";
+#include "real_func_auto.h"
+#include <dlfcn.h>
+#include <stdlib.h>
+
+CCODE
 print $out_fh join("\n",@orig_ptr) . "\n";
-print $out_fh <<"    CCODE";
-void __attribute__ ((constructor)) wrapper_init(void) {
-    CCODE
+print $out_fh <<"CCODE";
+
+void __attribute__ ((constructor(200))) __real_func_auto_init(void) {
+CCODE
+
 print $out_fh "    " . join("\n    ",@orig_init) . "\n";
-print $out_fh <<"    CCODE";
+print $out_fh <<"CCODE";
 }
-    CCODE
+CCODE
+
+open ($out_fh,'>',$io_wrapper) or die "fukk: $io_wrapper";
+print $out_fh <<"CCODE";
+#include "real_func_auto.h"
+#include "stdlib.h"
+#include <stdarg.h>
+CCODE
 foreach my $func (@funcs) {
     print $out_fh "$func\n";
 }

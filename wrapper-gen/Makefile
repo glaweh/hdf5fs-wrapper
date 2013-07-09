@@ -4,10 +4,11 @@ LDLIBS:=-ldl -lc
 
 all: io-wrapper.so
 
-io-wrapper.so: io-wrapper.o
+io-wrapper.so: wrapper_func_auto.o real_func_auto.o
 	$(LD) $(LDFLAGS) -shared $^ $(LDLIBS) -o $@
-io-wrapper.o: io-wrapper.c
-io-wrapper.c: io-calls.c wrapper-gen.pl
+wrapper_func_auto.o: wrapper_func_auto.c
+real_func_auto.o: real_func_auto.c
+real_func_auto.c real_func_auto.h wrapper_func_auto.c: io-calls.c wrapper-gen.pl
 	./wrapper-gen.pl
 
 clean:
