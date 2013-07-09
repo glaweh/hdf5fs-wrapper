@@ -54,6 +54,7 @@ int
             (*compar)(const struct dirent **, const struct dirent **)
         ); 
 // fcntl.h
+//vac: (flags & O_CREAT)
 //vat: mode_t
 //van: mode
 FD
@@ -64,6 +65,7 @@ FD
             flags,
         ...
         );
+//vac: (flags & O_CREAT)
 //vat: mode_t
 //van: mode
 FD
@@ -272,8 +274,9 @@ int
         );
 
 // sys/ioctl.h
-//vat: char
-//van: *arg
+//vac: 1
+//vat: char*
+//van: arg
 int
     ioctl(
         FD

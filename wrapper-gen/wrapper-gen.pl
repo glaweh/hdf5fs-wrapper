@@ -17,7 +17,7 @@ my %func_i;
 my @funcs;
 my $line;
 my $vaforward=0;
-my (@vat,@van);
+my ($vac,@vat,@van);
 my $ret_type;
 my $func_name;
 my (@argt,@argn);
@@ -77,9 +77,24 @@ $ret_type $func_name($func_arg) {
             for (my $i=0;$i<=$#vat;$i++) {
                 $funcbody.="    $vat[$i] $van[$i];\n";
             }
+            $funcbody.="    int va_count = $vac;\n";
+            $funcbody.="    va_start(argp,$argn[-2]);\n";
+            for (my $i=0;$i<=$#vat;$i++) {
+                $funcbody.="    if (va_count>$i) $van[$i]=va_arg(argp,$vat[$i]);\n";
+            }
+            $funcbody.="    va_end(argp);\n";
+            #construct chaincall
+            $funcbody.="    switch (va_count) {\n";
+            for (my $i=$#vat+1;$i>0;$i--) {
+                print STDERR "da\n";
+                $funcbody.="        case $i:\n            retval=$orig_func_name($chaincall_arg, " . join(", ",@van[0..($i-1)]) . ");\n";
+                $funcbody.="            break;\n";
+            }
             $funcbody.=<<"            CCODE";
-    va_start(argp,$argn[-2]);
-    va_end(argp);
+        default:
+            retval=$orig_func_name($chaincall_arg);
+            break;
+    }
     return(retval);
 }
             CCODE
@@ -96,6 +111,10 @@ while ($line = <$in_fh>) {
     chomp;
     if (/^\/\/vaforward/) {
         $vaforward=1;
+        next;
+    }
+    if (/^\/\/vac:\s+(.+?)\s*$/) {
+        $vac=$1;
         next;
     }
     if (/^\/\/vat:\s+(.+?)\s*$/) {
@@ -126,6 +145,7 @@ while ($line = <$in_fh>) {
         }
         function_process();
         $vaforward=0;
+        $vac=undef;
         @vat=();
         @van=();
         @argt=();
