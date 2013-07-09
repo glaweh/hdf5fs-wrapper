@@ -59,7 +59,7 @@ int
 //van: mode
 FD
     open(
-        PATHNAME
+        const PATHNAME
             name,
         int
             flags,
@@ -70,7 +70,7 @@ FD
 //van: mode
 FD
     open64(
-        PATHNAME
+        const PATHNAME
             name,
         int
             flags,
