@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <wchar.h>
 #include <stdarg.h>
+#include <fcntl.h>
 
 #define PATHNAME char*
 #define FD int
