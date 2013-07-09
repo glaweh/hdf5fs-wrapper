@@ -458,11 +458,11 @@ void
     sync(
         void
         );
-void
-    syncfs(
-        FD
-            fd
-        );
+//void
+//    syncfs(
+//        FD
+//            fd
+//        );
 int
     truncate(
         const PATHNAME
