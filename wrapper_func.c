@@ -40,7 +40,7 @@ char* path_below_scratch(const char *filename) {
     int match_index = pathcmp(scratch_abs,mapped0);
     if (match_index < 0) return(NULL);
     char * mapped = strdup(mapped0+match_index);
-    LOG_INFO("%d == pathcmp('%s','%s'), base: '%s'",
+    LOG_DBG("%d == pathcmp('%s','%s'), base: '%s'",
             match_index,scratch_abs,mapped,
             mapped);
     return(mapped);
