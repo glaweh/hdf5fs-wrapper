@@ -14,7 +14,7 @@ hdf5fs-wrapper.o: hdf5fs-wrapper.c logger.h process_info.h real_func_auto.h
 logger.o: logger.c real_func_auto.h
 process_info.o: process_info.c real_func_auto.h
 
-io-wrapper.so: wrapper_func_auto.o real_func_auto.o logger.o process_info.o
+io-wrapper.so: wrapper_func.o wrapper_func_auto.o real_func_auto.o path_util.o logger.o process_info.o
 	$(LD) $(LDFLAGS) -shared $^ $(LDLIBS) -o $@
 real_func_auto.c real_func_auto.h wrapper_func_auto.c: wrapper-gen/wrapper-gen.pl wrapper-gen/io-calls.c
 	./wrapper-gen/wrapper-gen.pl wrapper-gen/io-calls.c
