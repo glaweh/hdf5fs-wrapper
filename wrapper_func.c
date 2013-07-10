@@ -6,12 +6,14 @@
 
 khash_t(WFILE) * wrapper_files;
 khash_t(WFD)   * wrapper_fds;
+khash_t(WDIR)  * wrapper_dirs;
 char scratch_base[PATH_MAX] = "./SCRATCH";
 char scratch_abs[PATH_MAX];
 
 void __attribute__ ((constructor(300))) wrapper_func_init(void) {
     wrapper_files = kh_init(WFILE);
     wrapper_fds   = kh_init(WFD);
+    wrapper_dirs  = kh_init(WDIR);
     char * env_ptr;
     env_ptr=getenv("SCRATCH_BASE");
     if (env_ptr != NULL) {
@@ -24,6 +26,7 @@ void __attribute__ ((constructor(300))) wrapper_func_init(void) {
 void __attribute__ ((destructor(300)))  wrapper_func_fini(void) {
     kh_destroy(WFILE,wrapper_files);
     kh_destroy(WFD,wrapper_fds);
+    kh_destroy(WDIR,wrapper_dirs);
 }
 
 char* path_below_scratch(const char *filename) {

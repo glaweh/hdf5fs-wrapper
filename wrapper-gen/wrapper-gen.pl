@@ -79,6 +79,7 @@ sub function_process() {
     my @pathname_args;
     my @file_args;
     my @fd_args;
+    my @dir_args;
     for (my $i=0;$i<=$#all_argn;$i++) {
         if ($all_argt[$i] =~ /PATHNAME$/) {
             push @d_fstring, "'%s'";
@@ -88,6 +89,10 @@ sub function_process() {
             push @d_fstring,'%p';
             push @d_arglist, $all_argn[$i];
             push @file_args, $all_argn[$i];
+        } elsif ($all_argt[$i] =~ /DIR\*$/) {
+            push @d_fstring,'%p';
+            push @d_arglist, $all_argn[$i];
+            push @dir_args, $all_argn[$i];
         } elsif ($all_argt[$i] =~ /\*$/) {
             push @d_fstring,'%p';
             push @d_arglist, $all_argn[$i];
