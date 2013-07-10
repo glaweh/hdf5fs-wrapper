@@ -34,16 +34,19 @@ CCODE
 sub function_process() {
     my @func_args;
     my @nonvar_args;
+    my @nonvar_argt;
     die "no argt" if ($#argt<0);
     for (my $i=0; $i<=$#argt; $i++) {
         if ($argn[$i] eq '') {
             push @func_args,$argt[$i];
         } else {
             push @func_args,"$argt[$i] $argn[$i]";
-            if ($argn[$i] =~ /\(\*([^\)]+)/) {
-                push @nonvar_args,$1;
+            if ($argn[$i] =~ /^\((\*+)([^\)]+)/) {
+                push @nonvar_args,$2;
+                push @nonvar_argt,'function*';
             } else {
-                push @nonvar_args,$argn[$i];
+                push @nonvar_argt, $argt[$i];
+                push @nonvar_args, $argn[$i];
             }
         }
     }
@@ -56,17 +59,47 @@ sub function_process() {
     push @orig_init,"if ($orig_func_name == NULL) { __real_fprintf(stderr,\"cannot resolve $func_name\\n\");exit(1); };";
     my $chaincall_arg=join(', ',@nonvar_args);
     my $vafunc = 0;
+    my @all_argn = @nonvar_args;
+    my @all_argt = @nonvar_argt;
     if ($argt[-1] eq '...') {
         $vafunc = 1;
         if ($vaforward) {
             $orig_func_name="__real_v${func_name}";
             $chaincall_arg.=", argp";
         } else {
+            push @all_argn, @van;
+            push @all_argt, @vat;
             $chaincall_arg.=", " . join(", ",@van);
         }
     } else {
         $vaforward = 0;
     }
+    # construct debug print statement
+    my @d_fstring;
+    my @d_arglist;
+    for (my $i=0;$i<=$#all_argn;$i++) {
+        if ($all_argt[$i] =~ /PATHNAME$/) {
+            push @d_fstring, "'%s'";
+            push @d_arglist, $all_argn[$i];
+        } elsif ($all_argt[$i] =~ /\*$/) {
+            push @d_fstring,'%p';
+            push @d_arglist, $all_argn[$i];
+        } elsif ($all_argt[$i] =~ /(?:off_t|off64_t|size_t|int|FD)$/) {
+            push @d_fstring,'%d';
+            push @d_arglist,'(int)' . $all_argn[$i];
+        } elsif ($all_argt[$i] =~ /long$/) {
+            push @d_fstring,'%ld';
+            push @d_arglist,$all_argn[$i];
+        } elsif ($all_argt[$i] =~ /mode_t$/) {
+            push @d_fstring,'%4o';
+            push @d_arglist,'(int)' . $all_argn[$i];
+        } else {
+            push @d_fstring,"arg$i ($all_argt[$i] $all_argn[$i])";
+        }
+    }
+    my $d_option = '"(' . join(', ',@d_fstring) . ')"';
+    $d_option .= ', ' . join(', ',@d_arglist) if ($#d_arglist >= 0);
+
     my $void_ret = ($ret_type eq 'void');
     unless (exists $func_i{$func_name}) {
         my $funcbody='';
@@ -85,7 +118,7 @@ sub function_process() {
                 $funcbody.="    if (va_count>$i) $van[$i]=va_arg(argp,$vat[$i]);\n";
             }
         }
-        $funcbody.="    __real_fprintf(stderr,\"called '$func_name'\\n\");\n";
+        $funcbody.="    LOG_DBG(\"called \"$d_option);\n";
         $funcbody.="    retval = $orig_func_name($chaincall_arg);\n"           unless ($void_ret);
         $funcbody.="    $orig_func_name($chaincall_arg);\n"                    if     ($void_ret);
         $funcbody.="    va_end(argp);\n"                                       if     ($vafunc);
@@ -202,6 +235,7 @@ CCODE
 open ($out_fh,'>',$io_wrapper) or die "fukk: $io_wrapper";
 print $out_fh <<"CCODE";
 #include "real_func_auto.h"
+#include "../logger.h"
 #include "stdlib.h"
 #include <stdarg.h>
 CCODE
