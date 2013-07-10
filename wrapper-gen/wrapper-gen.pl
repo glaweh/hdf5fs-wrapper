@@ -1,9 +1,8 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-my $io_calls_template = shift @ARGV;
-my $io_wrapper = 'wrapper_func_auto.c';
-open (my $in_fh,'<',$io_calls_template) or die "fukk: $io_calls_template";
+my $io_calls_template   = shift @ARGV;
+my $wrapper_func_manual = shift @ARGV;
 my %type = (
     PATHNAME => 'char*',
     FD       => 'int',
@@ -129,8 +128,16 @@ sub function_process() {
     }
 }
 
+open(my $wfm_fh,'-|','ctags','-x','--c-kinds=f',$wrapper_func_manual) or die "error calling ctags on '$wrapper_func_manual'";
+while (<$wfm_fh>) {
+    chomp;
+    $func_i{$1}=-1 if (/^(\S+)\s+/);
+}
+close($wfm_fh);
+
 my $lineno = 0;
 my $in_preamble = 0;
+open (my $in_fh,'<',$io_calls_template) or die "fukk: $io_calls_template";
 while (<$in_fh>) {
     $lineno++;
     chomp;
@@ -232,9 +239,10 @@ print $out_fh <<"CCODE";
 }
 CCODE
 
-open ($out_fh,'>',$io_wrapper) or die "fukk: $io_wrapper";
+open ($out_fh,'>','wrapper_func_auto.c') or die "fukk: 'wrapper_func_auto.c'";
 print $out_fh <<"CCODE";
 #include "real_func_auto.h"
+#include "wrapper_func.h"
 #include "logger.h"
 #include "stdlib.h"
 #include <stdarg.h>
