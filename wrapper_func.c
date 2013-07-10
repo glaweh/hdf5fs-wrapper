@@ -1,6 +1,9 @@
+#include "real_func_auto.h"
 #include "wrapper_func.h"
 #include "logger.h"
 #include "path_util.h"
+#include <stdarg.h>
+
 khash_t(WFILE) * wrapper_files;
 khash_t(WFD)   * wrapper_fds;
 char scratch_base[PATH_MAX] = "./SCRATCH";
