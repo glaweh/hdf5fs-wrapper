@@ -1,3 +1,4 @@
+#include "real_func_auto.h"
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
@@ -10,7 +11,7 @@ char *rel2abs(const char *orig_path, char *new_path) {
     if (orig_path[0] == '/') {
         strncpy(tmp_path,orig_path,PATH_MAX);
     } else {
-        if (getcwd(tmp_path,PATH_MAX) == NULL) {
+        if (__real_getcwd(tmp_path,PATH_MAX) == NULL) {
             LOG_WARN("error calling getwd");
             return(NULL);
         }
