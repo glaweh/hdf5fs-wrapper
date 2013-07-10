@@ -120,8 +120,11 @@ sub function_process() {
     my $void_ret = ($ret_type eq 'void');
     unless (exists $func_i{$func_name}) {
         my $funcbody='';
+        my $need_khiter = (($#file_args >= 0) or ($#fd_args >= 0) or ($#dir_args >= 0));
         $funcbody.="$ret_type $func_name($func_arg) {\n";
         $funcbody.="    int need_to_wrap = 0;\n";
+        $funcbody.="    khiter_t k;\n"                                         if     ($need_khiter);
+        $funcbody.="    // khiter_t k;\n"                                      unless ($need_khiter);
         $funcbody.="    $ret_type retval;\n"                                   unless ($void_ret);
         $funcbody.="    va_list argp;\n"                                       if     ($vafunc);
         if ($vafunc and (! $vaforward)) {
@@ -132,9 +135,6 @@ sub function_process() {
         }
         for (my $i=0;$i<=$#pathname_args;$i++) {
             $funcbody.="    PATHNAME scr_$pathname_args[$i]=NULL;\n";
-        }
-        if (($#file_args >= 0) or ($#fd_args >= 0) or ($#dir_args >= 0)) {
-            $funcbody.="    khiter_t k;\n";
         }
         $funcbody.="    va_start(argp,$argn[-2]);\n"                           if     ($vafunc);
         if ($vafunc and (! $vaforward)) {
