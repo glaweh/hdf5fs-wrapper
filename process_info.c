@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "process_info.h"
+#include <stdlib.h>
 
 pid_t          my_pid = 0;
 cmdline_info_t my_cmdline_info;
@@ -34,8 +35,8 @@ int cmdline_info_init() {
     return(1);
 }
 
-int process_info_init() {
-    if (my_pid != 0) return(1);
+void __attribute__ ((constructor(220))) process_info_init() {
+    if (my_pid != 0) return;
     my_pid = getpid();
-    return(cmdline_info_init());
+    if (cmdline_info_init() < 0) exit(1);
 }

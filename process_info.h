@@ -8,5 +8,4 @@ typedef struct {
 } cmdline_info_t;
 extern cmdline_info_t my_cmdline_info;
 extern pid_t my_pid;
-int process_info_init();
 #endif
