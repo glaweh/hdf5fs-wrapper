@@ -3,7 +3,7 @@ CFLAGS:=$(CFLAGS) -fpic -g -O0 -Wall -Werror -Wno-error=unused-variable -DLOG_LE
 LDLIBS:=-ldl -lhdf5 -lc
 HDFFS_OBJ:=real_func_auto.o logger.o process_info.o hfile_ds.o chunksize.o hdir.o path_util.o hstack_tree.o
 
-wrapper_func_auto.o: CFLAGS:=$(CFLAGS) -ULOG_LEVEL -DLOG_LEVEL=5
+#wrapper_func_auto.o: CFLAGS:=$(CFLAGS) -ULOG_LEVEL -DLOG_LEVEL=5
 
 all: io-wrapper.so hdf5fs-wrapper.so hdf5fs-repack hdf5fs-unpack
 test: test_rel2abs test_pathcmp
