@@ -25,6 +25,10 @@ void __attribute__ ((constructor(300))) wrapper_func_init(void) {
 }
 
 void __attribute__ ((destructor(300)))  wrapper_func_fini(void) {
+    khiter_t k;
+    for (k = kh_begin(wrapper_fds); k != kh_end(wrapper_fds); ++k) {
+        if (kh_exist(wrapper_fds, k)) LOG_WARN("fd still open: %d\n",kh_value(wrapper_fds,k));
+    }
     kh_destroy(WFILE,wrapper_files);
     kh_destroy(WFD,wrapper_fds);
     kh_destroy(WDIR,wrapper_dirs);
