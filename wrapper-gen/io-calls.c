@@ -428,6 +428,8 @@ char*
         size_t
             size
         );
+//autowrap: retval = 0;
+//autowrap: errno  = ENOTTY;
 int
     isatty(
         FD

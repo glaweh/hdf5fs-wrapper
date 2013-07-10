@@ -19,6 +19,7 @@ my $ret_type;
 my $func_name;
 my (@argt,@argn);
 my $in_proto = 0;
+my @autowrap;
 
 push @orig_init,"//first resolve fprintf, so it can be used for log messages";
 push @orig_init,"__real_fprintf = dlsym(RTLD_NEXT, \"fprintf\");";
@@ -156,9 +157,22 @@ sub function_process() {
             $funcbody.="    k=kh_get(WDIR,wrapper_dirs,(PTR2INT)$dir_args[$i]);\n";
             $funcbody.="    need_to_wrap|=(k!=kh_end(wrapper_dirs));\n";
         }
-        $funcbody.="    if (need_to_wrap) LOG_ERR(\"wrapping_needed\"$d_option); else LOG_DBG(\"called \"$d_option);\n";
-        $funcbody.="    retval = $orig_func_name($chaincall_arg);\n"           unless ($void_ret);
-        $funcbody.="    $orig_func_name($chaincall_arg);\n"                    if     ($void_ret);
+        $funcbody.="    LOG_DBG(\"called \"$d_option);\n";
+        $funcbody.="    if (need_to_wrap) {\n";
+        if ($#autowrap >= 0) {
+            $funcbody.="        LOG_INFO(\"autowrap\"$d_option);\n";
+            foreach (@autowrap) {
+                $funcbody.="        $_\n";
+            }
+        } else {
+            $funcbody.="        LOG_ERR(\"wrapping_needed\"$d_option);\n";
+            $funcbody.="        retval = $orig_func_name($chaincall_arg);\n"       unless ($void_ret);
+            $funcbody.="        $orig_func_name($chaincall_arg);\n"                if     ($void_ret);
+        }
+        $funcbody.="    } else {\n";
+        $funcbody.="        retval = $orig_func_name($chaincall_arg);\n"       unless ($void_ret);
+        $funcbody.="        $orig_func_name($chaincall_arg);\n"                if     ($void_ret);
+        $funcbody.="    }\n";
         $funcbody.="    va_end(argp);\n"                                       if     ($vafunc);
         for (my $i=0;$i<=$#pathname_args;$i++) {
             $funcbody.="    free(scr_$pathname_args[$i]);\n";
@@ -211,6 +225,10 @@ while (<$in_fh>) {
         push @van,$1;
         next;
     }
+    if (/^\/\/autowrap:\s+(.+?)\s*$/) {
+        push @autowrap,$1;
+        next;
+    }
     if (/^\/\// or /^\s*$/) {
         push @orig_ptr,$_;
         push @orig_init,$_;
@@ -236,6 +254,7 @@ while (<$in_fh>) {
         @van=();
         @argt=();
         @argn=();
+        @autowrap =();
         $func_name=undef;
         $in_proto=0;
     } elsif ($in_proto == 3) {
