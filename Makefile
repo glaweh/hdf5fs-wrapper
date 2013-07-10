@@ -1,7 +1,7 @@
 CC:=colorgcc
 CFLAGS:=$(CFLAGS) -fpic -g -O0 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=4
 LDLIBS:=-ldl -lhdf5 -lc
-HDFFS_OBJ:=logger.o process_info.o hfile_ds.o chunksize.o hdir.o path_util.o hstack_tree.o
+HDFFS_OBJ:=wrapper-gen/real_func_auto.o logger.o process_info.o hfile_ds.o chunksize.o hdir.o path_util.o hstack_tree.o
 
 all: hdf5fs-wrapper.so hdf5fs-repack hdf5fs-unpack
 test: test_rel2abs test_pathcmp

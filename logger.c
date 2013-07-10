@@ -1,3 +1,4 @@
+#include "wrapper-gen/real_func_auto.h"
 #include "logger.h"
 #include <stdio.h>
 #include <string.h>
@@ -8,7 +9,7 @@
 #define LOGMSG_MAX 512
 int logger_init() {
     if (process_info_init() < 0) {
-        fprintf(stderr,"%s | error initializing proc info\n",__func__);
+        __real_fprintf(stderr,"%s | error initializing proc info\n",__func__);
         return(0);
     }
     log_msg_function(__func__,"prog: '%s'",my_cmdline_info.argv[0]);
@@ -28,5 +29,5 @@ void log_msg_function(const char *function_name, const char *fstring, ...) {
     }
     msg_buffer[msglen]='\n';
     msg_buffer[msglen+1]=0;
-    fputs(msg_buffer,stderr);
+    __real_fputs(msg_buffer,stderr);
 }
