@@ -12,5 +12,5 @@ KHASH_MAP_INIT_INT(WFD,int)
 extern khash_t(WFILE) * wrapper_files;
 extern khash_t(WFD)   * wrapper_fds;
 
-int path_below_scratch(const char *filename, char *mapped);
+char* path_below_scratch(const char *filename);
 #endif

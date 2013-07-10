@@ -26,15 +26,14 @@ void __attribute__ ((destructor(300)))  wrapper_func_fini(void) {
     kh_destroy(WFD,wrapper_fds);
 }
 
-int path_below_scratch(const char *filename, char *mapped) {
+char* path_below_scratch(const char *filename) {
     char mapped0[PATH_MAX];
     rel2abs(filename,mapped0);
     int match_index = pathcmp(scratch_abs,mapped0);
-    if (match_index < 0) return(-1);
-    strcpy(mapped,mapped0+match_index);
-    LOG_DBG("%d == pathcmp('%s','%s'), base: '%s'",
+    if (match_index < 0) return(NULL);
+    char * mapped = strdup(mapped0+match_index);
+    LOG_INFO("%d == pathcmp('%s','%s'), base: '%s'",
             match_index,scratch_abs,mapped,
             mapped);
-    return(1);
+    return(mapped);
 }
-
