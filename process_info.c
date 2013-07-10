@@ -16,7 +16,7 @@ int cmdline_info_init() {
     }
     char * buf_ptr=my_cmdline_info.data;
     int to_be_read=sizeof(my_cmdline_info.data);
-    while ((to_be_read > 0) && (! feof(cmdline_file))) {
+    while ((to_be_read > 0) && (! __real_feof(cmdline_file))) {
         off_t read_bytes=__real_fread(buf_ptr,1,to_be_read,cmdline_file);
         to_be_read-=read_bytes;
         buf_ptr+=read_bytes;
