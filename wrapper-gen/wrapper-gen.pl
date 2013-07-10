@@ -21,6 +21,10 @@ my $func_name;
 my (@argt,@argn);
 my $in_proto = 0;
 
+push @orig_init,"//first resolve fprintf, so it can be used for log messages";
+push @orig_init,"__real_fprintf = dlsym(RTLD_NEXT, \"fprintf\");";
+push @orig_init,"if (__real_fprintf == NULL) { fprintf(stderr,\"cannot resolve fprintf\\n\");exit(1); };";
+
 open(my $header_fh,'>','real_func_auto.h');
 print $header_fh <<"CCODE";
 #ifndef REAL_FUNC_AUTO_H
@@ -49,7 +53,7 @@ sub function_process() {
     print $header_fh "extern $orig_func\n";
     push @orig_ptr,$orig_func;
     push @orig_init,"$orig_func_name = dlsym(RTLD_NEXT, \"$func_name\");";
-    push @orig_init,"if ($orig_func_name == NULL) { fprintf(stderr,\"cannot resolve $func_name\\n\");exit(1); };";
+    push @orig_init,"if ($orig_func_name == NULL) { __real_fprintf(stderr,\"cannot resolve $func_name\\n\");exit(1); };";
     my $chaincall_arg=join(', ',@nonvar_args);
     my $vafunc = 0;
     if ($argt[-1] eq '...') {
