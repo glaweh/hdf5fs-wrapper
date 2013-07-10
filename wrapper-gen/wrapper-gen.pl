@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-my $io_calls_template = 'io-calls.c';
+my $io_calls_template = shift @ARGV;
 my $io_wrapper = 'wrapper_func_auto.c';
 open (my $in_fh,'<',$io_calls_template) or die "fukk: $io_calls_template";
 my %type = (
