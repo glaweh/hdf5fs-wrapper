@@ -132,6 +132,9 @@ sub function_process() {
         for (my $i=0;$i<=$#pathname_args;$i++) {
             $funcbody.="    PATHNAME scr_$pathname_args[$i]=NULL;\n";
         }
+        if (($#file_args >= 0) or ($#fd_args >= 0) or ($#dir_args >= 0)) {
+            $funcbody.="    khiter_t k;\n";
+        }
         $funcbody.="    va_start(argp,$argn[-2]);\n"                           if     ($vafunc);
         if ($vafunc and (! $vaforward)) {
             for (my $i=0;$i<=$#vat;$i++) {
@@ -140,6 +143,18 @@ sub function_process() {
         }
         for (my $i=0;$i<=$#pathname_args;$i++) {
             $funcbody.="    need_to_wrap|=((scr_$pathname_args[$i]=path_below_scratch($pathname_args[$i]))!=NULL);\n";
+        }
+        for (my $i=0;$i<=$#file_args;$i++) {
+            $funcbody.="    k=kh_get(WFILE,wrapper_files,(PTR2INT)$file_args[$i]);\n";
+            $funcbody.="    need_to_wrap|=(k!=kh_end(wrapper_files));\n";
+        }
+        for (my $i=0;$i<=$#fd_args;$i++) {
+            $funcbody.="    k=kh_get(WFD,wrapper_fds,(int)$fd_args[$i]);\n";
+            $funcbody.="    need_to_wrap|=(k!=kh_end(wrapper_fds));\n";
+        }
+        for (my $i=0;$i<=$#dir_args;$i++) {
+            $funcbody.="    k=kh_get(WDIR,wrapper_dirs,(PTR2INT)$dir_args[$i]);\n";
+            $funcbody.="    need_to_wrap|=(k!=kh_end(wrapper_dirs));\n";
         }
         $funcbody.="    if (need_to_wrap) LOG_ERR(\"wrapping_needed\"$d_option); else LOG_DBG(\"called \"$d_option);\n";
         $funcbody.="    retval = $orig_func_name($chaincall_arg);\n"           unless ($void_ret);
