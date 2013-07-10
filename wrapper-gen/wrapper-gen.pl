@@ -235,7 +235,7 @@ CCODE
 open ($out_fh,'>',$io_wrapper) or die "fukk: $io_wrapper";
 print $out_fh <<"CCODE";
 #include "real_func_auto.h"
-#include "../logger.h"
+#include "logger.h"
 #include "stdlib.h"
 #include <stdarg.h>
 CCODE

@@ -22,7 +22,7 @@
 #include "wrapper_limits.h"
 #include "env_util.h"
 
-#include "wrapper-gen/real_func_auto.h"
+#include "real_func_auto.h"
 
 #define HDF_RO_LIMIT 10
 char scratch_base[PATH_MAX] = "./SCRATCH/*";

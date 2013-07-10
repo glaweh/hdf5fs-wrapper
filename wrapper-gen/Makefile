@@ -12,6 +12,6 @@ real_func_auto.c real_func_auto.h wrapper_func_auto.c: io-calls.c wrapper-gen.pl
 	./wrapper-gen.pl
 
 clean:
-	rm -f *.o *.so io-wrapper.c
+	rm -f *.o *.so
 
 .PHONY: clean

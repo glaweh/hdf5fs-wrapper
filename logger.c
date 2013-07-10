@@ -1,4 +1,4 @@
-#include "wrapper-gen/real_func_auto.h"
+#include "real_func_auto.h"
 #include "logger.h"
 #include <stdio.h>
 #include <string.h>
