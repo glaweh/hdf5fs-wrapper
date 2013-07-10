@@ -20,6 +20,7 @@ my $func_name;
 my (@argt,@argn);
 my $in_proto = 0;
 my @autowrap;
+my $need_khiter = 0;
 
 push @orig_init,"//first resolve fprintf, so it can be used for log messages";
 push @orig_init,"__real_fprintf = dlsym(RTLD_NEXT, \"fprintf\");";
@@ -120,7 +121,7 @@ sub function_process() {
     my $void_ret = ($ret_type eq 'void');
     unless (exists $func_i{$func_name}) {
         my $funcbody='';
-        my $need_khiter = (($#file_args >= 0) or ($#fd_args >= 0) or ($#dir_args >= 0));
+        $need_khiter |= (($#file_args >= 0) or ($#fd_args >= 0) or ($#dir_args >= 0));
         $funcbody.="$ret_type $func_name($func_arg) {\n";
         $funcbody.="    int need_to_wrap = 0;\n";
         $funcbody.="    khiter_t k;\n"                                         if     ($need_khiter);
@@ -229,6 +230,10 @@ while (<$in_fh>) {
         push @autowrap,$1;
         next;
     }
+    if (/^\/\/need_khiter\s*$/) {
+        $need_khiter = 1;
+        next;
+    }
     if (/^\/\// or /^\s*$/) {
         push @orig_ptr,$_;
         push @orig_init,$_;
@@ -257,6 +262,7 @@ while (<$in_fh>) {
         @autowrap =();
         $func_name=undef;
         $in_proto=0;
+        $need_khiter=0;
     } elsif ($in_proto == 3) {
         push @argn,$_;
         $in_proto = 2;
