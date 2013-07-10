@@ -44,66 +44,49 @@ sub function_process() {
         }
     }
     my $func_arg=join(', ',@func_args);
-    my $chaincall_arg=join(', ',@nonvar_args);
     my $orig_func_name="__real_${func_name}";
     my $orig_func="$ret_type (*$orig_func_name)($func_arg);";
     print $header_fh "extern $orig_func\n";
     push @orig_ptr,$orig_func;
     push @orig_init,"$orig_func_name = dlsym(RTLD_NEXT, \"$func_name\");";
     push @orig_init,"if ($orig_func_name == NULL) { fprintf(stderr,\"cannot resolve $func_name\\n\");exit(1); };";
-    $orig_func_name="__real_v${func_name}" if ($vaforward);
+    my $chaincall_arg=join(', ',@nonvar_args);
+    my $vafunc = 0;
+    if ($argt[-1] eq '...') {
+        $vafunc = 1;
+        if ($vaforward) {
+            $orig_func_name="__real_v${func_name}";
+            $chaincall_arg.=", argp";
+        } else {
+            $chaincall_arg.=", " . join(", ",@van);
+        }
+    } else {
+        $vaforward = 0;
+    }
+    my $void_ret = ($ret_type eq 'void');
     unless (exists $func_i{$func_name}) {
         my $funcbody='';
-        if ($argt[-1] ne '...') {
-            $funcbody=<<"            CCODE";
-$ret_type $func_name($func_arg) {
-    __real_fprintf(stderr,"called '$func_name'\\n");
-    return($orig_func_name($chaincall_arg));
-}
-            CCODE
-        } elsif ($vaforward) {
-            $funcbody=<<"            CCODE";
-$ret_type $func_name($func_arg) {
-    va_list argp;
-    $ret_type retval;
-    va_start(argp,$argn[-2]);
-    __real_fprintf(stderr,"called '$func_name'\\n");
-    retval=$orig_func_name($chaincall_arg, argp);
-    va_end(argp);
-    return(retval);
-}
-            CCODE
-        } else {
-            $funcbody=<<"            CCODE";
-$ret_type $func_name($func_arg) {
-    va_list argp;
-    $ret_type retval;
-    __real_fprintf(stderr,"called '$func_name'\\n");
-            CCODE
+        $funcbody.="$ret_type $func_name($func_arg) {\n";
+        $funcbody.="    $ret_type retval;\n"                                   unless ($void_ret);
+        $funcbody.="    va_list argp;\n"                                       if     ($vafunc);
+        if ($vafunc and (! $vaforward)) {
             for (my $i=0;$i<=$#vat;$i++) {
-                $funcbody.="    $vat[$i] $van[$i];\n";
+                $funcbody.="    $vat[$i] $van[$i] = 0;\n";
             }
             $funcbody.="    int va_count = $vac;\n";
-            $funcbody.="    va_start(argp,$argn[-2]);\n";
+        }
+        $funcbody.="    va_start(argp,$argn[-2]);\n"                           if     ($vafunc);
+        if ($vafunc and (! $vaforward)) {
             for (my $i=0;$i<=$#vat;$i++) {
                 $funcbody.="    if (va_count>$i) $van[$i]=va_arg(argp,$vat[$i]);\n";
             }
-            $funcbody.="    va_end(argp);\n";
-            #construct chaincall
-            $funcbody.="    switch (va_count) {\n";
-            for (my $i=$#vat+1;$i>0;$i--) {
-                $funcbody.="        case $i:\n            retval=$orig_func_name($chaincall_arg, " . join(", ",@van[0..($i-1)]) . ");\n";
-                $funcbody.="            break;\n";
-            }
-            $funcbody.=<<"            CCODE";
-        default:
-            retval=$orig_func_name($chaincall_arg);
-            break;
-    }
-    return(retval);
-}
-            CCODE
         }
+        $funcbody.="    __real_fprintf(stderr,\"called '$func_name'\\n\");\n";
+        $funcbody.="    retval = $orig_func_name($chaincall_arg);\n"           unless ($void_ret);
+        $funcbody.="    $orig_func_name($chaincall_arg);\n"                    if     ($void_ret);
+        $funcbody.="    va_end(argp);\n"                                       if     ($vafunc);
+        $funcbody.="    return(retval);\n"                                     unless ($void_ret);
+        $funcbody.="}\n\n";
         push @funcs,$funcbody;
         $func_i{$func_name}=$#funcs;
     }
