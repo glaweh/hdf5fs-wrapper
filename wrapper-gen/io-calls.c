@@ -211,6 +211,20 @@ size_t
             stream
         );
 int
+    fseek(
+        FILE*
+            stream,
+        long
+            offset,
+        int
+            whence
+        );
+long
+    ftell(
+        FILE*
+            stream
+        );
+int
     remove(
         const PATHNAME
             pathname
@@ -494,6 +508,16 @@ off_t
         FD
             fd,
         off_t
+            offset,
+        int
+            whence
+        );
+
+off64_t
+    lseek64(
+        FD
+            fd,
+        off64_t
             offset,
         int
             whence
