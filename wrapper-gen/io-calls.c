@@ -66,6 +66,11 @@ FD
 //vac: (flags & O_CREAT ? 1 : 0)
 //vat: mode_t
 //van: mode
+//need_khiter
+//autowrap: int ret;
+//autowrap: retval=__real_open64(name, flags, mode);
+//autowrap: k=kh_put(WFD,wrapper_fds,retval,&ret);
+//autowrap: kh_value(wrapper_fds,k)=retval;
 FD
     open64(
         const PATHNAME
@@ -397,6 +402,8 @@ int
         uid_t
             group
         );
+//autowrap: kh_del(WFD,wrapper_fds,k);
+//autowrap: retval=__real_close(fd);
 int
     close(
         FD
