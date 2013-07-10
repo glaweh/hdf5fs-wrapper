@@ -76,14 +76,26 @@ sub function_process() {
     # construct debug print statement
     my @d_fstring;
     my @d_arglist;
+    my @pathname_args;
+    my @file_args;
+    my @fd_args;
     for (my $i=0;$i<=$#all_argn;$i++) {
         if ($all_argt[$i] =~ /PATHNAME$/) {
             push @d_fstring, "'%s'";
             push @d_arglist, $all_argn[$i];
+            push @pathname_args,$all_argn[$i];
+        } elsif ($all_argt[$i] =~ /FILE\*$/) {
+            push @d_fstring,'%p';
+            push @d_arglist, $all_argn[$i];
+            push @file_args, $all_argn[$i];
         } elsif ($all_argt[$i] =~ /\*$/) {
             push @d_fstring,'%p';
             push @d_arglist, $all_argn[$i];
-        } elsif ($all_argt[$i] =~ /(?:off_t|off64_t|size_t|int|FD)$/) {
+        } elsif ($all_argt[$i] =~ /FD$/) {
+            push @d_fstring,'%d';
+            push @d_arglist,'(int)' . $all_argn[$i];
+            push @fd_args,$all_argn[$i];
+        } elsif ($all_argt[$i] =~ /(?:off_t|off64_t|size_t|int)$/) {
             push @d_fstring,'%d';
             push @d_arglist,'(int)' . $all_argn[$i];
         } elsif ($all_argt[$i] =~ /long$/) {
@@ -103,6 +115,7 @@ sub function_process() {
     unless (exists $func_i{$func_name}) {
         my $funcbody='';
         $funcbody.="$ret_type $func_name($func_arg) {\n";
+        $funcbody.="    int need_to_wrap = 0;\n";
         $funcbody.="    $ret_type retval;\n"                                   unless ($void_ret);
         $funcbody.="    va_list argp;\n"                                       if     ($vafunc);
         if ($vafunc and (! $vaforward)) {
@@ -111,16 +124,25 @@ sub function_process() {
             }
             $funcbody.="    int va_count = $vac;\n";
         }
+        for (my $i=0;$i<=$#pathname_args;$i++) {
+            $funcbody.="    PATHNAME scr_$pathname_args[$i]=NULL;\n";
+        }
         $funcbody.="    va_start(argp,$argn[-2]);\n"                           if     ($vafunc);
         if ($vafunc and (! $vaforward)) {
             for (my $i=0;$i<=$#vat;$i++) {
                 $funcbody.="    if (va_count>$i) $van[$i]=va_arg(argp,$vat[$i]);\n";
             }
         }
-        $funcbody.="    LOG_DBG(\"called \"$d_option);\n";
+        for (my $i=0;$i<=$#pathname_args;$i++) {
+            $funcbody.="    need_to_wrap|=((scr_$pathname_args[$i]=path_below_scratch($pathname_args[$i]))!=NULL);\n";
+        }
+        $funcbody.="    if (need_to_wrap) LOG_ERR(\"wrapping_needed\"$d_option); else LOG_DBG(\"called \"$d_option);\n";
         $funcbody.="    retval = $orig_func_name($chaincall_arg);\n"           unless ($void_ret);
         $funcbody.="    $orig_func_name($chaincall_arg);\n"                    if     ($void_ret);
         $funcbody.="    va_end(argp);\n"                                       if     ($vafunc);
+        for (my $i=0;$i<=$#pathname_args;$i++) {
+            $funcbody.="    free(scr_$pathname_args[$i]);\n";
+        }
         $funcbody.="    return(retval);\n"                                     unless ($void_ret);
         $funcbody.="}\n\n";
         push @funcs,$funcbody;
