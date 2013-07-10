@@ -305,8 +305,9 @@ print $out_fh <<"CCODE";
 #include "real_func_auto.h"
 #include "wrapper_func.h"
 #include "logger.h"
-#include "stdlib.h"
+#include <stdlib.h>
 #include <stdarg.h>
+#include <errno.h>
 CCODE
 foreach my $func (@funcs) {
     print $out_fh "$func\n";

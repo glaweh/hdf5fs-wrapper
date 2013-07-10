@@ -3,6 +3,7 @@
 #include "logger.h"
 #include "path_util.h"
 #include <stdarg.h>
+#include <errno.h>
 
 khash_t(WFILE) * wrapper_files;
 khash_t(WFD)   * wrapper_fds;
