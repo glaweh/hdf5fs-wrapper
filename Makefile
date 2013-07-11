@@ -4,6 +4,7 @@ LDLIBS:=-ldl -lhdf5 -lc
 HDFFS_OBJ:=real_func_auto.o logger.o process_info.o hfile_ds.o chunksize.o hdir.o path_util.o hstack_tree.o env_util.o
 
 #wrapper_func_auto.o: CFLAGS:=$(CFLAGS) -ULOG_LEVEL -DLOG_LEVEL=5
+h5fs.o: CFLAGS:=$(CFLAGS) -ULOG_LEVEL -DLOG_LEVEL=5
 
 all: io-wrapper.so hdf5fs-wrapper.so hdf5fs-repack hdf5fs-unpack
 test: test_rel2abs test_pathcmp
@@ -16,7 +17,7 @@ process_info.o: process_info.c real_func_auto.h
 path_util.o: path_util.c real_func_auto.h
 wrapper_func.o: wrapper_func.c real_func_auto.h
 
-io-wrapper.so: wrapper_func.o wrapper_func_auto.o real_func_auto.o path_util.o logger.o process_info.o
+io-wrapper.so: wrapper_func.o wrapper_func_auto.o $(HDFFS_OBJ) h5fs.o
 	$(LD) $(LDFLAGS) -shared $^ $(LDLIBS) -o $@
 real_func_auto.c real_func_auto.h wrapper_func_auto.c: wrapper-gen/wrapper-gen.pl wrapper-gen/io-calls.c wrapper_func.c
 	./wrapper-gen/wrapper-gen.pl wrapper-gen/io-calls.c wrapper_func.c

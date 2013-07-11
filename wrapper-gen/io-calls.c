@@ -55,6 +55,14 @@ int
 //vac: (flags & O_CREAT ? 1 : 0)
 //vat: mode_t
 //van: mode
+//need_khiter
+//autowrap: int ret;
+//autowrap: h5fd_t *h5fd = h5fd_open(scr_name, flags, mode);
+//autowrap: if (h5fd == NULL) goto errlabel;
+//autowrap: retval=__real_open64(name, flags, mode);
+//autowrap: k=kh_put(WFD,wrapper_fds,retval,&ret);
+//autowrap: kh_value(wrapper_fds,k)=h5fd;
+//autoerr: retval=-1;
 FD
     open(
         const PATHNAME
@@ -68,9 +76,12 @@ FD
 //van: mode
 //need_khiter
 //autowrap: int ret;
+//autowrap: h5fd_t *h5fd = h5fd_open(scr_name, flags, mode);
+//autowrap: if (h5fd == NULL) goto errlabel;
 //autowrap: retval=__real_open64(name, flags, mode);
 //autowrap: k=kh_put(WFD,wrapper_fds,retval,&ret);
-//autowrap: kh_value(wrapper_fds,k)=retval;
+//autowrap: kh_value(wrapper_fds,k)=h5fd;
+//autoerr: retval=-1;
 FD
     open64(
         const PATHNAME
@@ -402,8 +413,11 @@ int
         uid_t
             group
         );
+//need_khiter
+//autowrap: retval = h5fd_close(scr_fd);
+//autowrap: if (retval < 0) goto errlabel;
 //autowrap: kh_del(WFD,wrapper_fds,k);
-//autowrap: retval=__real_close(fd);
+//autowrap: retval = __real_close(fd);
 int
     close(
         FD

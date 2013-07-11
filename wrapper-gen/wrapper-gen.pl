@@ -139,6 +139,15 @@ sub function_process() {
         for (my $i=0;$i<=$#pathname_args;$i++) {
             $funcbody.="    PATHNAME scr_$pathname_args[$i]=NULL;\n";
         }
+        for (my $i=0;$i<=$#file_args;$i++) {
+            $funcbody.="    h5fd_t * scr_$file_args[$i]=NULL;\n";
+        }
+        for (my $i=0;$i<=$#fd_args;$i++) {
+            $funcbody.="    h5fd_t * scr_$fd_args[$i]=NULL;\n";
+        }
+        for (my $i=0;$i<=$#dir_args;$i++) {
+            $funcbody.="    h5dd_t * scr_$dir_args[$i]=NULL;\n";
+        }
         $funcbody.="    va_start(argp,$argn[-2]);\n"                           if     ($vafunc);
         if ($vafunc and (! $vaforward)) {
             for (my $i=0;$i<=$#vat;$i++) {
@@ -150,15 +159,25 @@ sub function_process() {
         }
         for (my $i=0;$i<=$#file_args;$i++) {
             $funcbody.="    k=kh_get(WFILE,wrapper_files,(PTR2INT)$file_args[$i]);\n";
-            $funcbody.="    need_to_wrap|=(k!=kh_end(wrapper_files));\n";
+            $funcbody.="    if (k!=kh_end(wrapper_files)) {\n";
+            $funcbody.="        need_to_wrap|=1;\n";
+            $funcbody.="        scr_$file_args[$i]=kh_value(wrapper_files,k);\n";
+            $funcbody.="    };\n";
         }
         for (my $i=0;$i<=$#fd_args;$i++) {
             $funcbody.="    k=kh_get(WFD,wrapper_fds,(int)$fd_args[$i]);\n";
-            $funcbody.="    need_to_wrap|=(k!=kh_end(wrapper_fds));\n";
+            $funcbody.="    if (k!=kh_end(wrapper_fds)) {\n";
+            $funcbody.="        need_to_wrap|=1;\n";
+            $funcbody.="        scr_$fd_args[$i]=kh_value(wrapper_fds,k);\n";
+            $funcbody.="    };\n";
         }
         for (my $i=0;$i<=$#dir_args;$i++) {
             $funcbody.="    k=kh_get(WDIR,wrapper_dirs,(PTR2INT)$dir_args[$i]);\n";
             $funcbody.="    need_to_wrap|=(k!=kh_end(wrapper_dirs));\n";
+            $funcbody.="    if (k!=kh_end(wrapper_dirs)) {\n";
+            $funcbody.="        need_to_wrap|=1;\n";
+            $funcbody.="        scr_$dir_args[$i]=kh_value(wrapper_dirs,k);\n";
+            $funcbody.="    };\n";
         }
         $funcbody.="    LOG_DBG(\"called \"$d_option);\n";
         $funcbody.="    if (need_to_wrap) {\n";
