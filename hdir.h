@@ -34,7 +34,7 @@ typedef struct stat64 stat64_t;
 hdirent_t * hdir_new(const char * name);
 hdirent_t * hdir_add_dirent(hdirent_t * parent, const char * name, hfile_ds_t * hfile_ds);
 hdirent_t * hdir_get_dirent(hdirent_t * parent, const char * name);
-int         hdir_free(hdirent_t * root);
+int         hdir_free(hdirent_t * root,hid_t file_empty_create);
 int         hdir_foreach_file(hdirent_t * root,int order,hdirent_iterate_t op, void * op_data);
 int         hdir_stat_helper(hdirent_t * node, struct stat * sstat);
 int         hdir_stat64_helper(hdirent_t * node, struct stat64 * sstat);

@@ -68,20 +68,22 @@ hdirent_t * hdir_get_dirent(hdirent_t * parent, const char * name) {
     }
     return(kh_value(parent->dirents,k));
 }
-int hdir_free(hdirent_t * dirent) {
+int hdir_free(hdirent_t * dirent,hid_t file_empty_create) {
     int result = 1;
     if (dirent->type == HDIRENT_DIR) {
         if (dirent->dirents != NULL) {
             khiter_t k;
             for (k = kh_begin(dirent->dirents); k!=kh_end(dirent->dirents); ++k) {
                 if (kh_exist(dirent->dirents,k)) {
-                    result &= hdir_free(kh_value(dirent->dirents,k));
+                    result &= hdir_free(kh_value(dirent->dirents,k),file_empty_create);
                 }
             }
             kh_destroy(HDIR,dirent->dirents);
             dirent->dirents = NULL;
         }
     } else if (dirent->type == HDIRENT_FILE) {
+        if ((dirent->dataset == NULL) && (file_empty_create >=0))
+            dirent->dataset = hfile_ds_create(file_empty_create, dirent->name, 0, 1, 0, 0);
         while (dirent->dataset != NULL) {
             hfile_ds_t * walker = dirent->dataset;
             dirent->dataset=dirent->dataset->next;
