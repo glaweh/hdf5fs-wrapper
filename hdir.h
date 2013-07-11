@@ -21,6 +21,7 @@ typedef struct hdirent {
     time_t ctime;
     hsize_t chunk_size;
     int refcount;
+    int deleted;
     char name[1];
 } hdirent_t;
 
