@@ -21,6 +21,7 @@ my (@argt,@argn);
 my $in_proto = 0;
 my @autowrap;
 my $need_khiter = 0;
+my @autoerr;
 
 push @orig_init,"//first resolve fprintf, so it can be used for log messages";
 push @orig_init,"__real_fprintf = dlsym(RTLD_NEXT, \"fprintf\");";
@@ -126,6 +127,7 @@ sub function_process() {
         $funcbody.="    int need_to_wrap = 0;\n";
         $funcbody.="    khiter_t k;\n"                                         if     ($need_khiter);
         $funcbody.="    // khiter_t k;\n"                                      unless ($need_khiter);
+        $funcbody.="    int old_errno;\n";
         $funcbody.="    $ret_type retval;\n"                                   unless ($void_ret);
         $funcbody.="    va_list argp;\n"                                       if     ($vafunc);
         if ($vafunc and (! $vaforward)) {
@@ -179,6 +181,17 @@ sub function_process() {
             $funcbody.="    free(scr_$pathname_args[$i]);\n";
         }
         $funcbody.="    return(retval);\n"                                     unless ($void_ret);
+        $funcbody.="errlabel:\n";
+        $funcbody.="    old_errno=errno;\n";
+        $funcbody.="    va_end(argp);\n"                                       if     ($vafunc);
+        foreach (@autoerr) {
+            $funcbody.="    $_\n";
+        }
+        for (my $i=0;$i<=$#pathname_args;$i++) {
+            $funcbody.="    free(scr_$pathname_args[$i]);\n";
+        }
+        $funcbody.="    errno=old_errno;\n";
+        $funcbody.="    return(retval);\n"                                     unless ($void_ret);
         $funcbody.="}\n\n";
         push @funcs,$funcbody;
         $func_i{$func_name}=$#funcs;
@@ -230,6 +243,10 @@ while (<$in_fh>) {
         push @autowrap,$1;
         next;
     }
+    if (/^\/\/autoerr:\s+(.+?)\s*$/) {
+        push @autoerr,$1;
+        next;
+    }
     if (/^\/\/need_khiter\s*$/) {
         $need_khiter = 1;
         next;
@@ -260,6 +277,7 @@ while (<$in_fh>) {
         @argt=();
         @argn=();
         @autowrap =();
+        @autoerr  =();
         $func_name=undef;
         $in_proto=0;
         $need_khiter=0;
