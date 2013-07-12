@@ -101,7 +101,7 @@ int hstack_tree_add(hstack_tree_t * tree, const char *hdf5name, int flags) {
     return(0);
 }
 int hstack_tree_close(hstack_tree_t * tree) {
-    hdir_free(tree->root,tree->hdf_rw,1);
+    hdir_free_all(tree->root,tree->hdf_rw);
     while (tree->hdf != NULL) {
         hstack_tree_hdf5file_t * walker = tree->hdf;
         H5Fclose(walker->hdf_id);

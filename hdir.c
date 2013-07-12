@@ -81,14 +81,14 @@ int hdir_close_dirent(hdirent_t * dirent) {
     return(1);
 }
 
-int hdir_free(hdirent_t * dirent,hid_t hdf_rw,int force) {
+int hdir_free_all(hdirent_t * dirent,hid_t hdf_rw) {
     int result = 1;
     if (dirent->type == HDIRENT_DIR) {
         if (dirent->dirents != NULL) {
             khiter_t k;
             for (k = kh_begin(dirent->dirents); k!=kh_end(dirent->dirents); ++k) {
                 if (kh_exist(dirent->dirents,k)) {
-                    result &= hdir_free(kh_value(dirent->dirents,k),hdf_rw,force);
+                    result &= hdir_free_all(kh_value(dirent->dirents,k),hdf_rw);
                 }
             }
             kh_destroy(HDIR,dirent->dirents);
