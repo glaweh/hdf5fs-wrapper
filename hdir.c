@@ -62,11 +62,14 @@ hdirent_t * hdir_add_dirent(hdirent_t * parent, const char *name, hfile_ds_t * h
     return(hdirent);
 }
 hdirent_t * hdir_get_dirent(hdirent_t * parent, const char * name) {
+    hdirent_t * dirent = NULL;
     khiter_t k = kh_get(HDIR, parent->dirents, name);
     if (k == kh_end(parent->dirents)) {
         return(NULL);
     }
-    return(kh_value(parent->dirents,k));
+    dirent=kh_value(parent->dirents,k);
+    dirent->refcount++;
+    return(dirent);
 }
 int hdir_free(hdirent_t * dirent,hid_t hdf_rw) {
     int result = 1;
