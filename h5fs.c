@@ -33,6 +33,12 @@ struct stat64 hdf_file_stat;
 hstack_tree_t * tree;
 char hdf_file[PATH_MAX] = "./scratch${OMPI_COMM_WORLD_RANK:%04d:0}.h5";
 
+int init_refcounts(const char * parent, hdirent_t * node, void * op_data) {
+    LOG_DBG2("'%s' had refcount %d",node->name,node->refcount);
+    node->refcount=1;
+    return(0);
+}
+
 void __attribute__ ((constructor)) h5fs_init(void) {
     tree=hstack_tree_new();
     if (tree == NULL) {
@@ -91,6 +97,8 @@ void __attribute__ ((constructor)) h5fs_init(void) {
     if (stat64(hdf_expand2,&hdf_file_stat) < 0) {
         LOG_WARN("error calling stat64 on '%s', %s",hdf_expand2,strerror(errno));
     }
+    LOG_INFO("fixing refcounters");
+    hdir_foreach_file(tree->root,HDIRENT_ITERATE_UNORDERED,init_refcounts,NULL);
 }
 
 void __attribute__ ((destructor)) h5fs_fini(void) {
