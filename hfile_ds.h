@@ -27,7 +27,7 @@ extern const hsize_t   __hfile_ds_maxdims[1];
 #define DIM_CHUNKED(length,chunk) ((length) + ((chunk) - ((length) % (chunk))))
 
 herr_t hfile_ds_close(hfile_ds_t * info);
-hfile_ds_t * hfile_ds_create(hid_t loc_id, const char *name, hsize_t chunk_size, hsize_t initial_dim, hsize_t expected_length, int deflate);
+hfile_ds_t * hfile_ds_create(hid_t loc_id, const char *name, hsize_t chunk_size, hssize_t initial_length, hsize_t expected_length, int deflate);
 hfile_ds_t * hfile_ds_reopen(hfile_ds_t * info);
 hfile_ds_t * hfile_ds_open(hid_t loc_id, const char *name);
 hfile_ds_t * hfile_ds_copy(hid_t dst_loc_id, hfile_ds_t * src, hsize_t chunk_size, int deflate);

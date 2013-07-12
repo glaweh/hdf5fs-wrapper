@@ -28,7 +28,7 @@ herr_t hfile_ds_close(hfile_ds_t * info) {
             LOG_ERR("error writing updated filesize attrib for '%s'",info->name);
         }
         hsize_t old_dim = info->dims[0];
-        info->dims[0] = DIM_CHUNKED(info->length+1,info->chunk[0]);
+        info->dims[0] = DIM_CHUNKED(abs(info->length)+1,info->chunk[0]);
         if (old_dim != info->dims[0]) {
             LOG_DBG("resizing %40s, length %6"PRIi64", chunksize %6llu, old_dim %6llu, new_dim %6llu",
                 info->name,info->length,info->chunk[0],old_dim,info->dims[0]);
@@ -67,7 +67,7 @@ herr_t hfile_ds_close(hfile_ds_t * info) {
     return(status);
 }
 
-hfile_ds_t * hfile_ds_create(hid_t loc_id, const char *name, hsize_t chunk_size, hsize_t initial_dim, hsize_t expected_length, int deflate) {
+hfile_ds_t * hfile_ds_create(hid_t loc_id, const char *name, hsize_t chunk_size, hssize_t initial_length, hsize_t expected_length, int deflate) {
     hfile_ds_t * info = malloc(sizeof(hfile_ds_t)+strlen(name));
     if (info == NULL) {
         LOG_ERR("error allocating hfile_ds_t");
@@ -77,7 +77,8 @@ hfile_ds_t * hfile_ds_create(hid_t loc_id, const char *name, hsize_t chunk_size,
     if (chunk_size == 0) {
         chunk_size = chunksize_suggest(name, expected_length);
     }
-    if (initial_dim < 0) {
+    hsize_t initial_dim = initial_length;
+    if (initial_dim <= 0) {
         initial_dim = 1;
     }
     info->chunk[0]=chunk_size;
@@ -97,6 +98,7 @@ hfile_ds_t * hfile_ds_create(hid_t loc_id, const char *name, hsize_t chunk_size,
     info->dims[0] = DIM_CHUNKED(initial_dim,chunk_size);
     if (info->dims[0] == 0) info->dims[0] = info->chunk[0];
     info->loc_id = loc_id;
+    info->length = info->length_original = initial_length;
     strcpy(info->name,name);
     LOG_DBG("create %40s, chunksize %llu, dim %llu",name,info->chunk[0],info->dims[0]);
     if ((info->space = H5Screate_simple(1, info->dims, __hfile_ds_maxdims)) < 0) {
@@ -203,6 +205,8 @@ hfile_ds_t * hfile_ds_copy(hid_t dst_loc_id, hfile_ds_t * src, hsize_t chunk_siz
         LOG_ERR("target set creation failed when copying '%s'",src->name);
         return(NULL);
     }
+    if (src->length <= 0)
+        return(target_set);
     if (hfile_ds_copy_contents(target_set,src) < 0) {
         hfile_ds_close(target_set);
         return(NULL);
