@@ -10,6 +10,7 @@ typedef struct hstack_tree_hdf5file {
 typedef struct hstack_tree {
     hstack_tree_hdf5file_t * hdf;
     hdirent_t * root;
+    hid_t hdf_rw;
 } hstack_tree_t;
 hstack_tree_t * hstack_tree_new();
 int hstack_tree_add(hstack_tree_t * tree, const char *hdf5name, int flags);

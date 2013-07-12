@@ -7,7 +7,7 @@ hstack_tree_hdf5file_t __hstack_tree_hdf5file_initializer = {
     .hdf_id = -1, .next = NULL, .rdonly = 1, .name = { 0 }
 };
 hstack_tree_t __hstack_tree_initializer = {
-    .hdf = NULL, .root = NULL
+    .hdf = NULL, .root = NULL, .hdf_rw = -1
 };
 hstack_tree_t * hstack_tree_new() {
     hstack_tree_t * tree = malloc(sizeof(hstack_tree_t));
@@ -87,6 +87,9 @@ int hstack_tree_add(hstack_tree_t * tree, const char *hdf5name, int flags) {
     hdf5file->rdonly = ((flags & O_ACCMODE) == O_RDONLY);
     hdf5file->next   = tree->hdf;
     tree->hdf        = hdf5file;
+    if ((flags & O_ACCMODE) != O_RDONLY) {
+        tree->hdf_rw = this_hdf;
+    }
     __hstack_tree_add_cb_data_t cb_data;
     cb_data.parent = tree->root;
     cb_data.hdf    = hdf5file;
