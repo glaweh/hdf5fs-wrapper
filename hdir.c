@@ -71,14 +71,14 @@ hdirent_t * hdir_get_dirent(hdirent_t * parent, const char * name) {
     dirent->refcount++;
     return(dirent);
 }
-int hdir_free(hdirent_t * dirent,hid_t hdf_rw) {
+int hdir_free(hdirent_t * dirent,hid_t hdf_rw,int force) {
     int result = 1;
     if (dirent->type == HDIRENT_DIR) {
         if (dirent->dirents != NULL) {
             khiter_t k;
             for (k = kh_begin(dirent->dirents); k!=kh_end(dirent->dirents); ++k) {
                 if (kh_exist(dirent->dirents,k)) {
-                    result &= hdir_free(kh_value(dirent->dirents,k),hdf_rw);
+                    result &= hdir_free(kh_value(dirent->dirents,k),hdf_rw,force);
                 }
             }
             kh_destroy(HDIR,dirent->dirents);
