@@ -61,7 +61,7 @@ hdirent_t * hdir_add_dirent(hdirent_t * parent, const char *name, hfile_ds_t * h
     hdirent->n_sets++;
     return(hdirent);
 }
-hdirent_t * hdir_get_dirent(hdirent_t * parent, const char * name) {
+hdirent_t * hdir_open_dirent(hdirent_t * parent, const char * name) {
     hdirent_t * dirent = NULL;
     khiter_t k = kh_get(HDIR, parent->dirents, name);
     if (k == kh_end(parent->dirents)) {
@@ -71,6 +71,14 @@ hdirent_t * hdir_get_dirent(hdirent_t * parent, const char * name) {
     dirent->ref_open++;
     return(dirent);
 }
+int hdir_close_dirent(hdirent_t * dirent) {
+    dirent->ref_open--;
+    if (dirent->ref_open>0) return(1);
+    if ((dirent->dataset != NULL) && (hfile_ds_close(dirent->dataset) < 0))
+        return(-1);
+    return(1);
+}
+
 int hdir_free(hdirent_t * dirent,hid_t hdf_rw,int force) {
     int result = 1;
     if (dirent->type == HDIRENT_DIR) {

@@ -127,7 +127,7 @@ h5fd_t * h5fd_open(const char * name, int flags, mode_t mode) {
         errno=ENAMETOOLONG;
         return(NULL);
     }
-    existing_dirent = hdir_get_dirent(tree->root,h5fs_filename);
+    existing_dirent = hdir_open_dirent(tree->root,h5fs_filename);
     set_exists = (existing_dirent != NULL);
     if ((set_exists) && (existing_dirent->deleted==0))
         file_exists = 1;
@@ -172,7 +172,7 @@ int h5fd_close(h5fd_t * h5fd) {
         errno = EBADF;
         return(-1);
     }
-    if (hdir_free(h5fd->hdirent,tree->hdf_rw,0) < 1) {
+    if (hdir_close_dirent(h5fd->hdirent) < 1) {
         LOG_WARN("error closing dataset '%s'",h5fd->hdirent->name);
         errno = EIO;
         return(-1);
