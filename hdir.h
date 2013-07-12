@@ -23,6 +23,7 @@ typedef struct hdirent {
     int ref_name;
     int ref_open;
     int deleted;
+    struct hdirent * parent;
     char name[1];
 } hdirent_t;
 
@@ -33,7 +34,7 @@ typedef int (*hdirent_iterate_t)(const char *parent, hdirent_t * dirent, void * 
 
 typedef struct stat stat_t;
 typedef struct stat64 stat64_t;
-hdirent_t * hdir_new(const char * name);
+hdirent_t * hdir_new(hdirent_t * parent, const char * name);
 hdirent_t * hdir_add_dirent(hdirent_t * parent, const char * name, hfile_ds_t * hfile_ds);
 hdirent_t * hdir_open_dirent(hdirent_t * parent, const char * name);
 int         hdir_close_dirent(hdirent_t * dirent);

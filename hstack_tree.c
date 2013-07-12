@@ -12,7 +12,7 @@ hstack_tree_t __hstack_tree_initializer = {
 hstack_tree_t * hstack_tree_new() {
     hstack_tree_t * tree = malloc(sizeof(hstack_tree_t));
     *tree=__hstack_tree_initializer;
-    tree->root = hdir_new("/");
+    tree->root = hdir_new(NULL,"/");
     return(tree);
 }
 

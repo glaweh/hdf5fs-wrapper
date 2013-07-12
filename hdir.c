@@ -5,12 +5,12 @@
 #include "hdir.h"
 #include "chunksize.h"
 hdirent_t __hdirent_initializer_file = {
-    .type = HDIRENT_FILE, .n_sets = 0, .dataset = NULL, .ref_name=1, .ref_open=1, .name = { 0 }, .mtime = 0, .ctime = 0, .atime = 0, .chunk_size = 512, .deleted = 0
+    .type = HDIRENT_FILE, .n_sets = 0, .dataset = NULL, .ref_name=1, .ref_open=1, .name = { 0 }, .mtime = 0, .ctime = 0, .atime = 0, .chunk_size = 512, .deleted = 0, .parent = NULL
 };
 hdirent_t __hdirent_initializer_dir = {
-    .type = HDIRENT_DIR, .dir_iterator = -1, .dirents = NULL, .ref_name=1, .ref_open=1, .name = { 0 }, .mtime = 0, .ctime = 0, .atime = 0, .chunk_size = 512, .deleted = 0
+    .type = HDIRENT_DIR, .dir_iterator = -1, .dirents = NULL, .ref_name=1, .ref_open=1, .name = { 0 }, .mtime = 0, .ctime = 0, .atime = 0, .chunk_size = 512, .deleted = 0, .parent = NULL
 };
-hdirent_t * hdir_new(const char * name) {
+hdirent_t * hdir_new(hdirent_t * parent, const char * name) {
     hdirent_t * hdir = malloc(sizeof(hdirent_t)+strlen(name));
     if (hdir == NULL) {
         LOG_ERR("malloc error");
@@ -19,6 +19,7 @@ hdirent_t * hdir_new(const char * name) {
     *hdir = __hdirent_initializer_dir;
     strcpy(hdir->name,name);
     hdir->dirents=kh_init(HDIR);
+    hdir->parent=parent;
     return(hdir);
 }
 hdirent_t * hdir_add_dirent(hdirent_t * parent, const char *name, hfile_ds_t * hfile_ds) {
@@ -40,6 +41,7 @@ hdirent_t * hdir_add_dirent(hdirent_t * parent, const char *name, hfile_ds_t * h
             free(hdirent);
             return(NULL);
         }
+        hdirent->parent = parent;
         kh_value(parent->dirents,k)=hdirent;
     } else {
         hdirent=kh_value(parent->dirents,k);
