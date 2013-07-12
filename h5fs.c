@@ -141,9 +141,8 @@ h5fd_t * h5fd_open(const char * name, int flags, mode_t mode) {
         errno=ENOENT;
         goto errlabel;
     }
-    if (set_exists && (existing_dirent->dataset != NULL)) {
+    if (set_exists) {
         LOG_DBG("set '%s' exists",h5fs_filename);
-        hfile_ds_reopen(existing_dirent->dataset);
     }
     h5fd = malloc(sizeof(h5fd_t));
     *h5fd = __h5fd_t_initializer;

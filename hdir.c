@@ -69,6 +69,8 @@ hdirent_t * hdir_open_dirent(hdirent_t * parent, const char * name) {
     }
     dirent=kh_value(parent->dirents,k);
     dirent->ref_open++;
+    if ((dirent->ref_open==1) && (dirent->dataset!=0))
+        hfile_ds_reopen(dirent->dataset);
     return(dirent);
 }
 int hdir_close_dirent(hdirent_t * dirent) {
