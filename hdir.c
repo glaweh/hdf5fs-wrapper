@@ -73,6 +73,9 @@ hdirent_t * hdir_get_dirent(hdirent_t * parent, const char * name) {
 }
 int hdir_free(hdirent_t * dirent,hid_t hdf_rw,int force) {
     int result = 1;
+    dirent->refcount--;
+    LOG_INFO("'%s', refcount %d, force %d",dirent->name,dirent->refcount,force);
+    if ((dirent->refcount>0) && (!force)) return(result);
     if (dirent->type == HDIRENT_DIR) {
         if (dirent->dirents != NULL) {
             khiter_t k;

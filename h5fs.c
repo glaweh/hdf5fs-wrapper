@@ -169,12 +169,10 @@ int h5fd_close(h5fd_t * h5fd) {
         errno = EBADF;
         return(-1);
     }
-    if (h5fd->hdirent->dataset != NULL) {
-        if (! hfile_ds_close(h5fd->hdirent->dataset)) {
-            LOG_WARN("error closing dataset '%s'",h5fd->hdirent->name);
-            errno = EIO;
-            return(-1);
-        }
+    if (hdir_free(h5fd->hdirent,tree->hdf_rw,0) < 1) {
+        LOG_WARN("error closing dataset '%s'",h5fd->hdirent->name);
+        errno = EIO;
+        return(-1);
     }
     LOG_DBG(" '%s'", h5fd->hdirent->name);
     free(h5fd);
