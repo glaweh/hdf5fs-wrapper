@@ -5,10 +5,10 @@
 #include "hdir.h"
 #include "chunksize.h"
 hdirent_t __hdirent_initializer_file = {
-    .type = HDIRENT_FILE, .n_sets = 0, .dataset = NULL, .refcount=2, .name = { 0 }, .mtime = 0, .ctime = 0, .atime = 0, .chunk_size = 512, .deleted = 0
+    .type = HDIRENT_FILE, .n_sets = 0, .dataset = NULL, .ref_name=1, .ref_open=1, .name = { 0 }, .mtime = 0, .ctime = 0, .atime = 0, .chunk_size = 512, .deleted = 0
 };
 hdirent_t __hdirent_initializer_dir = {
-    .type = HDIRENT_DIR, .dir_iterator = -1, .dirents = NULL, .refcount=1, .name = { 0 }, .mtime = 0, .ctime = 0, .atime = 0, .chunk_size = 512, .deleted = 0
+    .type = HDIRENT_DIR, .dir_iterator = -1, .dirents = NULL, .ref_name=1, .ref_open=1, .name = { 0 }, .mtime = 0, .ctime = 0, .atime = 0, .chunk_size = 512, .deleted = 0
 };
 hdirent_t * hdir_new(const char * name) {
     hdirent_t * hdir = malloc(sizeof(hdirent_t)+strlen(name));
@@ -68,14 +68,11 @@ hdirent_t * hdir_get_dirent(hdirent_t * parent, const char * name) {
         return(NULL);
     }
     dirent=kh_value(parent->dirents,k);
-    dirent->refcount++;
+    dirent->ref_open++;
     return(dirent);
 }
 int hdir_free(hdirent_t * dirent,hid_t hdf_rw,int force) {
     int result = 1;
-    dirent->refcount--;
-    LOG_INFO("'%s', refcount %d, force %d",dirent->name,dirent->refcount,force);
-    if ((dirent->refcount>0) && (!force)) return(result);
     if (dirent->type == HDIRENT_DIR) {
         if (dirent->dirents != NULL) {
             khiter_t k;

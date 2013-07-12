@@ -34,8 +34,8 @@ hstack_tree_t * tree;
 char hdf_file[PATH_MAX] = "./scratch${OMPI_COMM_WORLD_RANK:%04d:0}.h5";
 
 int init_refcounts(const char * parent, hdirent_t * node, void * op_data) {
-    LOG_DBG2("'%s' had refcount %d",node->name,node->refcount);
-    node->refcount=1;
+    LOG_DBG2("'%s' had ref_open %d",node->name,node->ref_open);
+    node->ref_open=0;
     return(0);
 }
 
