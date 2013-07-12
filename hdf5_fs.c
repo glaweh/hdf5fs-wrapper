@@ -71,7 +71,7 @@ int hdf5_open(int fd, const char *pathname, int flags) {
         return(-1);
     }
     LOG_DBG(" %d, '%s', %o", fd,pathname,flags);
-    hdirent_t * existing_dirent = hdir_get_dirent(tree->root,pathname);
+    hdirent_t * existing_dirent = hdir_open_dirent(tree->root,pathname);
     int set_exists = (existing_dirent != NULL);
     if (set_exists) {
         if (((flags & O_CREAT)>0) && ((flags & O_EXCL)>0)) {
@@ -233,7 +233,7 @@ int hdf5_lseek(int fd, off_t offset, int whence) {
 }
 
 int hdf5_stat64(const char *pathname, struct stat64 *buf) {
-    hdirent_t * hdirent = hdir_get_dirent(tree->root, pathname);
+    hdirent_t * hdirent = hdir_open_dirent(tree->root, pathname);
     if (hdirent == NULL) {
         errno=ENOENT;
         return(-1);
