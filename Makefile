@@ -7,7 +7,7 @@ wrapper_func_auto.o: CFLAGS:=$(CFLAGS) -Wno-unused-variable -Wno-unused-label -W
 h5fs.o: CFLAGS:=$(CFLAGS) -ULOG_LEVEL -DLOG_LEVEL=5
 
 all: io-wrapper.so hdf5fs-wrapper.so hdf5fs-repack hdf5fs-unpack
-test: test_rel2abs test_pathcmp
+test: test_h5fs_01_hfile_ds
 
 hdf5fs-wrapper.so: hdf5fs-wrapper.o path_util.o hdf5_fs.o $(HDFFS_OBJ)
 	$(LD) $(LDFLAGS) -shared $^ $(LDLIBS) -o $@
@@ -29,6 +29,9 @@ test_rel2abs:    test_rel2abs.o path_util.o     logger.o process_info.o
 test_env_util:   test_env_util.o env_util.o     logger.o process_info.o
 test_pathcmp:    test_pathcmp.o path_util.o     logger.o process_info.o
 test_logger:     test_logger.o                  logger.o process_info.o
+
+test_h5fs_01_hfile_ds.o: test_h5fs_01_hfile_ds.c hfile_ds.h
+test_h5fs_01_hfile_ds: test_h5fs_01_hfile_ds.o hfile_ds.o logger.o process_info.o chunksize.o path_util.o real_func_auto.o
 
 clean:
 	rm -f *.o *.so test_rel2abs test_pathcmp test_env_util test_logger *_auto.c *_auto.h
