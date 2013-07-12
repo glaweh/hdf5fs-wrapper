@@ -131,19 +131,19 @@ h5fd_t * h5fd_open(const char * name, int flags, mode_t mode) {
     set_exists = (existing_dirent != NULL);
     if ((set_exists) && (existing_dirent->deleted==0))
         file_exists = 1;
-    if (set_exists) {
+    if (file_exists) {
         if (((flags & O_CREAT)>0) && ((flags & O_EXCL)>0)) {
-            LOG_DBG("dataset already exists '%s'",h5fs_filename);
+            LOG_DBG("file already exists '%s'",h5fs_filename);
             errno=EEXIST;
             goto errlabel;
-        }
-        LOG_DBG("set '%s' exists",h5fs_filename);
-        if (existing_dirent->dataset != NULL) {
-            hfile_ds_reopen(existing_dirent->dataset);
         }
     } else if ((flags & O_CREAT) == 0) {
         errno=ENOENT;
         goto errlabel;
+    }
+    if (set_exists && (existing_dirent->dataset != NULL)) {
+        LOG_DBG("set '%s' exists",h5fs_filename);
+        hfile_ds_reopen(existing_dirent->dataset);
     }
     h5fd = malloc(sizeof(h5fd_t));
     *h5fd = __h5fd_t_initializer;
