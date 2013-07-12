@@ -120,6 +120,7 @@ h5fd_t * h5fd_open(const char * name, int flags, mode_t mode) {
     int set_exists = 0;
     int file_exists = 0;
     h5fd_t * h5fd = NULL;
+    int old_errno;
     h5fs_filename = __h5fs_filename(name);
     if (h5fs_filename==NULL) {
         LOG_FATAL("error mapping filename '%s'",name);
@@ -159,8 +160,10 @@ h5fd_t * h5fd_open(const char * name, int flags, mode_t mode) {
     h5fd->offset = 0;
     return(h5fd);
 errlabel:
+    old_errno=errno;
     free(h5fd);
     free(h5fs_filename);
+    errno=old_errno;
     return(NULL);
 }
 int h5fd_close(h5fd_t * h5fd) {
