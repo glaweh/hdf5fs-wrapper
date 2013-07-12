@@ -5,7 +5,7 @@
 #include "hdir.h"
 #include "chunksize.h"
 hdirent_t __hdirent_initializer_file = {
-    .type = HDIRENT_FILE, .n_sets = 0, .dataset = NULL, .refcount=1, .name = { 0 }, .mtime = 0, .ctime = 0, .atime = 0, .chunk_size = 512, .deleted = 0
+    .type = HDIRENT_FILE, .n_sets = 0, .dataset = NULL, .refcount=2, .name = { 0 }, .mtime = 0, .ctime = 0, .atime = 0, .chunk_size = 512, .deleted = 0
 };
 hdirent_t __hdirent_initializer_dir = {
     .type = HDIRENT_DIR, .dir_iterator = -1, .dirents = NULL, .refcount=1, .name = { 0 }, .mtime = 0, .ctime = 0, .atime = 0, .chunk_size = 512, .deleted = 0
