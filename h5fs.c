@@ -158,20 +158,20 @@ int h5fd_close(h5fd_t * h5fd) {
         errno = EBADF;
         return(-1);
     }
-    if (hdirent_close(h5fd->hdirent,tree->hdf_rw) < 1) {
+    if (hdirent_close(h5fd->hdirent,tree->hdf_rw) < 0) {
         LOG_WARN("error closing dataset '%s'",h5fd->hdirent->name);
         errno = EIO;
         return(-1);
     }
     LOG_DBG(" '%s'", h5fd->hdirent->name);
     free(h5fd);
-    return(1);
+    return(0);
 }
 int h5fs_unlink(const char * name) {
     int old_errno;
     if (hdir_unlink(tree->root,name,tree->hdf_rw) < 0)
         goto errlabel;
-    return(1);
+    return(0);
 errlabel:
     old_errno=errno;
     errno=old_errno;

@@ -425,6 +425,7 @@ int
         );
 //need_khiter
 //autowrap: retval = h5fd_close(scr_fd);
+//autowrap: LOG_INFO("close(%d)=%d",fd,retval);
 //autowrap: if (retval < 0) goto errlabel;
 //autowrap: kh_del(WFD,wrapper_fds,k);
 //dbgautowrap: retval = __real_close(fd);

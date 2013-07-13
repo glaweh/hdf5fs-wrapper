@@ -66,7 +66,7 @@ hdirent_t * hdir_add_dirent(hdirent_t * parent, const char *name, hfile_ds_t * h
 }
 void __hdirent_unlink_helper(hdirent_t * dirent,hid_t hdf_rw) {
     if ((dirent->ref_open > 0) || (dirent->ref_name > 0)) {
-        LOG_DBG("refcount for '%s' (%d/%d) (skip unlink)",dirent->name,dirent->ref_name,dirent->ref->open);
+        LOG_INFO("refcount for '%s' (%d/%d) (skip unlink)",dirent->name,dirent->ref_name,dirent->ref_open);
         return;
     }
     if (dirent->deleted == 0) {
@@ -114,11 +114,11 @@ hdirent_t * hdirent_open(hdirent_t * parent, const char * name) {
 }
 int hdirent_close(hdirent_t * dirent,hid_t hdf_rw) {
     dirent->ref_open--;
-    if (dirent->ref_open>0) return(1);
+    if (dirent->ref_open>0) return(0);
     if ((dirent->dataset != NULL) && (hfile_ds_close(dirent->dataset) < 0))
         return(-1);
     __hdirent_unlink_helper(dirent,hdf_rw);
-    return(1);
+    return(0);
 }
 
 int hdir_free_all(hdirent_t * dirent,hid_t hdf_rw) {
@@ -178,8 +178,9 @@ int hdir_unlink(hdirent_t * parent, const char *name, hid_t hdf_rw) {
         return(-1);
     }
     dirent->deleted=1;
+    dirent->ref_name--;
     __hdirent_unlink_helper(dirent,hdf_rw);
-    return(1);
+    return(0);
 }
 
 int hdir_foreach_file(hdirent_t * root, int order, hdirent_iterate_t op, void * op_data) {
