@@ -104,36 +104,19 @@ void __attribute__ ((constructor)) h5fs_init(void) {
 void __attribute__ ((destructor)) h5fs_fini(void) {
     if (tree != NULL) hstack_tree_close(tree);
 }
-inline char * __h5fs_filename(const char * name) {
-    char * newname = strdup(name);
-    if (newname==NULL) return(NULL);
-    char * iterator = newname;
-    while (*iterator!=0) {
-        if (*iterator=='/') *iterator='%';
-        iterator++;
-    }
-    return(newname);
-}
 h5fd_t * h5fd_open(const char * name, int flags, mode_t mode) {
-    char * h5fs_filename = NULL;
     hdirent_t * existing_dirent;
     int set_exists = 0;
     int file_exists = 0;
     h5fd_t * h5fd = NULL;
     int old_errno;
-    h5fs_filename = __h5fs_filename(name);
-    if (h5fs_filename==NULL) {
-        LOG_FATAL("error mapping filename '%s'",name);
-        errno=ENAMETOOLONG;
-        return(NULL);
-    }
-    existing_dirent = hdirent_open(tree->root,h5fs_filename);
+    existing_dirent = hdirent_open(tree->root,name);
     set_exists = (existing_dirent != NULL);
     if ((set_exists) && (existing_dirent->deleted==0))
         file_exists = 1;
     if (file_exists) {
         if (((flags & O_CREAT)>0) && ((flags & O_EXCL)>0)) {
-            LOG_DBG("file already exists '%s'",h5fs_filename);
+            LOG_DBG("file already exists '%s'",name);
             errno=EEXIST;
             goto errlabel;
         }
@@ -142,26 +125,25 @@ h5fd_t * h5fd_open(const char * name, int flags, mode_t mode) {
         goto errlabel;
     }
     if (set_exists) {
-        LOG_DBG("set '%s' exists",h5fs_filename);
+        LOG_DBG("set '%s' exists",name);
     }
     h5fd = malloc(sizeof(h5fd_t));
     *h5fd = __h5fd_t_initializer;
+    h5fd->append   = ((flags & O_APPEND) != 0 ? 1 : 0);
+    h5fd->rdonly   = ((flags & O_ACCMODE) == O_RDONLY);
+    h5fd->offset = 0;
     if (set_exists) {
         h5fd->hdirent = existing_dirent;
         if ((existing_dirent->dataset!=NULL) && (flags & O_TRUNC)) {
             existing_dirent->dataset->length  = 0;
         }
     } else {
-        h5fd->hdirent = hdir_add_dirent(tree->root,h5fs_filename,NULL);
+        h5fd->hdirent = hdir_add_dirent(tree->root,name,NULL);
     }
-    h5fd->append   = ((flags & O_APPEND) != 0 ? 1 : 0);
-    h5fd->rdonly   = ((flags & O_ACCMODE) == O_RDONLY);
-    h5fd->offset = 0;
     return(h5fd);
 errlabel:
     old_errno=errno;
     free(h5fd);
-    free(h5fs_filename);
     errno=old_errno;
     return(NULL);
 }
@@ -181,21 +163,12 @@ int h5fd_close(h5fd_t * h5fd) {
     return(1);
 }
 int h5fs_unlink(const char * name) {
-    char * h5fs_filename = NULL;
-    h5fs_filename = __h5fs_filename(name);
     int old_errno;
-    if (h5fs_filename==NULL) {
-        LOG_FATAL("error mapping filename '%s'",name);
-        errno=ENAMETOOLONG;
-        return(-1);
-    }
-    if (hdir_unlink(tree->root,h5fs_filename,tree->hdf_rw) < 0)
+    if (hdir_unlink(tree->root,name,tree->hdf_rw) < 0)
         goto errlabel;
-    free(h5fs_filename);
     return(1);
 errlabel:
     old_errno=errno;
-    free(h5fs_filename);
     errno=old_errno;
     return(-1);
 }

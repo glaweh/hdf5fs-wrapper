@@ -155,7 +155,7 @@ sub function_process() {
             }
         }
         for (my $i=0;$i<=$#pathname_args;$i++) {
-            $funcbody.="    need_to_wrap|=((scr_$pathname_args[$i]=path_below_scratch($pathname_args[$i]))!=NULL);\n";
+            $funcbody.="    need_to_wrap|=((scr_$pathname_args[$i]=__h5fs_filename(path_below_scratch($pathname_args[$i])))!=NULL);\n";
         }
         for (my $i=0;$i<=$#file_args;$i++) {
             $funcbody.="    k=kh_get(WFILE,wrapper_files,(PTR2INT)$file_args[$i]);\n";
@@ -351,6 +351,17 @@ print $out_fh <<"CCODE";
 #include <stdlib.h>
 #include <stdarg.h>
 #include <errno.h>
+
+inline char * __h5fs_filename(char * name) {
+    if (name==NULL) return(NULL);
+    char * iterator = name;
+    while (*iterator!=0) {
+        if (*iterator=='/') *iterator='%';
+        iterator++;
+    }
+    return(name);
+}
+
 CCODE
 foreach my $func (@funcs) {
     print $out_fh "$func\n";
