@@ -512,6 +512,8 @@ char*
         FD
             fd
         );
+//autowrap: retval=h5fs_unlink(scr_name);
+//autowrap: retval=__real_unlink(name);
 int
     unlink(
         const PATHNAME

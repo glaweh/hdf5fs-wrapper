@@ -1,6 +1,7 @@
 #include <time.h>
 #define __USE_LARGEFILE64
 #include <sys/stat.h>
+#include <errno.h>
 #include "logger.h"
 #include "hdir.h"
 #include "chunksize.h"
@@ -97,8 +98,22 @@ int hdir_free_all(hdirent_t * dirent,hid_t hdf_rw) {
             dirent->dirents = NULL;
         }
     } else if (dirent->type == HDIRENT_FILE) {
-        if ((dirent->dataset == NULL) && (hdf_rw >=0))
-            dirent->dataset = hfile_ds_create(hdf_rw, dirent->name, 0, 1, 0, 0);
+        if (hdf_rw >= 0) {
+            if (dirent->deleted) {
+                if (dirent->dataset != NULL) {
+                    if ((dirent->dataset->rdonly) || (dirent->dataset->next != NULL)) {
+                        hfile_ds_t * killer = hfile_ds_create(hdf_rw, dirent->name, 0, -1, 0, 0);
+                        killer->next = dirent->dataset;
+                        dirent->dataset = killer;
+                    } else {
+                        hfile_ds_close(dirent->dataset);
+                        H5Ldelete(hdf_rw,dirent->name,H5P_DEFAULT);
+                    }
+                }
+            } else if (dirent->dataset == NULL) {
+                dirent->dataset = hfile_ds_create(hdf_rw, dirent->name, 0, 1, 0, 0);
+            }
+        }
         while (dirent->dataset != NULL) {
             hfile_ds_t * walker = dirent->dataset;
             dirent->dataset=dirent->dataset->next;
@@ -111,6 +126,22 @@ int hdir_free_all(hdirent_t * dirent,hid_t hdf_rw) {
     }
     free(dirent);
     return(result);
+}
+
+int hdir_unlink(hdirent_t * parent, const char *name) {
+    hdirent_t * dirent = NULL;
+    khiter_t k = kh_get(HDIR, parent->dirents, name);
+    if (k == kh_end(parent->dirents)) {
+        errno=ENOENT;
+        return(-1);
+    }
+    dirent=kh_value(parent->dirents,k);
+    if (dirent->deleted) {
+        errno=ENOENT;
+        return(-1);
+    }
+    dirent->deleted=1;
+    return(1);
 }
 
 int hdir_foreach_file(hdirent_t * root, int order, hdirent_iterate_t op, void * op_data) {

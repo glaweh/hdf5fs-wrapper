@@ -180,3 +180,22 @@ int h5fd_close(h5fd_t * h5fd) {
     free(h5fd);
     return(1);
 }
+int h5fs_unlink(const char * name) {
+    char * h5fs_filename = NULL;
+    h5fs_filename = __h5fs_filename(name);
+    int old_errno;
+    if (h5fs_filename==NULL) {
+        LOG_FATAL("error mapping filename '%s'",name);
+        errno=ENAMETOOLONG;
+        return(-1);
+    }
+    if (hdir_unlink(tree->root,h5fs_filename) < 0)
+        goto errlabel;
+    free(h5fs_filename);
+    return(1);
+errlabel:
+    old_errno=errno;
+    free(h5fs_filename);
+    errno=old_errno;
+    return(-1);
+}
