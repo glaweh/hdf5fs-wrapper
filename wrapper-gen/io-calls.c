@@ -315,6 +315,7 @@ int
         );
 
 // sys/stat.h
+//autowrap: retval=h5fd_fstat(scr_fd,buf);
 int
     __fxstat(
         int
@@ -324,6 +325,7 @@ int
         struct stat *
             buf
         );
+//autowrap: retval=h5fs_stat(scr_name,buf);
 int
     __xstat(
         int 
@@ -333,6 +335,7 @@ int
         struct stat *
             buf
         );
+//autowrap: retval=h5fs_stat(scr_name,buf);
 int
     __lxstat(
         int
@@ -342,6 +345,7 @@ int
         struct stat *
             buf
         );
+//autowrap: retval=h5fd_fstat64(scr_fd,buf);
 int
     __fxstat64(
         int
@@ -351,6 +355,7 @@ int
         struct stat64 *
             buf
         );
+//autowrap: retval=h5fs_stat64(scr_name,buf);
 int
     __xstat64(
         int
@@ -360,6 +365,7 @@ int
         struct stat64 *
             buf
         );
+//autowrap: retval=h5fs_stat64(scr_name,buf);
 int
     __lxstat64(
         int

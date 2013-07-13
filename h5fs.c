@@ -29,7 +29,8 @@ h5dd_t __h5dd_t_initializer = {
     .hdirent = NULL, .append = 0, .rdonly = 1, .offset = 0
 };
 
-struct stat64 hdf_file_stat;
+struct stat64 hdf_file_stat64;
+struct stat   hdf_file_stat;
 hstack_tree_t * tree;
 char hdf_file[PATH_MAX] = "./scratch${OMPI_COMM_WORLD_RANK:%04d:0}.h5";
 
@@ -94,8 +95,11 @@ void __attribute__ ((constructor)) h5fs_init(void) {
         exit(1);
     }
     LOG_INFO("hdf_file opened: '%s', %d",hdf_expand2,tree->hdf->hdf_id);
-    if (stat64(hdf_expand2,&hdf_file_stat) < 0) {
+    if (stat64(hdf_expand2,&hdf_file_stat64) < 0) {
         LOG_WARN("error calling stat64 on '%s', %s",hdf_expand2,strerror(errno));
+    }
+    if (stat(hdf_expand2,&hdf_file_stat) < 0) {
+        LOG_WARN("error calling stat on '%s', %s",hdf_expand2,strerror(errno));
     }
     LOG_INFO("fixing refcounters");
     hdir_foreach_file(tree->root,HDIRENT_ITERATE_UNORDERED,init_refcounts,NULL);
@@ -172,3 +176,31 @@ errlabel:
     errno=old_errno;
     return(-1);
 }
+
+#define H5FS_STAT(stattype) \
+int h5fs_##stattype(const char * name, struct stattype * sstat) {\
+    khiter_t k = kh_get(HDIR, tree->root->dirents, name);\
+    if (k==kh_end(tree->root->dirents)) {\
+        errno=ENOENT;\
+        return(-1);\
+    }\
+    hdirent_t * dirent = kh_value(tree->root->dirents,k);\
+    if (dirent->deleted) {\
+        errno=ENOENT;\
+        return(-1);\
+    }\
+    *sstat=hdf_file_##stattype;\
+    return(hdir_f##stattype##_helper(dirent,sstat));\
+}
+
+H5FS_STAT(stat)
+H5FS_STAT(stat64)
+
+#define H5FD_FSTAT(stattype) \
+int h5fd_f##stattype(h5fd_t * fd, struct stattype * sstat) {\
+    *sstat=hdf_file_##stattype;\
+    return(hdir_f##stattype##_helper(fd->hdirent,sstat));\
+}
+
+H5FD_FSTAT(stat)
+H5FD_FSTAT(stat64)

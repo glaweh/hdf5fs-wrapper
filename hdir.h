@@ -41,6 +41,6 @@ int         hdirent_close(hdirent_t * dirent, hid_t hdf_rw);
 int         hdir_unlink(hdirent_t * parent, const char *name, hid_t hdf_rw);
 int         hdir_free_all(hdirent_t * root,hid_t hdf_rw);
 int         hdir_foreach_file(hdirent_t * root,int order,hdirent_iterate_t op, void * op_data);
-int         hdir_stat_helper(hdirent_t * node, struct stat * sstat);
-int         hdir_stat64_helper(hdirent_t * node, struct stat64 * sstat);
+int         hdir_fstat_helper(hdirent_t * node, struct stat * sstat);
+int         hdir_fstat64_helper(hdirent_t * node, struct stat64 * sstat);
 #endif

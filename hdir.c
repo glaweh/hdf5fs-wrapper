@@ -206,8 +206,8 @@ int hdir_foreach_file(hdirent_t * root, int order, hdirent_iterate_t op, void * 
     }
     return(res);
 }
-#define STAT_HELPER(stattype) \
-int hdir_##stattype##_helper(hdirent_t * node, struct stattype * sstat) {\
+#define FSTAT_HELPER(stattype) \
+int hdir_f##stattype##_helper(hdirent_t * node, struct stattype * sstat) {\
     if (node->type == HDIRENT_FILE) {\
         sstat->st_mode = S_IFREG | S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;\
         if (node->dataset == NULL) {\
@@ -233,5 +233,5 @@ int hdir_##stattype##_helper(hdirent_t * node, struct stattype * sstat) {\
     return(0);\
 }
 
-STAT_HELPER(stat)
-STAT_HELPER(stat64)
+FSTAT_HELPER(stat)
+FSTAT_HELPER(stat64)
