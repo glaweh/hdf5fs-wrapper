@@ -225,6 +225,7 @@ off64_t    h5fd_seek(h5fd_t * h5fd, off64_t offset, int whence) {
         errno=EINVAL;
         return(-1);
     }
+    h5fd->offset=new_offset;
     return(h5fd->offset);
 }
 
