@@ -74,6 +74,7 @@ void __hdirent_unlink_helper(hdirent_t * dirent,hid_t hdf_rw) {
         LOG_DBG("not deleted: '%s'",dirent->name);
         return;
     }
+    LOG_DBG("deleting dataset '%s'",dirent->name);
     hfile_ds_t * to_kill = dirent->dataset;
     if ((to_kill != NULL) && (to_kill->rdonly == 0)) {
         H5Ldelete(to_kill->loc_id,to_kill->name,H5P_DEFAULT);
@@ -93,11 +94,13 @@ void __hdirent_unlink_helper(hdirent_t * dirent,hid_t hdf_rw) {
     }
     if (dirent->dataset == NULL) {
         if (dirent->parent!=NULL) {
+            LOG_DBG("removing '%s' from parent",dirent->name);
             khiter_t k = kh_get(HDIR, dirent->parent->dirents, dirent->name);
             if (k!=kh_end(dirent->parent->dirents)) {
                 kh_del(HDIR, dirent->parent->dirents, k);
             }
         }
+        LOG_DBG("freeing dirent memory for '%s'",dirent->name);
         free(dirent);
     }
 }
