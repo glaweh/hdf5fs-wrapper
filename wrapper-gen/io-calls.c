@@ -61,6 +61,7 @@ int
 //autowrap: if (h5fd == NULL) goto errlabel;
 //dbgautowrap: retval=__real_open(name, flags, mode);
 //autowrap: retval=__real_open("/dev/null", O_RDONLY, mode);
+//autowrap: h5fd->fd = retval;
 //autowrap: LOG_INFO("fd %d, filename %s",retval,scr_name);
 //autowrap: k=kh_put(WFD,wrapper_fds,retval,&ret);
 //autowrap: kh_value(wrapper_fds,k)=h5fd;
@@ -80,8 +81,9 @@ FD
 //autowrap: int ret;
 //autowrap: h5fd_t *h5fd = h5fd_open(scr_name, flags, mode);
 //autowrap: if (h5fd == NULL) goto errlabel;
-//autowrap: retval=__real_open64("/dev/null", O_RDONLY, mode);
 //dbgautowrap: retval=__real_open64(name, flags, mode);
+//autowrap: retval=__real_open64("/dev/null", O_RDONLY, mode);
+//autowrap: h5fd->fd = retval;
 //autowrap: LOG_INFO("fd %d, filename %s",retval,scr_name);
 //autowrap: k=kh_put(WFD,wrapper_fds,retval,&ret);
 //autowrap: kh_value(wrapper_fds,k)=h5fd;
@@ -149,6 +151,18 @@ FD
         FILE*
             stream
         );
+//need_khiter
+//autowrap: int ret;
+//autowrap: int flags = fopen_mode2open_flags(mode);
+//autowrap: h5fd_t *h5fd = h5fd_open(scr_name, flags, 0666);
+//autowrap: if (h5fd == NULL) goto errlabel;
+//dbgautowrap: retval=__real_fopen(name, mode);
+//autowrap: retval=__real_fopen("/dev/null", "r");
+//autowrap: h5fd->stream = retval;
+//autowrap: LOG_INFO("stream %p, filename %s, h5fd %p",retval,scr_name,h5fd);
+//autowrap: k=kh_put(WFILE,wrapper_files,(PTR2INT)retval,&ret);
+//autowrap: kh_value(wrapper_files,k)=h5fd;
+//autoerr: retval=NULL;
 FILE*
     fopen(
         const PATHNAME
@@ -156,6 +170,18 @@ FILE*
         const char*
             mode
         );
+//need_khiter
+//autowrap: int ret;
+//autowrap: int flags = fopen_mode2open_flags(mode);
+//autowrap: h5fd_t *h5fd = h5fd_open(scr_name, flags, 0666);
+//autowrap: if (h5fd == NULL) goto errlabel;
+//dbgautowrap: retval=__real_fopen64(name, mode, 0666);
+//autowrap: retval=__real_fopen64("/dev/null", "r");
+//autowrap: h5fd->stream = retval;
+//autowrap: LOG_INFO("stream %p, filename %s, h5fd %p",retval,scr_name,h5fd);
+//autowrap: k=kh_put(WFILE,wrapper_files,(PTR2INT)retval,&ret);
+//autowrap: kh_value(wrapper_files,k)=h5fd;
+//autoerr: retval=NULL;
 FILE* 
     fopen64(
         const PATHNAME

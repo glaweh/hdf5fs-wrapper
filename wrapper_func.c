@@ -45,3 +45,33 @@ char* path_below_scratch(const char *filename) {
             mapped);
     return(mapped);
 }
+
+int fopen_mode2open_flags(const char * mode) {
+    int flags=O_RDONLY;
+    if (mode[1] == '+') {
+        switch (mode[0]) {
+            case 'r' :
+                flags = O_RDWR;
+                break;
+            case 'w' :
+                flags = O_RDWR | O_CREAT | O_TRUNC;
+                break;
+            case 'a' :
+                flags = O_APPEND | O_CREAT | O_RDWR;
+                break;
+        }
+    } else {
+        switch (mode[0]) {
+            case 'r' :
+                flags = O_RDONLY;
+                break;
+            case 'w' :
+                flags = O_WRONLY | O_CREAT | O_TRUNC;
+                break;
+            case 'a' :
+                flags = O_WRONLY | O_CREAT | O_APPEND;
+                break;
+        }
+    }
+    return(flags);
+}

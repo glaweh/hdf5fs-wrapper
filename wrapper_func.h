@@ -18,4 +18,5 @@ extern khash_t(WFD)   * wrapper_fds;
 extern khash_t(WDIR)  * wrapper_dirs;
 
 char* path_below_scratch(const char *filename);
+int fopen_mode2open_flags(const char * mode);
 #endif
