@@ -1,7 +1,17 @@
 #ifndef H5FS_H
 #define H5FS_H
+#ifndef __USE_LARGEFILE64
+#define __USE_LARGEFILE64
+#endif
+#include <sys/types.h>
 #include <fcntl.h>
-typedef struct h5fd h5fd_t;
+typedef struct hdirent hdirent_t;
+typedef struct h5fd {
+    hdirent_t * hdirent;
+    int         append;
+    int         rdonly;
+    off64_t     offset;
+} h5fd_t;
 typedef struct h5dd h5dd_t;
 h5fd_t * h5fd_open(const char * name, int flags, mode_t mode);
 int      h5fd_close(h5fd_t * h5fd);

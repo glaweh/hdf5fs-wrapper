@@ -7,12 +7,6 @@
 #include "path_util.h"
 #include "env_util.h"
 #include "h5fs.h"
-typedef struct h5fd {
-    hdirent_t * hdirent;
-    int         append;
-    int         rdonly;
-    hsize_t     offset;
-} h5fd_t;
 
 typedef struct h5dd {
     hdirent_t * hdirent;
