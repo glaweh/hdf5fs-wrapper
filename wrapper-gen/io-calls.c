@@ -60,6 +60,7 @@ int
 //autowrap: h5fd_t *h5fd = h5fd_open(scr_name, flags, mode);
 //autowrap: if (h5fd == NULL) goto errlabel;
 //autowrap: retval=__real_open64(name, flags, mode);
+//autowrap: LOG_INFO("fd %d, filename %s",retval,scr_name);
 //autowrap: k=kh_put(WFD,wrapper_fds,retval,&ret);
 //autowrap: kh_value(wrapper_fds,k)=h5fd;
 //autoerr: retval=-1;
@@ -79,6 +80,7 @@ FD
 //autowrap: h5fd_t *h5fd = h5fd_open(scr_name, flags, mode);
 //autowrap: if (h5fd == NULL) goto errlabel;
 //autowrap: retval=__real_open64(name, flags, mode);
+//autowrap: LOG_INFO("fd %d, filename %s",retval,scr_name);
 //autowrap: k=kh_put(WFD,wrapper_fds,retval,&ret);
 //autowrap: kh_value(wrapper_fds,k)=h5fd;
 //autoerr: retval=-1;
