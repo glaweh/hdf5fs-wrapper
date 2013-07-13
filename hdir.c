@@ -140,19 +140,8 @@ int hdir_free_all(hdirent_t * dirent,hid_t hdf_rw) {
         }
     } else if (dirent->type == HDIRENT_FILE) {
         if (hdf_rw >= 0) {
-            if (dirent->deleted) {
-                if (dirent->dataset != NULL) {
-                    if ((dirent->dataset->rdonly) || (dirent->dataset->next != NULL)) {
-                        hfile_ds_t * killer = hfile_ds_create(hdf_rw, dirent->name, 0, -1, 0, 0);
-                        killer->next = dirent->dataset;
-                        dirent->dataset = killer;
-                    } else {
-                        hfile_ds_close(dirent->dataset);
-                        H5Ldelete(hdf_rw,dirent->name,H5P_DEFAULT);
-                    }
-                }
-            } else if (dirent->dataset == NULL) {
-                dirent->dataset = hfile_ds_create(hdf_rw, dirent->name, 0, 1, 0, 0);
+            if ((! dirent->deleted) && (dirent->dataset == NULL)) {
+                dirent->dataset = hfile_ds_create(hdf_rw, dirent->name, 0, 0, 0, 0);
             }
         }
         while (dirent->dataset != NULL) {
