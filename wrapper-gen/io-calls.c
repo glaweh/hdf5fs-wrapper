@@ -59,7 +59,8 @@ int
 //autowrap: int ret;
 //autowrap: h5fd_t *h5fd = h5fd_open(scr_name, flags, mode);
 //autowrap: if (h5fd == NULL) goto errlabel;
-//autowrap: retval=__real_open64(name, flags, mode);
+//dbgautowrap: retval=__real_open(name, flags, mode);
+//autowrap: retval=__real_open("/dev/null", O_RDONLY, mode);
 //autowrap: LOG_INFO("fd %d, filename %s",retval,scr_name);
 //autowrap: k=kh_put(WFD,wrapper_fds,retval,&ret);
 //autowrap: kh_value(wrapper_fds,k)=h5fd;
@@ -79,7 +80,8 @@ FD
 //autowrap: int ret;
 //autowrap: h5fd_t *h5fd = h5fd_open(scr_name, flags, mode);
 //autowrap: if (h5fd == NULL) goto errlabel;
-//autowrap: retval=__real_open64(name, flags, mode);
+//autowrap: retval=__real_open64("/dev/null", O_RDONLY, mode);
+//dbgautowrap: retval=__real_open64(name, flags, mode);
 //autowrap: LOG_INFO("fd %d, filename %s",retval,scr_name);
 //autowrap: k=kh_put(WFD,wrapper_fds,retval,&ret);
 //autowrap: kh_value(wrapper_fds,k)=h5fd;
@@ -425,7 +427,8 @@ int
 //autowrap: retval = h5fd_close(scr_fd);
 //autowrap: if (retval < 0) goto errlabel;
 //autowrap: kh_del(WFD,wrapper_fds,k);
-//autowrap: retval = __real_close(fd);
+//dbgautowrap: retval = __real_close(fd);
+//autowrap: __real_close(fd);
 int
     close(
         FD
@@ -471,7 +474,8 @@ int
         const PATHNAME
             newpath
         );
-//autowrap: retval=__real_mkdir(name,mode);
+//dbgautowrap: retval=__real_mkdir(name,mode);
+//autowrap: //disable mkdir
 int
     mkdir(
         const PATHNAME
@@ -480,7 +484,7 @@ int
             mode
         );
 //autowrap: retval=h5fd_read(scr_fd,buf,count);
-//autowrap: retval=__real_read(fd,buf,count);
+//dbgautowrap: retval=__real_read(fd,buf,count);
 ssize_t
     read(
         FD
@@ -531,14 +535,14 @@ char*
             fd
         );
 //autowrap: retval=h5fs_unlink(scr_name);
-//autowrap: retval=__real_unlink(name);
+//dbgautowrap: retval=__real_unlink(name);
 int
     unlink(
         const PATHNAME
             name
         );
 //autowrap: retval=h5fd_write(scr_fd,buf,count);
-//autowrap: retval=__real_write(fd,buf,count);
+//dbgautowrap: retval=__real_write(fd,buf,count);
 ssize_t
     write(
         FD
@@ -548,9 +552,10 @@ ssize_t
         size_t
             count
         );
-//autowrap: off_t retval_h5=h5fd_seek(scr_fd,offset,whence);
-//autowrap: retval=__real_lseek(fd,offset,whence);
-//autowrap: if (retval_h5 != retval) LOG_ERR("fd: %d, h5: %ld, real: %ld FUCK",fd,(long int)retval_h5,(long int)retval);
+//autowrap: retval=h5fd_seek(scr_fd,offset,whence);
+//dbgautowrap: off_t retval_h5=h5fd_seek(scr_fd,offset,whence);
+//dbgautowrap: retval=__real_lseek(fd,offset,whence);
+//fbgautowrap: if (retval_h5 != retval) LOG_ERR("fd: %d, h5: %ld, real: %ld FUCK",fd,(long int)retval_h5,(long int)retval);
 off_t
     lseek(
         FD
@@ -560,9 +565,10 @@ off_t
         int
             whence
         );
-//autowrap: off_t retval_h5=h5fd_seek(scr_fd,offset,whence);
-//autowrap: retval=__real_lseek64(fd,offset,whence);
-//autowrap: if (retval_h5 != retval) LOG_ERR("fd: %d, h5: %ld, real: %ld FUCK",fd,(long int)retval_h5,(long int)retval);
+//autowrap: retval=h5fd_seek(scr_fd,offset,whence);
+//dbgautowrap: off_t retval_h5=h5fd_seek(scr_fd,offset,whence);
+//dbgautowrap: retval=__real_lseek64(fd,offset,whence);
+//dbgautowrap: if (retval_h5 != retval) LOG_ERR("fd: %d, h5: %ld, real: %ld FUCK",fd,(long int)retval_h5,(long int)retval);
 off64_t
     lseek64(
         FD
