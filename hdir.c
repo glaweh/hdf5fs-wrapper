@@ -64,7 +64,43 @@ hdirent_t * hdir_add_dirent(hdirent_t * parent, const char *name, hfile_ds_t * h
     hdirent->n_sets++;
     return(hdirent);
 }
-hdirent_t * hdir_open_dirent(hdirent_t * parent, const char * name) {
+void __hdirent_unlink_helper(hdirent_t * dirent,hid_t hdf_rw) {
+    if ((dirent->ref_open > 0) || (dirent->ref_name > 0)) {
+        LOG_DBG("refcount for '%s' (%d/%d) (skip unlink)",dirent->name,dirent->ref_name,dirent->ref->open);
+        return;
+    }
+    if (dirent->deleted == 0) {
+        LOG_DBG("not deleted: '%s'",dirent->name);
+        return;
+    }
+    hfile_ds_t * to_kill = dirent->dataset;
+    if ((to_kill != NULL) && (to_kill->rdonly == 0)) {
+        H5Ldelete(to_kill->loc_id,to_kill->name,H5P_DEFAULT);
+        dirent->dataset=to_kill->next;
+        free(to_kill);
+        to_kill = dirent->dataset;
+    }
+    if (to_kill != NULL) {
+        if (hdf_rw < 0) {
+            LOG_WARN("cannot create kill-overlay: no hdf_rw");
+        } else {
+            LOG_DBG("creating kill-overlay %d:%s",hdf_rw,dirent->name);
+            hfile_ds_t * killer = hfile_ds_create(hdf_rw, dirent->name, 0, -1, 0, 0);
+            killer->next=to_kill;
+            dirent->dataset=killer;
+        }
+    }
+    if (dirent->dataset == NULL) {
+        if (dirent->parent!=NULL) {
+            khiter_t k = kh_get(HDIR, dirent->parent->dirents, dirent->name);
+            if (k!=kh_end(dirent->parent->dirents)) {
+                kh_del(HDIR, dirent->parent->dirents, k);
+            }
+        }
+        free(dirent);
+    }
+}
+hdirent_t * hdirent_open(hdirent_t * parent, const char * name) {
     hdirent_t * dirent = NULL;
     khiter_t k = kh_get(HDIR, parent->dirents, name);
     if (k == kh_end(parent->dirents)) {
@@ -76,11 +112,12 @@ hdirent_t * hdir_open_dirent(hdirent_t * parent, const char * name) {
         hfile_ds_reopen(dirent->dataset);
     return(dirent);
 }
-int hdir_close_dirent(hdirent_t * dirent) {
+int hdirent_close(hdirent_t * dirent,hid_t hdf_rw) {
     dirent->ref_open--;
     if (dirent->ref_open>0) return(1);
     if ((dirent->dataset != NULL) && (hfile_ds_close(dirent->dataset) < 0))
         return(-1);
+    __hdirent_unlink_helper(dirent,hdf_rw);
     return(1);
 }
 
@@ -128,7 +165,7 @@ int hdir_free_all(hdirent_t * dirent,hid_t hdf_rw) {
     return(result);
 }
 
-int hdir_unlink(hdirent_t * parent, const char *name) {
+int hdir_unlink(hdirent_t * parent, const char *name, hid_t hdf_rw) {
     hdirent_t * dirent = NULL;
     khiter_t k = kh_get(HDIR, parent->dirents, name);
     if (k == kh_end(parent->dirents)) {
@@ -141,6 +178,7 @@ int hdir_unlink(hdirent_t * parent, const char *name) {
         return(-1);
     }
     dirent->deleted=1;
+    __hdirent_unlink_helper(dirent,hdf_rw);
     return(1);
 }
 
