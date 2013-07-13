@@ -6,7 +6,7 @@ HDFFS_OBJ:=real_func_auto.o logger.o process_info.o hfile_ds.o chunksize.o hdir.
 wrapper_func_auto.o: CFLAGS:=$(CFLAGS) -Wno-unused-variable -Wno-unused-label -Wno-unused-but-set-variable
 h5fs.o: CFLAGS:=$(CFLAGS) -ULOG_LEVEL -DLOG_LEVEL=5
 
-all: io-wrapper.so hdf5fs-wrapper.so hdf5fs-repack hdf5fs-unpack
+all: io-wrapper.so hdf5fs-repack hdf5fs-unpack
 test: test_h5fs_01_hfile_ds
 
 hdf5fs-wrapper.so: hdf5fs-wrapper.o path_util.o hdf5_fs.o $(HDFFS_OBJ)
