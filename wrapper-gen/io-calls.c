@@ -538,8 +538,9 @@ ssize_t
         size_t
             count
         );
-//autowrap: retval=h5fd_seek(scr_fd,offset,whence);
+//autowrap: off_t retval_h5=h5fd_seek(scr_fd,offset,whence);
 //autowrap: retval=__real_lseek(fd,offset,whence);
+//autowrap: if (retval_h5 != retval) LOG_ERR("fd: %d, h5: %ld, real: %ld FUCK",fd,(long int)retval_h5,(long int)retval);
 off_t
     lseek(
         FD
@@ -549,8 +550,9 @@ off_t
         int
             whence
         );
-//autowrap: retval=h5fd_seek(scr_fd,offset,whence);
+//autowrap: off_t retval_h5=h5fd_seek(scr_fd,offset,whence);
 //autowrap: retval=__real_lseek64(fd,offset,whence);
+//autowrap: if (retval_h5 != retval) LOG_ERR("fd: %d, h5: %ld, real: %ld FUCK",fd,(long int)retval_h5,(long int)retval);
 off64_t
     lseek64(
         FD
