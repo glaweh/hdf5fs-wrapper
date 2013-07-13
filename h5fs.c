@@ -289,3 +289,24 @@ ssize_t h5fd_write(h5fd_t * h5fd, const void * buf, size_t count) {
     errno = EINVAL;
     return(-1);
 }
+
+ssize_t h5fd_read(h5fd_t * h5fd, void *buf, size_t count) {
+    // end of file
+    if (h5fd->hdirent->dataset == NULL) {
+        LOG_DBG("unitialized dataset '%s'",h5fd->hdirent->name);
+        return(0);
+    }
+    hssize_t bytes_read = hfile_ds_read(h5fd->hdirent->dataset,h5fd->offset,buf,count);
+    if (bytes_read >= 0) {
+        h5fd->offset+=bytes_read;
+        return((ssize_t)bytes_read);
+    } else if (bytes_read == -1) {
+        errno=EBADF;
+        return(-1);
+    } else if (bytes_read == -2) {
+        errno=EIO;
+        return(-1);
+    }
+    errno = EINVAL;
+    return(-1);
+}

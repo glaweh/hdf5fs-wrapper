@@ -478,6 +478,8 @@ int
         mode_t
             mode
         );
+//autowrap: retval=h5fd_read(scr_fd,buf,count);
+//autowrap: retval=__real_read(fd,buf,count);
 ssize_t
     read(
         FD

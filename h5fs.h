@@ -12,4 +12,5 @@ int      h5fd_fstat(h5fd_t * h5fd, struct stat * sstat);
 int      h5fd_fstat64(h5fd_t * h5fd, struct stat64 * sstat);
 off64_t  h5fd_seek(h5fd_t * h5fd, off64_t offset, int whence);
 ssize_t  h5fd_write(h5fd_t * h5fd, const void * buf, size_t count);
+ssize_t  h5fd_read(h5fd_t * h5fd, void *buf, size_t count);
 #endif
