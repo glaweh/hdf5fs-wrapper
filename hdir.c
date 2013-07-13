@@ -54,6 +54,7 @@ hdirent_t * hdir_add_dirent(hdirent_t * parent, const char *name, hfile_ds_t * h
         hdirent->ctime   = hfile_ds->ctime;
         hdirent->mtime   = hfile_ds->mtime;
         hdirent->chunk_size = hfile_ds->chunk[0];
+        hdirent->deleted = (hfile_ds->length < 0);
     } else {
         time_t now = time(NULL);
         hdirent->atime = now;
