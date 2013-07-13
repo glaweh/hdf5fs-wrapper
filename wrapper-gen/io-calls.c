@@ -471,6 +471,7 @@ int
         const PATHNAME
             newpath
         );
+//autowrap: retval=__real_mkdir(name,mode);
 int
     mkdir(
         const PATHNAME
