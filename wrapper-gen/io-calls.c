@@ -534,6 +534,8 @@ ssize_t
         size_t
             count
         );
+//autowrap: retval=h5fd_seek(scr_fd,offset,whence);
+//autowrap: retval=__real_lseek(fd,offset,whence);
 off_t
     lseek(
         FD
@@ -543,7 +545,8 @@ off_t
         int
             whence
         );
-
+//autowrap: retval=h5fd_seek(scr_fd,offset,whence);
+//autowrap: retval=__real_lseek64(fd,offset,whence);
 off64_t
     lseek64(
         FD

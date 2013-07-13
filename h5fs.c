@@ -204,3 +204,27 @@ int h5fd_f##stattype(h5fd_t * fd, struct stattype * sstat) {\
 
 H5FD_FSTAT(stat)
 H5FD_FSTAT(stat64)
+
+off64_t    h5fd_seek(h5fd_t * h5fd, off64_t offset, int whence) {
+    off64_t new_offset;
+    switch (whence) {
+        case SEEK_SET:
+            new_offset=offset;
+            break;
+        case SEEK_CUR:
+            new_offset=h5fd->offset+offset;
+            break;
+        case SEEK_END:
+            new_offset=(h5fd->hdirent->dataset == NULL ? 0 : h5fd->hdirent->dataset->length) + offset;
+            break;
+        default:
+            errno=EINVAL;
+            return(-1);
+    }
+    if (new_offset < 0) {
+        errno=EINVAL;
+        return(-1);
+    }
+    return(h5fd->offset);
+}
+
