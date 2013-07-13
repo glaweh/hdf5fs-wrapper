@@ -16,7 +16,7 @@ typedef struct h5dd {
 } h5dd_t;
 
 h5fd_t __h5fd_t_initializer = {
-    .hdirent = NULL, .append = 0, .rdonly = 1, .offset = 0
+    .hdirent = NULL, .append = 0, .rdonly = 1, .offset = 0, .fd = -1, .stream = NULL
 };
 
 h5dd_t __h5dd_t_initializer = {

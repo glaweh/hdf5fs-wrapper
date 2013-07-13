@@ -11,6 +11,8 @@ typedef struct h5fd {
     int         append;
     int         rdonly;
     off64_t     offset;
+    int         fd;
+    FILE*       stream;
 } h5fd_t;
 typedef struct h5dd h5dd_t;
 h5fd_t * h5fd_open(const char * name, int flags, mode_t mode);
