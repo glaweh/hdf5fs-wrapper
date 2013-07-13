@@ -518,6 +518,13 @@ int
         off_t
             length
         );
+int
+    truncate64(
+        const PATHNAME
+            name,
+        off64_t
+            length
+        );
 char*
     ttyname(
         FD
