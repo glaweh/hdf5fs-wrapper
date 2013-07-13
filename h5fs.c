@@ -230,3 +230,62 @@ off64_t    h5fd_seek(h5fd_t * h5fd, off64_t offset, int whence) {
     return(h5fd->offset);
 }
 
+ssize_t h5fd_write(h5fd_t * h5fd, const void * buf, size_t count) {
+    if (count == 0)
+        return(0);
+    if (h5fd->rdonly) {
+        LOG_DBG("write on read-only fd '%s'",h5fd->hdirent->name);
+        errno = EBADF;
+        return(-1);
+    }
+    if ((h5fd->hdirent->dataset==NULL) || (h5fd->hdirent->dataset->rdonly)) {
+        if (tree->hdf_rw < 0) {
+            LOG_ERR("write attempt, but no rw hdf '%s'",h5fd->hdirent->name);
+            errno = ENOSPC;
+            return(-1);
+        }
+        hsize_t initial_size = h5fd->offset+count+1;
+        if ((h5fd->hdirent->dataset!=NULL) && (h5fd->hdirent->dataset->length > initial_size))
+            initial_size = h5fd->hdirent->dataset->length;
+        hfile_ds_t * ds = hfile_ds_create(tree->hdf_rw, h5fd->hdirent->name, 0, initial_size, 0, 0);
+        if (ds == NULL) {
+            LOG_ERR("error creating dataset '%s'",h5fd->hdirent->name);
+            errno = EIO;
+            return(-1);
+        }
+        if ((h5fd->hdirent->dataset!=NULL) && (h5fd->hdirent->dataset->length > 0)) {
+            herr_t copy_res = hfile_ds_copy_contents(ds, h5fd->hdirent->dataset);
+            if (copy_res <= 0) {
+                LOG_ERR("error in COW '%s'",h5fd->hdirent->name);
+                hfile_ds_close(ds);
+                H5Ldelete(tree->hdf_rw, h5fd->hdirent->name, H5P_DEFAULT);
+                errno=EIO;
+                return(-1);
+            }
+            LOG_INFO("COW succeeded '%s'",h5fd->hdirent->name);
+        }
+        if (h5fd->hdirent->dataset!=NULL) {
+            hfile_ds_close(h5fd->hdirent->dataset);
+            ds->next=h5fd->hdirent->dataset;
+        }
+        h5fd->hdirent->dataset=ds;
+    }
+    if (h5fd->append)
+        h5fd->offset=h5fd->hdirent->dataset->length;
+    hssize_t bytes_written = hfile_ds_write(h5fd->hdirent->dataset,h5fd->offset,buf,count);
+    if (bytes_written >= 0) {
+        h5fd->offset+=bytes_written;
+        return((int)bytes_written);
+    } else if (bytes_written == -1) {
+        errno=EBADF;
+        return(-1);
+    } else if (bytes_written == -2) {
+        errno=EFBIG;
+        return(-1);
+    } else if (bytes_written == -3) {
+        errno=EIO;
+        return(-1);
+    }
+    errno = EINVAL;
+    return(-1);
+}

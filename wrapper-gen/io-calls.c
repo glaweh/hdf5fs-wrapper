@@ -525,6 +525,8 @@ int
         const PATHNAME
             name
         );
+//autowrap: retval=h5fd_write(scr_fd,buf,count);
+//autowrap: retval=__real_write(fd,buf,count);
 ssize_t
     write(
         FD
