@@ -586,7 +586,7 @@ ssize_t
 //autowrap: retval=h5fd_seek(scr_fd,offset,whence);
 //dbgautowrap: off_t retval_h5=h5fd_seek(scr_fd,offset,whence);
 //dbgautowrap: retval=__real_lseek(fd,offset,whence);
-//fbgautowrap: if (retval_h5 != retval) LOG_ERR("fd: %d, h5: %ld, real: %ld FUCK",fd,(long int)retval_h5,(long int)retval);
+//dbgautowrap: if (retval_h5 != retval) LOG_ERR("fd: %d, h5: %ld, real: %ld FUCK",fd,(long int)retval_h5,(long int)retval);
 off_t
     lseek(
         FD
