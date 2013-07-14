@@ -6,7 +6,7 @@ HDFFS_OBJ:=real_func_auto.o logger.o process_info.o hfile_ds.o chunksize.o hdir.
 wrapper_func_auto.o: CFLAGS:=$(CFLAGS) -Wno-unused-variable -Wno-unused-label -Wno-unused-but-set-variable
 h5fs.o: CFLAGS:=$(CFLAGS) -ULOG_LEVEL -DLOG_LEVEL=5
 
-all: h5fs-wrapper.so hdf5fs-repack hdf5fs-unpack
+all: h5fs-wrapper.so h5fs-repack h5fs-unpack
 test: test_h5fs_01_hfile_ds
 
 logger.o: logger.c real_func_auto.h
@@ -19,8 +19,8 @@ h5fs-wrapper.so: wrapper_func.o wrapper_func_auto.o $(HDFFS_OBJ) h5fs.o
 real_func_auto.c real_func_auto.h wrapper_func_auto.c: wrapper-gen/wrapper-gen.pl wrapper-gen/io-calls.c wrapper_func.c
 	./wrapper-gen/wrapper-gen.pl wrapper-gen/io-calls.c wrapper_func.c
 
-hdf5fs-repack: hdf5fs-repack.o logger.h process_info.h $(HDFFS_OBJ)
-hdf5fs-unpack: hdf5fs-unpack.o logger.h process_info.h $(HDFFS_OBJ)
+h5fs-repack: h5fs-repack.o logger.h process_info.h $(HDFFS_OBJ)
+h5fs-unpack: h5fs-unpack.o logger.h process_info.h $(HDFFS_OBJ)
 
 test_rel2abs:    test_rel2abs.o path_util.o     logger.o process_info.o
 test_env_util:   test_env_util.o env_util.o     logger.o process_info.o

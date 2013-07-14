@@ -2,8 +2,8 @@
 *.so
 .*.swp
 wrapper-gen/io-wrapper.c
-hdf5fs-repack
-hdf5fs-unpack
+h5fs-repack
+h5fs-unpack
 test_env_util
 test_logger
 *_auto.c
