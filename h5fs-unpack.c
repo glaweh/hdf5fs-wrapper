@@ -15,6 +15,7 @@ hstack_tree_t * tree = NULL;
 int unpack_set_stack(const char * parent, hdirent_t * node, void * op_data) {
     char export_name[PATH_MAX];
     if (node->dataset == NULL) return(0);
+    if (node->deleted) return(0);
     strcpy(export_name,node->name);
     int i,name_len;
     name_len = strlen(export_name);
