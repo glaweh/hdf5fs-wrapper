@@ -304,3 +304,11 @@ ssize_t h5fd_read(h5fd_t * h5fd, void *buf, size_t count) {
     errno = EINVAL;
     return(-1);
 }
+
+int      h5fd_feof(h5fd_t * h5fd) {
+    if (h5fd->hdirent->dataset == NULL)
+        return(1);
+    if (h5fd->offset >= h5fd->hdirent->dataset->length)
+        return(1);
+    return(0);
+}
