@@ -269,6 +269,32 @@ int
         int
             whence
         );
+//autowrap: retval=h5fd_seek(scr_stream,offset,whence);
+//dbgautowrap: off_t retval_h5=h5fd_seek(scr_stream,offset,whence);
+//dbgautowrap: retval=__real_fseeko(stream,offset,whence);
+//dbgautowrap: if (retval_h5 != retval) LOG_ERR("stream: %p, h5: %ld, real: %ld FUCK",stream,(long int)retval_h5,(long int)retval);
+int
+    fseeko(
+        FILE*
+            stream,
+        off_t
+            offset,
+        int
+            whence
+        );
+//autowrap: retval=h5fd_seek(scr_stream,offset,whence);
+//dbgautowrap: off_t retval_h5=h5fd_seek(scr_stream,offset,whence);
+//dbgautowrap: retval=__real_fseeko64(stream,offset,whence);
+//dbgautowrap: if (retval_h5 != retval) LOG_ERR("stream: %p, h5: %ld, real: %ld FUCK",stream,(long int)retval_h5,(long int)retval);
+int
+    fseeko64(
+        FILE*
+            stream,
+        off64_t
+            offset,
+        int
+            whence
+        );
 long
     ftell(
         FILE*
