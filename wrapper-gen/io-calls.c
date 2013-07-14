@@ -125,6 +125,7 @@ int
         FILE*
             stream
         );
+//autowrap: retval = (scr_stream->dataset == NULL ? 1 : scr_stream->offset >= scr_stream->dataset->length)
 int
     feof(
         FILE*
