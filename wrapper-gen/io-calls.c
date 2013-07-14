@@ -258,7 +258,7 @@ size_t
         );
 //autowrap: retval=h5fd_seek(scr_stream,offset,whence);
 //dbgautowrap: off_t retval_h5=h5fd_seek(scr_stream,offset,whence);
-//dbgautowrap: retval=__real_lseek(stream,offset,whence);
+//dbgautowrap: retval=__real_fseek(stream,offset,whence);
 //dbgautowrap: if (retval_h5 != retval) LOG_ERR("stream: %p, h5: %ld, real: %ld FUCK",stream,(long int)retval_h5,(long int)retval);
 int
     fseek(
