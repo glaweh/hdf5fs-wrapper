@@ -29,7 +29,7 @@ hstack_tree_t * tree;
 char hdf_file[PATH_MAX] = "./scratch${OMPI_COMM_WORLD_RANK:%04d:0}.h5";
 
 int init_refcounts(const char * parent, hdirent_t * node, void * op_data) {
-    LOG_DBG2("'%s' had ref_open %d",node->name,node->ref_open);
+    LOG_DBG("'%s', deleted: %d, refcount: %d/%d, length: %"PRId64"",node->name,node->deleted,node->ref_name,node->ref_open,node->dataset->length);
     node->ref_open=0;
     return(0);
 }
