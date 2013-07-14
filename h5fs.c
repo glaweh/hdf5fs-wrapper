@@ -135,10 +135,11 @@ h5fd_t * h5fd_open(const char * name, int flags, mode_t mode) {
     h5fd->offset = 0;
     if (set_exists) {
         h5fd->hdirent = existing_dirent;
-        existing_dirent->deleted=0;
-        if ((existing_dirent->dataset!=NULL) && (flags & O_TRUNC)) {
-            existing_dirent->dataset->length  = 0;
+        if (existing_dirent->dataset!=NULL) {
+            if ((flags & O_TRUNC) || existing_dirent->deleted)
+                existing_dirent->dataset->length  = 0;
         }
+        existing_dirent->deleted=0;
     } else {
         h5fd->hdirent = hdir_add_dirent(tree->root,name,NULL);
     }
