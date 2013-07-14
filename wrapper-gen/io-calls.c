@@ -112,6 +112,14 @@ int
         );
 
 // stdio.h
+//need_khiter
+//autowrap: retval = h5fd_close(scr_stream);
+//autowrap: LOG_INFO("fclose(%p)=%d",scr_stream,retval);
+//autowrap: if (retval < 0) goto errlabel;
+//autowrap: kh_del(WFILE,wrapper_files,k);
+//dbgautowrap: retval = __real_close(fd);
+//autowrap: __real_fclose(stream);
+//autoerr: retval=EOF;
 int
     fclose(
         FILE*
