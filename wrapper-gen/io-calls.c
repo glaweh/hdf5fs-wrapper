@@ -220,6 +220,9 @@ int
         FILE*
             stream
         );
+//autowrap: size_t count = size * nmemb;
+//autowrap: retval=h5fd_read(scr_stream,ptr,count);
+//dbgautowrap: retval=__real_fread(buf,size,nmemb,stream);
 size_t
     fread(
         void*
@@ -231,6 +234,9 @@ size_t
         FILE*
             stream
         );
+//autowrap: size_t count = size * nmemb;
+//autowrap: retval=h5fd_read(scr_stream,ptr,count);
+//dbgautowrap: retval=__real_fread(buf,size,nmemb,stream);
 size_t
     fread_unlocked(
         void*
