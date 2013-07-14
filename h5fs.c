@@ -110,6 +110,9 @@ h5fd_t * h5fd_open(const char * name, int flags, mode_t mode) {
     int old_errno;
     existing_dirent = hdirent_open(tree->root,name);
     set_exists = (existing_dirent != NULL);
+    if (set_exists) {
+        LOG_DBG("set '%s', deleted: %d, length: %ld",existing_dirent->name,existing_dirent->deleted,existing_dirent->dataset->length);
+    }
     if ((set_exists) && (existing_dirent->deleted==0))
         file_exists = 1;
     if (file_exists) {
