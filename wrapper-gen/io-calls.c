@@ -62,7 +62,7 @@ int
 //dbgautowrap: retval=__real_open(name, flags, mode);
 //autowrap: retval=__real_open("/dev/null", O_RDONLY, mode);
 //autowrap: h5fd->fd = retval;
-//autowrap: LOG_INFO("fd %d, filename %s",retval,scr_name);
+//autowrap: LOG_INFO("fd %d, filename %s, flags 0%o",retval,scr_name,flags);
 //autowrap: k=kh_put(WFD,wrapper_fds,retval,&ret);
 //autowrap: kh_value(wrapper_fds,k)=h5fd;
 //autoerr: retval=-1;
@@ -84,7 +84,7 @@ FD
 //dbgautowrap: retval=__real_open64(name, flags, mode);
 //autowrap: retval=__real_open64("/dev/null", O_RDONLY, mode);
 //autowrap: h5fd->fd = retval;
-//autowrap: LOG_INFO("fd %d, filename %s",retval,scr_name);
+//autowrap: LOG_INFO("fd %d, filename %s, flags 0%o",retval,scr_name,flags);
 //autowrap: k=kh_put(WFD,wrapper_fds,retval,&ret);
 //autowrap: kh_value(wrapper_fds,k)=h5fd;
 //autoerr: retval=-1;
