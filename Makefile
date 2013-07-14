@@ -4,7 +4,7 @@ LDLIBS:=-ldl -lhdf5 -lc
 HDFFS_OBJ:=real_func_auto.o logger.o process_info.o hfile_ds.o chunksize.o hdir.o path_util.o hstack_tree.o env_util.o
 
 wrapper_func_auto.o: CFLAGS:=$(CFLAGS) -Wno-unused-variable -Wno-unused-label -Wno-unused-but-set-variable
-h5fs.o: CFLAGS:=$(CFLAGS) -ULOG_LEVEL -DLOG_LEVEL=5
+# h5fs.o: CFLAGS:=$(CFLAGS) -ULOG_LEVEL -DLOG_LEVEL=5
 
 all: h5fs-wrapper.so h5fs-repack h5fs-unpack
 test: test_h5fs_01_hfile_ds

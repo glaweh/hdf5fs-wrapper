@@ -62,7 +62,7 @@ int
 //dbgautowrap: retval=__real_open(name, flags, mode);
 //autowrap: retval=__real_open("/dev/null", O_RDONLY, mode);
 //autowrap: h5fd->fd = retval;
-//autowrap: LOG_INFO("fd %d, filename %s, flags 0%o",retval,scr_name,flags);
+//autowrap: LOG_DBG("fd %d, filename %s, flags 0%o",retval,scr_name,flags);
 //autowrap: k=kh_put(WFD,wrapper_fds,retval,&ret);
 //autowrap: kh_value(wrapper_fds,k)=h5fd;
 //autoerr: retval=-1;
@@ -84,7 +84,7 @@ FD
 //dbgautowrap: retval=__real_open64(name, flags, mode);
 //autowrap: retval=__real_open64("/dev/null", O_RDONLY, mode);
 //autowrap: h5fd->fd = retval;
-//autowrap: LOG_INFO("fd %d, filename %s, flags 0%o",retval,scr_name,flags);
+//autowrap: LOG_DBG("fd %d, filename %s, flags 0%o",retval,scr_name,flags);
 //autowrap: k=kh_put(WFD,wrapper_fds,retval,&ret);
 //autowrap: kh_value(wrapper_fds,k)=h5fd;
 //autoerr: retval=-1;
@@ -114,7 +114,7 @@ int
 // stdio.h
 //need_khiter
 //autowrap: retval = h5fd_close(scr_stream);
-//autowrap: LOG_INFO("fclose(%p)=%d",scr_stream,retval);
+//autowrap: LOG_DBG("fclose(%p)=%d",scr_stream,retval);
 //autowrap: if (retval < 0) goto errlabel;
 //autowrap: kh_del(WFILE,wrapper_files,k);
 //dbgautowrap: retval = __real_close(fd);
@@ -168,7 +168,7 @@ FD
 //dbgautowrap: retval=__real_fopen(name, mode);
 //autowrap: retval=__real_fopen("/dev/null", "r");
 //autowrap: h5fd->stream = retval;
-//autowrap: LOG_INFO("stream %p, filename %s, h5fd %p",retval,scr_name,h5fd);
+//autowrap: LOG_DBG("stream %p, filename %s, h5fd %p",retval,scr_name,h5fd);
 //autowrap: k=kh_put(WFILE,wrapper_files,(PTR2INT)retval,&ret);
 //autowrap: kh_value(wrapper_files,k)=h5fd;
 //autoerr: retval=NULL;
@@ -187,7 +187,7 @@ FILE*
 //dbgautowrap: retval=__real_fopen64(name, mode, 0666);
 //autowrap: retval=__real_fopen64("/dev/null", "r");
 //autowrap: h5fd->stream = retval;
-//autowrap: LOG_INFO("stream %p, filename %s, h5fd %p",retval,scr_name,h5fd);
+//autowrap: LOG_DBG("stream %p, filename %s, h5fd %p",retval,scr_name,h5fd);
 //autowrap: k=kh_put(WFILE,wrapper_files,(PTR2INT)retval,&ret);
 //autowrap: kh_value(wrapper_files,k)=h5fd;
 //autoerr: retval=NULL;
@@ -518,7 +518,7 @@ int
         );
 //need_khiter
 //autowrap: retval = h5fd_close(scr_fd);
-//autowrap: LOG_INFO("close(%d)=%d",fd,retval);
+//autowrap: LOG_DBG("close(%d)=%d",fd,retval);
 //autowrap: if (retval < 0) goto errlabel;
 //autowrap: kh_del(WFD,wrapper_fds,k);
 //dbgautowrap: retval = __real_close(fd);

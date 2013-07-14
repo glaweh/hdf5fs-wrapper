@@ -67,7 +67,7 @@ hdirent_t * hdir_add_dirent(hdirent_t * parent, const char *name, hfile_ds_t * h
 }
 void __hdirent_unlink_helper(hdirent_t * dirent,hid_t hdf_rw) {
     if ((dirent->ref_open > 0) || (dirent->ref_name > 0)) {
-        LOG_INFO("refcount for '%s' (%d/%d) (skip unlink)",dirent->name,dirent->ref_name,dirent->ref_open);
+        LOG_DBG("refcount for '%s' (%d/%d) (skip unlink)",dirent->name,dirent->ref_name,dirent->ref_open);
         return;
     }
     if (dirent->deleted == 0) {
@@ -193,7 +193,7 @@ int hdir_foreach_file(hdirent_t * root, int order, hdirent_iterate_t op, void * 
         if (dirent->type == HDIRENT_FILE) {
             res = op(root->name,dirent,op_data);
         } else if (dirent->type == HDIRENT_DIR) {
-            LOG_INFO("no recursion implemented");
+            LOG_ERR("no recursion implemented");
             res = 0;
         }
         if (res != 0) break;

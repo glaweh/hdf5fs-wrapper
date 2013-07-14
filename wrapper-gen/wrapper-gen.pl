@@ -179,10 +179,10 @@ sub function_process() {
             $funcbody.="        scr_$dir_args[$i]=kh_value(wrapper_dirs,k);\n";
             $funcbody.="    };\n";
         }
-        $funcbody.="    LOG_DBG(\"called \"$d_option);\n";
+        $funcbody.="    LOG_DBG2(\"called \"$d_option);\n";
         $funcbody.="    if (need_to_wrap) {\n";
         if ($#autowrap >= 0) {
-            $funcbody.="        LOG_INFO(\"autowrap\"$d_option);\n";
+            $funcbody.="        LOG_DBG(\"autowrap\"$d_option);\n";
             foreach (@autowrap) {
                 $funcbody.="        $_\n";
             }
