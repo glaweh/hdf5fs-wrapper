@@ -4,6 +4,7 @@
 wrapper-gen/io-wrapper.c
 h5fs-repack
 h5fs-unpack
+h5fs-check
 test_env_util
 test_logger
 *_auto.c
