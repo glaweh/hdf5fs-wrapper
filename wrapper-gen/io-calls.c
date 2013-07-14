@@ -295,8 +295,30 @@ int
         int
             whence
         );
+//autowrap: retval=scr_stream->offset;
+//dbgautowrap: off_t retval_h5=scr_stream->offset;
+//dbgautowrap: retval=__real_ftell(stream,offset,whence);
+//dbgautowrap: if (retval_h5 != retval) LOG_ERR("stream: %p, h5: %ld, real: %ld FUCK",stream,(long int)retval_h5,(long int)retval);
 long
     ftell(
+        FILE*
+            stream
+        );
+//autowrap: retval=scr_stream->offset;
+//dbgautowrap: off_t retval_h5=scr_stream->offset;
+//dbgautowrap: retval=__real_ftello(stream);
+//dbgautowrap: if (retval_h5 != retval) LOG_ERR("stream: %p, h5: %ld, real: %ld FUCK",stream,(long int)retval_h5,(long int)retval);
+off_t
+    ftello(
+        FILE*
+            stream
+        );
+//autowrap: retval=scr_stream->offset;
+//dbgautowrap: off_t retval_h5=scr_stream->offset;
+//dbgautowrap: retval=__real_ftello64(stream);
+//dbgautowrap: if (retval_h5 != retval) LOG_ERR("stream: %p, h5: %ld, real: %ld FUCK",stream,(long int)retval_h5,(long int)retval);
+off64_t
+    ftello64(
         FILE*
             stream
         );
