@@ -9,9 +9,6 @@ h5fs.o: CFLAGS:=$(CFLAGS) -ULOG_LEVEL -DLOG_LEVEL=5
 all: h5fs-wrapper.so hdf5fs-repack hdf5fs-unpack
 test: test_h5fs_01_hfile_ds
 
-hdf5fs-wrapper.so: hdf5fs-wrapper.o path_util.o hdf5_fs.o $(HDFFS_OBJ)
-	$(LD) $(LDFLAGS) -shared $^ $(LDLIBS) -o $@
-hdf5fs-wrapper.o: hdf5fs-wrapper.c logger.h process_info.h real_func_auto.h
 logger.o: logger.c real_func_auto.h
 process_info.o: process_info.c real_func_auto.h
 path_util.o: path_util.c real_func_auto.h
