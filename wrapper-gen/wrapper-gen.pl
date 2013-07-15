@@ -4,8 +4,10 @@ use warnings;
 use Getopt::Long;
 
 my $noautowrap = 0;
+my $debugwrap  = 0;
 Getopt::Long::GetOptions(
     noautowrap => \$noautowrap,
+    debugwrap  => \$debugwrap,
 ) or die "error parsing options";
 
 my $io_calls_template   = shift @ARGV;
@@ -265,13 +267,23 @@ while (<$in_fh>) {
         push @van,$1;
         next;
     }
-    if ((!$noautowrap) and /^\/\/autowrap:\s+(.+?)\s*$/) {
-        push @autowrap,$1;
-        next;
-    }
-    if ((!$noautowrap) and /^\/\/autoerr:\s+(.+?)\s*$/) {
-        push @autoerr,$1;
-        next;
+    unless ($noautowrap) {
+        if (/^\/\/autowrap:\s+(.+?)\s*$/) {
+            push @autowrap,$1;
+            next;
+        }
+        if (/^\/\/autoerr:\s+(.+?)\s*$/) {
+            push @autoerr,$1;
+            next;
+        }
+        if (($debugwrap) and (/^\/\/dbgautowrap:\s+(.+?)\s*$/)) {
+            push @autowrap,$1;
+            next;
+        }
+        if ((! $debugwrap) and (/^\/\/nodbgautowrap:\s+(.+?)\s*$/)) {
+            push @autowrap,$1;
+            next;
+        }
     }
     if (/^\/\/need_khiter\s*$/) {
         $need_khiter = 1;
