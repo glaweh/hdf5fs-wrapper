@@ -370,6 +370,7 @@ print $out_fh <<"CCODE";
 #include <stdlib.h>
 #include <stdarg.h>
 #include <errno.h>
+#include "hdir.h"
 
 inline char * __h5fs_filename(char * name) {
     if (name==NULL) return(NULL);
