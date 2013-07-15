@@ -1,6 +1,13 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use Getopt::Long;
+
+my $noautowrap = 0;
+Getopt::Long::GetOptions(
+    noautowrap => \$noautowrap,
+) or die "error parsing options";
+
 my $io_calls_template   = shift @ARGV;
 my $wrapper_func_manual = shift @ARGV;
 my %type = (
@@ -258,11 +265,11 @@ while (<$in_fh>) {
         push @van,$1;
         next;
     }
-    if (/^\/\/autowrap:\s+(.+?)\s*$/) {
+    if ((!$noautowrap) and /^\/\/autowrap:\s+(.+?)\s*$/) {
         push @autowrap,$1;
         next;
     }
-    if (/^\/\/autoerr:\s+(.+?)\s*$/) {
+    if ((!$noautowrap) and /^\/\/autoerr:\s+(.+?)\s*$/) {
         push @autoerr,$1;
         next;
     }
