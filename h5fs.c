@@ -43,7 +43,7 @@ void __attribute__ ((constructor)) h5fs_init(void) {
     char * env_ptr;
     char hdf_expand1[PATH_MAX];
     char hdf_expand2[PATH_MAX];
-    env_ptr=getenv("HDF5FS_RO");
+    env_ptr=getenv("H5FS_RO");
     if (env_ptr!=NULL) {
         char * src_begin = env_ptr;
         while (src_begin != 0) {
@@ -72,7 +72,7 @@ void __attribute__ ((constructor)) h5fs_init(void) {
             src_begin = src_end+1;
         }
     }
-    env_ptr=getenv("HDF5FS_FILE");
+    env_ptr=getenv("H5FS_FILE");
     if (env_ptr != NULL) {
         strncpy(hdf_file,env_ptr,PATH_MAX);
     }

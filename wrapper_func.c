@@ -16,7 +16,7 @@ void __attribute__ ((constructor(300))) wrapper_func_init(void) {
     wrapper_fds   = kh_init(WFD);
     wrapper_dirs  = kh_init(WDIR);
     char * env_ptr;
-    env_ptr=getenv("SCRATCH_BASE");
+    env_ptr=getenv("H5FS_BASE");
     if (env_ptr != NULL) {
         strncpy(scratch_base,env_ptr,PATH_MAX);
     }
