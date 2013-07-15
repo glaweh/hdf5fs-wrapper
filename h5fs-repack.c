@@ -41,6 +41,7 @@ int main(int argc, char *argv[]) {
     n_hdf_src=0;
     int i;
     for (i=2; i<argc;i++) {
+        if (strcmp(argv[i],"base")==0) break;
         if (hstack_tree_add(tree,argv[i],O_RDONLY) == 1) n_hdf_src++;
     }
     if (n_hdf_src == 0) {
