@@ -71,7 +71,7 @@ sub function_process() {
     push @orig_ptr,$orig_func;
     unless ($orig_func_name =~ /^__real_v?fprintf$/) {
         push @orig_init,"$orig_func_name = dlsym(RTLD_NEXT, \"$func_name\");";
-        push @orig_init,"if ($orig_func_name == NULL) { __real_fprintf(stderr,\"cannot resolve $func_name\\n\");abort(); };";
+        push @orig_init,"if ($orig_func_name == NULL) { fprintf(stderr,\"cannot resolve $func_name\\n\");abort(); };";
     }
     my $chaincall_arg=join(', ',@nonvar_args);
     my $vafunc = 0;
