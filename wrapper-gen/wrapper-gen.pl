@@ -174,9 +174,8 @@ sub function_process() {
                 $funcbody.="        $_\n";
             }
         } else {
-            $funcbody.="        printf(\"$func_name called prematurely \"$d_option);\n";
-            $funcbody.="        puts(\"\");\n";
             $funcbody.="        $orig_func_name=dlsym(RTLD_NEXT, \"$func_name\");";
+            $funcbody.="        LOG_ERR(\"called prematurely \"$d_option);\n";
         }
         $funcbody.="    }\n";
         $funcbody.="    if (wrapper_files==NULL) return($orig_func_name($chaincall_arg));\n";
