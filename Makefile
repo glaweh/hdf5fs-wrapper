@@ -15,7 +15,7 @@ path_util.o: path_util.c real_func_auto.h
 wrapper_func.o: wrapper_func.c real_func_auto.h
 
 h5fs-wrapper.so: wrapper_func.o wrapper_func_auto.o $(HDFFS_OBJ) h5fs.o
-	$(LD) $(LDFLAGS) -shared $^ $(LDLIBS) -o $@
+	gcc $(LDFLAGS) -shared -o $@ $^ $(LDLIBS)
 real_func_auto.c real_func_auto.h wrapper_func_auto.c: wrapper-gen/wrapper-gen.pl wrapper-gen/io-calls.c wrapper_func.c
 	./wrapper-gen/wrapper-gen.pl wrapper-gen/io-calls.c wrapper_func.c
 
