@@ -8,12 +8,12 @@
 #include "env_util.h"
 #include "h5fs.h"
 
-typedef struct h5dd {
+struct h5dd {
     hdirent_t * hdirent;
     int         append;
     int         rdonly;
     hsize_t     offset;
-} h5dd_t;
+};
 
 h5fd_t __h5fd_t_initializer = {
     .hdirent = NULL, .append = 0, .rdonly = 1, .offset = 0, .fd = -1, .stream = NULL

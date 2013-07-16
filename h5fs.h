@@ -5,7 +5,7 @@
 #endif
 #include <sys/types.h>
 #include <fcntl.h>
-typedef struct hdirent hdirent_t;
+#include "hdir.h"
 typedef struct h5fd {
     hdirent_t * hdirent;
     int         append;

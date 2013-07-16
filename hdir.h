@@ -6,16 +6,12 @@
 #define HDIRENT_DIR  2
 typedef struct hdirent hdirent_t;
 KHASH_MAP_INIT_STR(HDIR,struct hdirent *);
-typedef struct hdirent {
+struct hdirent {
     int type;
-    union {
-        khiter_t dir_iterator;
-        int n_sets;
-    };
-    union {
-        hfile_ds_t    * dataset;
-        khash_t(HDIR) * dirents;
-    };
+    khiter_t dir_iterator;
+    int n_sets;
+    hfile_ds_t    * dataset;
+    khash_t(HDIR) * dirents;
     time_t atime;
     time_t mtime;
     time_t ctime;
@@ -25,7 +21,7 @@ typedef struct hdirent {
     int deleted;
     struct hdirent * parent;
     char name[1];
-} hdirent_t;
+};
 
 #define HDIRENT_ITERATE_UNORDERED 0
 #define HDIRENT_ITERATE_ALPHA 1
