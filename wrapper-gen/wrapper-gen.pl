@@ -166,13 +166,16 @@ sub function_process() {
                 $funcbody.="    if (va_count>$i) $van[$i]=va_arg(argp,$vat[$i]);\n";
             }
         }
+        $funcbody.="    if ($orig_func_name == NULL) {\n";
         if ($#no_syminit >= 0) {
-            $funcbody.="    if ($orig_func_name == NULL) {\n";
             foreach (@no_syminit) {
                 $funcbody.="        $_\n";
             }
-            $funcbody.="    }\n";
+        } else {
+            $funcbody.="        puts(\"$func_name called before initializing\");\n";
+            $funcbody.="        abort();\n";
         }
+        $funcbody.="    }\n";
         for (my $i=0;$i<=$#pathname_args;$i++) {
             $funcbody.="    need_to_wrap|=((scr_$pathname_args[$i]=__h5fs_filename(path_below_scratch($pathname_args[$i])))!=NULL);\n";
         }
