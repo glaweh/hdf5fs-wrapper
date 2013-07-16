@@ -438,6 +438,10 @@ int
         struct stat *
             buf
         );
+//no_syminit:    // openmpi's malloc()-wrapper calls stat on infiniband/myrinet device nodes
+//no_syminit:    // dlsym() calls malloc()
+//no_syminit:    // break the deadlock by pretending the device exists
+//no_syminit:    return(0);
 //autowrap:      retval=h5fs_stat(scr_name,buf);
 int
     __xstat(
@@ -448,6 +452,10 @@ int
         struct stat *
             buf
         );
+//no_syminit:    // openmpi's malloc()-wrapper calls stat on infiniband/myrinet device nodes
+//no_syminit:    // dlsym() calls malloc()
+//no_syminit:    // break the deadlock by pretending the device exists
+//no_syminit:    return(0);
 //autowrap:      retval=h5fs_stat(scr_name,buf);
 int
     __lxstat(
@@ -468,6 +476,10 @@ int
         struct stat64 *
             buf
         );
+//no_syminit:    // openmpi's malloc()-wrapper calls stat on infiniband/myrinet device nodes
+//no_syminit:    // dlsym() calls malloc()
+//no_syminit:    // break the deadlock by pretending the device exists
+//no_syminit:    return(0);
 //autowrap:      retval=h5fs_stat64(scr_name,buf);
 int
     __xstat64(
@@ -478,7 +490,11 @@ int
         struct stat64 *
             buf
         );
-//autowrap: retval=h5fs_stat64(scr_name,buf);
+//no_syminit:    // openmpi's malloc()-wrapper calls stat on infiniband/myrinet device nodes
+//no_syminit:    // dlsym() calls malloc()
+//no_syminit:    // break the deadlock by pretending the device exists
+//no_syminit:    return(0);
+//autowrap:      retval=h5fs_stat64(scr_name,buf);
 int
     __lxstat64(
         int
@@ -511,6 +527,10 @@ int
         );
 
 // unistd.h
+//no_syminit:    // openmpi's malloc()-wrapper calls access on infiniband/myrinet device nodes
+//no_syminit:    // dlsym() calls malloc()
+//no_syminit:    // break the deadlock by pretending the device exists
+//no_syminit:    return(0);
 int
     access(
         const PATHNAME
