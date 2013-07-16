@@ -202,6 +202,7 @@ FILE*
         const char*
             mode
         );
+//no_syminit:    __real_vfprintf=dlsym(RTLD_NEXT, "vfprintf");
 //vaforward
 int
     fprintf(
