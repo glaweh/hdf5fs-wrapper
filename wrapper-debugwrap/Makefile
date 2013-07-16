@@ -1,4 +1,4 @@
-CC:=colorgcc
+CC:=gcc
 CFLAGS:=$(CFLAGS) -fpic -g -O0 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=4 -I..
 LDLIBS:=-ldl -lhdf5 -lc
 HDFFS_OBJ:=../real_func_auto.o ../logger.o ../process_info.o ../hfile_ds.o ../chunksize.o ../hdir.o ../path_util.o ../hstack_tree.o ../env_util.o
