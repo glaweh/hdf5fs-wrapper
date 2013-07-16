@@ -33,6 +33,8 @@ my $need_khiter = 0;
 my @autoerr;
 
 push @orig_init,"//first resolve fprintf, so it can be used for log messages";
+push @orig_init,"__real_vfprintf = dlsym(RTLD_NEXT, \"vfprintf\");";
+push @orig_init,"if (__real_vfprintf == NULL) { fprintf(stderr,\"cannot resolve vfprintf\\n\");exit(1); };";
 push @orig_init,"__real_fprintf = dlsym(RTLD_NEXT, \"fprintf\");";
 push @orig_init,"if (__real_fprintf == NULL) { fprintf(stderr,\"cannot resolve fprintf\\n\");exit(1); };";
 
