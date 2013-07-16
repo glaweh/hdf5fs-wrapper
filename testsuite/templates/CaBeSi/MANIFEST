@@ -1,0 +1,11 @@
+Be.pz-n-vbc.UPF
+Ca.pz-n-vbc.UPF
+cube.ccharge.pp.IN
+localization_debug.vtk.pp.IN
+MANIFEST
+projwfc.IN
+scf.pw.IN
+Si.pz-vbc.UPF
+smearing.dos.IN
+tetrahedra.dos.IN
+tetrahedra.nscf.pw.IN

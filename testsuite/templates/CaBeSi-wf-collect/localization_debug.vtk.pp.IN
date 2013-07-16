@@ -1,0 +1,10 @@
+ &inputpp
+    outdir = './SCRATCH/'
+    plot_num= 20
+    debug_stdout = 0
+    debug_file = 0
+    bader_atindex = 'AtIndex.cube'
+    de   = 0.4
+    emin = 4.9297
+    emax = 5.7296
+ /

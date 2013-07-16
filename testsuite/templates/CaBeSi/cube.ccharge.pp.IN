@@ -1,0 +1,10 @@
+&inputpp
+   outdir = './SCRATCH/'
+   filplot = 'ccharge'
+   plot_num= 19
+/
+&plot
+   iflag = 3
+   output_format = 8
+   fileout = 'ccharge.cube'
+/

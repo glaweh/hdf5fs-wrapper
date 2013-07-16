@@ -1,0 +1,5 @@
+&INPUTPP
+    outdir = './SCRATCH/'
+    fildos = 'smearing.dos'
+/
+

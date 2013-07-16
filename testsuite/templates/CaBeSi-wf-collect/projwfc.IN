@@ -1,0 +1,5 @@
+&inputpp
+  outdir   = './SCRATCH/'
+  filproj  = 'projwfc.dat'
+  filpdos  = 'projwfc'
+/

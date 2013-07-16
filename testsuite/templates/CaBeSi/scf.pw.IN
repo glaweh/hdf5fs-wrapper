@@ -1,0 +1,27 @@
+ Cabesi
+  &control
+     calculation='scf'
+     restart_mode='from_scratch',
+     pseudo_dir = './',
+     outdir='./SCRATCH/'
+ /
+  &system
+    ibrav=  4, celldm(1) =7.361,celldm(3)=1.111706, nat=3, ntyp= 3,
+     ecutwfc =30,
+ !   nbnd = 25,
+     occupations='smearing', smearing='methfessel-paxton', degauss=0.01
+  /
+  &electrons
+     conv_thr =  1.0d-6
+     mixing_beta= 0.7
+  /
+ ATOMIC_SPECIES
+ Ca  40.0780   Ca.pz-n-vbc.UPF
+ Be   9.012182 Be.pz-n-vbc.UPF
+ Si  28.0855   Si.pz-vbc.UPF
+ ATOMIC_POSITIONS
+ Ca        0.000000000   0.000000000   0.000000000
+ Be        0.500000000   0.288675134   0.555853
+ Si       -0.500000000  -0.288675134   0.555853
+  K_POINTS automatic
+  14 14 8 0 0 0
