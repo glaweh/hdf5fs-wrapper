@@ -38,7 +38,7 @@ void __attribute__ ((constructor)) h5fs_init(void) {
     tree=hstack_tree_new();
     if (tree == NULL) {
         LOG_ERR("error creating hstack_tree");
-        exit(1);
+        abort();
     }
     char * env_ptr;
     char hdf_expand1[PATH_MAX];
@@ -55,16 +55,16 @@ void __attribute__ ((constructor)) h5fs_init(void) {
             *src_end = 0;
             if (strn_env_expand(src_begin,hdf_expand1,PATH_MAX) < 0) {
                 LOG_FATAL("error expanding hdf ro filename '%s'",src_begin);
-                exit(1);
+                abort();
             }
             if (rel2abs(hdf_expand1,hdf_expand2) == NULL) {
                 LOG_ERR("error calling rel2abs('%s')",hdf_expand1);
-                exit(1);
+                abort();
             }
             LOG_DBG("expanded hdf ro '%s' to '%s'",src_begin,hdf_expand2);
             if (hstack_tree_add(tree,hdf_expand2,O_RDONLY) < 0) {
                 LOG_ERR("error opening '%s'",hdf_expand2);
-                exit(1);
+                abort();
             }
             LOG_INFO("hdf_ro opened: '%s', %d",hdf_expand2,tree->hdf->hdf_id);
             if (we_are_at_end) break;
@@ -78,15 +78,15 @@ void __attribute__ ((constructor)) h5fs_init(void) {
     }
     if (strn_env_expand(hdf_file,hdf_expand1,PATH_MAX) < 0) {
         LOG_FATAL("error expanding hdf filename '%s'",hdf_file);
-        exit(1);
+        abort();
     }
     if (rel2abs(hdf_expand1,hdf_expand2) == NULL) {
         LOG_ERR("error calling rel2abs('%s')",hdf_expand1);
-        exit(1);
+        abort();
     }
     if (hstack_tree_add(tree,hdf_expand2,O_RDWR | O_CREAT) < 0) {
         LOG_ERR("error opening '%s'",hdf_expand2);
-        exit(1);
+        abort();
     }
     LOG_INFO("hdf_file opened: '%s', %d",hdf_expand2,tree->hdf->hdf_id);
     if (stat64(hdf_expand2,&hdf_file_stat64) < 0) {
