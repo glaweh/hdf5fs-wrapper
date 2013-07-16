@@ -100,7 +100,7 @@ sub test_step {
         }
     } else {
         my $md5_in;
-        open($md5_in,'-|', 'find SCRATCH -type f | sort | xargs md5sum');
+        open($md5_in,'-|', 'find SCRATCH -type f | sort -f | xargs md5sum');
         while (<$md5_in>) {
             chomp;
             my ($sum,$filename) = split;
