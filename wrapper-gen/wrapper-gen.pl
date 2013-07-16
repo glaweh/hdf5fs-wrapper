@@ -31,6 +31,7 @@ my $in_proto = 0;
 my @autowrap;
 my $need_khiter = 0;
 my @autoerr;
+my @no_syminit;
 
 push @orig_init,"//first resolve fprintf, so it can be used for log messages";
 push @orig_init,"__real_vfprintf = dlsym(RTLD_NEXT, \"vfprintf\");";
@@ -165,6 +166,13 @@ sub function_process() {
                 $funcbody.="    if (va_count>$i) $van[$i]=va_arg(argp,$vat[$i]);\n";
             }
         }
+        if ($#no_syminit >= 0) {
+            $funcbody.="    if ($orig_func_name == NULL) {\n";
+            foreach (@no_syminit) {
+                $funcbody.="        $_\n";
+            }
+            $funcbody.="    }\n";
+        }
         for (my $i=0;$i<=$#pathname_args;$i++) {
             $funcbody.="    need_to_wrap|=((scr_$pathname_args[$i]=__h5fs_filename(path_below_scratch($pathname_args[$i])))!=NULL);\n";
         }
@@ -291,6 +299,10 @@ while (<$in_fh>) {
         $need_khiter = 1;
         next;
     }
+    if (/^\/\/no_syminit:\s+(.+?)\s*$/) {
+        push @no_syminit,$1;
+        next;
+    }
     if (/^\/\// or /^\s*$/) {
         push @orig_ptr,$_;
         push @orig_init,$_;
@@ -318,6 +330,7 @@ while (<$in_fh>) {
         @argn=();
         @autowrap =();
         @autoerr  =();
+        @no_syminit = ();
         $func_name=undef;
         $in_proto=0;
         $need_khiter=0;
