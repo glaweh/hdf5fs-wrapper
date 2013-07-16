@@ -174,8 +174,9 @@ sub function_process() {
                 $funcbody.="        $_\n";
             }
         } else {
-            $funcbody.="        puts(\"$func_name called before initializing\");\n";
-            $funcbody.="        abort();\n";
+            $funcbody.="        printf(\"$func_name called prematurely \"$d_option);\n";
+            $funcbody.="        puts(\"\");\n";
+            $funcbody.="        $orig_func_name=dlsym(RTLD_NEXT, \"$func_name\");";
         }
         $funcbody.="    }\n";
         for (my $i=0;$i<=$#pathname_args;$i++) {
@@ -390,6 +391,7 @@ print $out_fh <<"CCODE";
 #include <stdlib.h>
 #include <stdarg.h>
 #include <errno.h>
+#include <dlfcn.h>
 #include "hdir.h"
 
 inline char * __h5fs_filename(char * name) {
