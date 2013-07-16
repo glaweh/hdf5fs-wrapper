@@ -35,9 +35,9 @@ my @no_syminit;
 
 push @orig_init,"//first resolve fprintf, so it can be used for log messages";
 push @orig_init,"__real_vfprintf = dlsym(RTLD_NEXT, \"vfprintf\");";
-push @orig_init,"if (__real_vfprintf == NULL) { fprintf(stderr,\"cannot resolve vfprintf\\n\");exit(1); };";
+push @orig_init,"if (__real_vfprintf == NULL) { puts(\"cannot resolve vfprintf\\n\");abort(); };";
 push @orig_init,"__real_fprintf = dlsym(RTLD_NEXT, \"fprintf\");";
-push @orig_init,"if (__real_fprintf == NULL) { fprintf(stderr,\"cannot resolve fprintf\\n\");exit(1); };";
+push @orig_init,"if (__real_fprintf == NULL) { puts(\"cannot resolve fprintf\\n\");abort(); };";
 
 open(my $header_fh,'>','real_func_auto.h');
 print $header_fh <<"CCODE";
@@ -69,8 +69,10 @@ sub function_process() {
     my $orig_func="$ret_type (*$orig_func_name)($func_arg);";
     print $header_fh "extern $orig_func\n";
     push @orig_ptr,$orig_func;
-    push @orig_init,"$orig_func_name = dlsym(RTLD_NEXT, \"$func_name\");";
-    push @orig_init,"if ($orig_func_name == NULL) { __real_fprintf(stderr,\"cannot resolve $func_name\\n\");exit(1); };";
+    unless ($orig_func_name =~ /^__real_v?fprintf$/) {
+        push @orig_init,"$orig_func_name = dlsym(RTLD_NEXT, \"$func_name\");";
+        push @orig_init,"if ($orig_func_name == NULL) { __real_fprintf(stderr,\"cannot resolve $func_name\\n\");abort(); };";
+    }
     my $chaincall_arg=join(', ',@nonvar_args);
     my $vafunc = 0;
     my @all_argn = @nonvar_args;

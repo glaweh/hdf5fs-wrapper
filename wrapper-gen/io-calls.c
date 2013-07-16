@@ -635,7 +635,7 @@ int
 //dbgautowrap:   if (pos != len) {
 //dbgautowrap:       real_offset=__real_lseek64(fd,0,SEEK_CUR);
 //dbgautowrap:       LOG_ERR("different data h5/real '%s'/%ld/%ld %d 0x%02x 0x%02x FUCK",scr_fd->hdirent->name,(long int)scr_fd->offset,real_offset,pos,*(b1+pos),*(b2+pos));
-//dbgautowrap:       exit(1);
+//dbgautowrap:       abort();
 //dbgautowrap:   }
 //dbgautowrap:   free(buf2);
 ssize_t

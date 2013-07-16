@@ -38,5 +38,5 @@ int cmdline_info_init() {
 void __attribute__ ((constructor(220))) process_info_init() {
     if (my_pid != 0) return;
     my_pid = getpid();
-    if (cmdline_info_init() < 0) exit(1);
+    if (cmdline_info_init() < 0) abort();
 }
