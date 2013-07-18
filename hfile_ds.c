@@ -363,15 +363,15 @@ hssize_t hfile_ds_write(hfile_ds_t * hfile_ds, hsize_t offset, const void *buf, 
     if (hfile_ds->dims[0] < (newlength+1)) {
         hsize_t newdims[1];
         newdims[0] = DIM_CHUNKED(newlength+1,hfile_ds->chunk[0]);
-        LOG_DBG("resizing dataset '%s' from %d to %d",hfile_ds->name,(int)hfile_ds->dims[0],(int)newdims[0]);
+        LOG_DBG("resizing dataset '%s' from %"PRIi64" to %"PRIi64,hfile_ds->name,(int64_t)hfile_ds->dims[0],(int64_t)newdims[0]);
         if (H5Dset_extent(hfile_ds->set, newdims) < 0) {
             LOG_ERR("error resizing dataset '%s'",hfile_ds->name);
             return(-2);
         }
         hfile_ds->dims[0]=newdims[0];
     }
-    LOG_DBG("'%s', offset: %d, count: %d, length: %d, newlength: %d",
-            hfile_ds->name,(int)offset,(int)count,(int)hfile_ds->length,(int)newlength);
+    LOG_DBG("'%s', offset: %"PRIi64", count: %"PTIi64", length: %"PRIi64", newlength: %"PRIi64,
+            hfile_ds->name,(int64_t)offset,(int64_t)count,(int64_t)hfile_ds->length,(int64_t)newlength);
     hsize_t hs_offset[1], hs_count[1];
     hs_offset[0]=offset;
     hs_count[0]=count;
