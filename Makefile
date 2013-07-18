@@ -18,6 +18,9 @@ h5fs-wrapper.so: wrapper_func.o wrapper_func_auto.o $(HDFFS_OBJ) h5fs.o
 	gcc $(LDFLAGS) -shared -o $@ $^ $(LDLIBS)
 real_func_auto.c real_func_auto.h wrapper_func_auto.c: wrapper-gen/wrapper-gen.pl wrapper-gen/io-calls.c wrapper_func.c
 	./wrapper-gen/wrapper-gen.pl wrapper-gen/io-calls.c wrapper_func.c
+h5fs-wrapper-rpath.so: h5fs-wrapper.so
+	cp -p $< $@
+	chrpath -r /work/glawe/.software/other/arch/x86_64-centos-6.3/lib64 $@
 
 h5fs-repack: h5fs-repack.o logger.h process_info.h $(HDFFS_OBJ)
 h5fs-unpack: h5fs-unpack.o logger.h process_info.h $(HDFFS_OBJ)
