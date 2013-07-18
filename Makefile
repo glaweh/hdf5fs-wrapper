@@ -1,6 +1,10 @@
 CC:=gcc
 CFLAGS:=$(CFLAGS) -fpic -g -O0 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=4
 LDLIBS:=-ldl -lhdf5 -lc
+
+ifeq ($(strip $(SOFT_BASE_OS)),x86_64-centos-6.3)
+LDFLAGS:="-Wl,-rpath,/work/glawe/.software/other/arch/x86_64-centos-6.3/lib64"
+endif
 HDFFS_OBJ:=real_func_auto.o logger.o process_info.o hfile_ds.o chunksize.o hdir.o path_util.o hstack_tree.o env_util.o
 
 wrapper_func_auto.o: CFLAGS:=$(CFLAGS) -Wno-unused-variable -Wno-unused-label -Wno-unused-but-set-variable
@@ -18,9 +22,6 @@ h5fs-wrapper.so: wrapper_func.o wrapper_func_auto.o $(HDFFS_OBJ) h5fs.o
 	gcc $(LDFLAGS) -shared -o $@ $^ $(LDLIBS)
 real_func_auto.c real_func_auto.h wrapper_func_auto.c: wrapper-gen/wrapper-gen.pl wrapper-gen/io-calls.c wrapper_func.c
 	./wrapper-gen/wrapper-gen.pl wrapper-gen/io-calls.c wrapper_func.c
-h5fs-wrapper-rpath.so: h5fs-wrapper.so
-	cp -p $< $@
-	chrpath -r /work/glawe/.software/other/arch/x86_64-centos-6.3/lib64 $@
 
 h5fs-repack: h5fs-repack.o logger.h process_info.h $(HDFFS_OBJ)
 h5fs-unpack: h5fs-unpack.o logger.h process_info.h $(HDFFS_OBJ)
