@@ -28,7 +28,7 @@ herr_t hfile_ds_close(hfile_ds_t * info) {
             LOG_ERR("error writing updated filesize attrib for '%s'",info->name);
         }
         hsize_t old_dim = info->dims[0];
-        info->dims[0] = DIM_CHUNKED(abs(info->length)+1,info->chunk[0]);
+        info->dims[0] = DIM_CHUNKED(llabs(info->length)+1,info->chunk[0]);
         if (old_dim != info->dims[0]) {
             LOG_DBG("resizing %40s, length %6"PRIi64", chunksize %6llu, old_dim %6llu, new_dim %6llu",
                 info->name,info->length,info->chunk[0],old_dim,info->dims[0]);

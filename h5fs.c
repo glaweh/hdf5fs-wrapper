@@ -273,7 +273,7 @@ ssize_t h5fd_write(h5fd_t * h5fd, const void * buf, size_t count) {
     hssize_t bytes_written = hfile_ds_write(h5fd->hdirent->dataset,h5fd->offset,buf,count);
     if (bytes_written >= 0) {
         h5fd->offset+=bytes_written;
-        return((int)bytes_written);
+        return((ssize_t)bytes_written);
     } else if (bytes_written == -1) {
         errno=EBADF;
         return(-1);
