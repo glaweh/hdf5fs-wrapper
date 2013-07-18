@@ -5,6 +5,12 @@ LDLIBS:=-ldl -lhdf5 -lc
 ifeq ($(strip $(SOFT_BASE_OS)),x86_64-centos-6.3)
 LDFLAGS:="-Wl,-rpath,/work/glawe/.software/other/arch/x86_64-centos-6.3/lib64"
 endif
+
+ifneq ($(strip $(SOFT_BASE_OS)),)
+PREFIX:=$(HOME)/.software/other/arch/$(SOFT_BASE_OS)
+else
+PREFIX:=/usr/local
+endif
 HDFFS_OBJ:=real_func_auto.o logger.o process_info.o hfile_ds.o chunksize.o hdir.o path_util.o hstack_tree.o env_util.o
 
 wrapper_func_auto.o: CFLAGS:=$(CFLAGS) -Wno-unused-variable -Wno-unused-label -Wno-unused-but-set-variable
@@ -35,7 +41,11 @@ test_logger:     test_logger.o                  logger.o process_info.o
 test_h5fs_01_hfile_ds.o: test_h5fs_01_hfile_ds.c hfile_ds.h
 test_h5fs_01_hfile_ds: test_h5fs_01_hfile_ds.o hfile_ds.o logger.o process_info.o chunksize.o path_util.o real_func_auto.o
 
+install: all
+	cp -p h5fs-wrapper.so $(PREFIX)/lib/
+	cp -p h5fs-repack h5fs-unpack h5fs-md5sum-size $(PREFIX)/bin/
+
 clean:
 	rm -f *.o *.so test_rel2abs test_pathcmp test_env_util test_logger *_auto.c *_auto.h
 
-.PHONY: clean
+.PHONY: clean install
