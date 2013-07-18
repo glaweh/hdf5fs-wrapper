@@ -337,7 +337,12 @@ hssize_t hfile_ds_read(hfile_ds_t * hfile_ds, hsize_t offset, void * buf, hsize_
         goto errlabel;
     }
     if (H5Dread(hfile_ds->set,H5T_HFILE_DS,dataspace,filespace,H5P_DEFAULT,buf) < 0) {
-        LOG_WARN("error reading data from '%s'",hfile_ds->name);
+        hsize_t fsdims[1];
+        H5Sget_simple_extent_dims(hfile_ds->space, fsdims, NULL);
+        LOG_WARN("error reading data from '%s', offset: %"PRIi64", count %"PRIi64", end %"PRIi64" (length: %"PRIi64", fsdims: %"PRIi64")",
+            hfile_ds->name,(int64_t)offset,(int64_t)count,(int64_t)(offset+count),
+            (int64_t)hfile_ds->length,
+            (int64_t)fsdims[0]);
         goto errlabel;
     }
     H5Sclose(filespace);
