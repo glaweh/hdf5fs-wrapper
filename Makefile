@@ -17,7 +17,7 @@ wrapper_func_auto.o: CFLAGS:=$(CFLAGS) -Wno-unused-variable -Wno-unused-label -W
 # h5fs.o: CFLAGS:=$(CFLAGS) -ULOG_LEVEL -DLOG_LEVEL=5
 h5fs-wrap.o: CFLAGS:=$(CFLAGS) -DPREFIX="\"$(PREFIX)\""
 
-all: h5fs-wrapper.so h5fs-repack h5fs-unpack h5fs-md5sum-size
+all: h5fs-wrapper.so h5fs-repack h5fs-unpack h5fs-md5sum-size h5fs-wrap
 test: test_h5fs_01_hfile_ds
 
 logger.o: logger.c real_func_auto.h
@@ -45,7 +45,7 @@ test_h5fs_01_hfile_ds: test_h5fs_01_hfile_ds.o hfile_ds.o logger.o process_info.
 
 install: all
 	cp -p h5fs-wrapper.so $(PREFIX)/lib/
-	cp -p h5fs-repack h5fs-unpack h5fs-md5sum-size $(PREFIX)/bin/
+	cp -p h5fs-repack h5fs-unpack h5fs-md5sum-size h5fs-wrap $(PREFIX)/bin/
 
 clean:
 	rm -f *.o *.so test_rel2abs test_pathcmp test_env_util test_logger *_auto.c *_auto.h
