@@ -8,7 +8,7 @@
 khash_t(WFILE) * wrapper_files;
 khash_t(WFD)   * wrapper_fds;
 khash_t(WDIR)  * wrapper_dirs;
-char scratch_base[PATH_MAX] = "./SCRATCH";
+char scratch_base[PATH_MAX] = "./H5FS_SCRATCH";
 char scratch_abs[PATH_MAX];
 
 void __attribute__ ((constructor(300))) wrapper_func_init(void) {

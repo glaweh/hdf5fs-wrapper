@@ -26,7 +26,7 @@ h5dd_t __h5dd_t_initializer = {
 struct stat64 hdf_file_stat64;
 struct stat   hdf_file_stat;
 hstack_tree_t * tree;
-char hdf_file[PATH_MAX] = "./scratch${OMPI_COMM_WORLD_RANK:%04d:0}.h5";
+char hdf_file[PATH_MAX] = "./scratch/scratch${OMPI_COMM_WORLD_RANK:%04d:0}.h5";
 
 int init_refcounts(const char * parent, hdirent_t * node, void * op_data) {
     LOG_DBG("'%s', deleted: %d, refcount: %d/%d, length: %"PRId64"",node->name,node->deleted,node->ref_name,node->ref_open,node->dataset->length);
