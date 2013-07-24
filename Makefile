@@ -15,6 +15,7 @@ HDFFS_OBJ:=real_func_auto.o logger.o process_info.o hfile_ds.o chunksize.o hdir.
 
 wrapper_func_auto.o: CFLAGS:=$(CFLAGS) -Wno-unused-variable -Wno-unused-label -Wno-unused-but-set-variable
 # h5fs.o: CFLAGS:=$(CFLAGS) -ULOG_LEVEL -DLOG_LEVEL=5
+h5fs-wrap.o: CFLAGS:=$(CFLAGS) -DPREFIX="\"$(PREFIX)\""
 
 all: h5fs-wrapper.so h5fs-repack h5fs-unpack h5fs-md5sum-size
 test: test_h5fs_01_hfile_ds
@@ -32,6 +33,7 @@ real_func_auto.c real_func_auto.h wrapper_func_auto.c: wrapper-gen/wrapper-gen.p
 h5fs-repack: h5fs-repack.o logger.h process_info.h $(HDFFS_OBJ)
 h5fs-unpack: h5fs-unpack.o logger.h process_info.h $(HDFFS_OBJ)
 h5fs-md5sum-size:  h5fs-md5sum-size.o logger.h process_info.h $(HDFFS_OBJ) -lssl
+h5fs-wrap: h5fs-wrap.o
 
 test_rel2abs:    test_rel2abs.o path_util.o     logger.o process_info.o
 test_env_util:   test_env_util.o env_util.o     logger.o process_info.o
