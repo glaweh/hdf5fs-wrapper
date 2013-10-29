@@ -9,6 +9,7 @@
 #include "hstack_tree.h"
 
 int   n_hdf_src;
+int   verbosity = 1;
 
 hstack_tree_t * tree = NULL;
 
@@ -20,6 +21,21 @@ typedef struct copy_set_stack_data {
 int copy_set_stack(const char * parent, hdirent_t * node, void * op_data) {
     copy_set_stack_data_t * css_data=op_data;
     if (node->dataset == NULL) return(0);
+    if (verbosity > 0) {
+        hstack_tree_hdf5file_t * hdf = tree->hdf;
+        hid_t ds_loc = node->dataset->loc_id;
+        while (hdf!=NULL) {
+            if (hdf->hdf_id==ds_loc)
+                break;
+            hdf=hdf->next;
+        }
+        if (hdf==NULL) {
+            printf("repacking WTF:%s\n",node->name);
+        } else {
+            printf("repacking %s:%s\n",hdf->name,node->name);
+        }
+        fflush(stdout);
+    }
     hfile_ds_reopen(node->dataset);
     hfile_ds_t * target_set = hfile_ds_copy(css_data->target_file, node->dataset, 0, css_data->compress);
     if (target_set == NULL) {
@@ -42,7 +58,22 @@ int main(int argc, char *argv[]) {
     int i;
     for (i=2; i<argc;i++) {
         if (strcmp(argv[i],"base")==0) break;
-        if (hstack_tree_add(tree,argv[i],O_RDONLY) == 1) n_hdf_src++;
+        if (verbosity > 0) {
+            printf("scanning contents of %s ... ",argv[i]);
+            fflush(stdout);
+        }
+        if (hstack_tree_add(tree,argv[i],O_RDONLY) == 1) {
+            if (verbosity > 0) {
+                printf("ok.\n");
+                fflush(stdout);
+            }
+            n_hdf_src++;
+        } else {
+            if (verbosity > 0) {
+                printf("failed.\n");
+                fflush(stdout);
+            }
+        }
     }
     if (n_hdf_src == 0) {
         LOG_FATAL("no src files could be opened");

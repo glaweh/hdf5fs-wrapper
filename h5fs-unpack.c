@@ -9,6 +9,7 @@
 #include "hstack_tree.h"
 
 int   n_hdf_src;
+int   verbosity = 1;
 
 hstack_tree_t * tree = NULL;
 
@@ -21,6 +22,21 @@ int unpack_set_stack(const char * parent, hdirent_t * node, void * op_data) {
     name_len = strlen(export_name);
     for (i=0; i<name_len; i++) {
         if (export_name[i]=='%') export_name[i]='/';
+    }
+    if (verbosity > 0) {
+        hstack_tree_hdf5file_t * hdf = tree->hdf;
+        hid_t ds_loc = node->dataset->loc_id;
+        while (hdf!=NULL) {
+            if (hdf->hdf_id==ds_loc)
+                break;
+            hdf=hdf->next;
+        }
+        if (hdf==NULL) {
+            printf("unpacking WTF:%s to %s\n",node->name,export_name);
+        } else {
+            printf("unpacking %s:%s to %s\n",hdf->name,node->name,export_name);
+        }
+        fflush(stdout);
     }
     hfile_ds_reopen(node->dataset);
     int status = hfile_ds_export(node->dataset,export_name);
@@ -41,7 +57,22 @@ int main(int argc, char *argv[]) {
     n_hdf_src=0;
     int i;
     for (i=1; i<argc;i++) {
-        if (hstack_tree_add(tree,argv[i],O_RDONLY) == 1) n_hdf_src++;
+        if (verbosity > 0) {
+            printf("scanning contents of %s ... ",argv[i]);
+            fflush(stdout);
+        }
+        if (hstack_tree_add(tree,argv[i],O_RDONLY) == 1) {
+            if (verbosity > 0) {
+                printf("ok.\n");
+                fflush(stdout);
+            }
+            n_hdf_src++;
+        } else {
+            if (verbosity > 0) {
+                printf("failed.\n");
+                fflush(stdout);
+            }
+        }
     }
     if (n_hdf_src == 0) {
         LOG_FATAL("no src files could be opened");
