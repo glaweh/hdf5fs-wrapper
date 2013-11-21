@@ -7,6 +7,9 @@
 #include "hfile_ds.h"
 #include "logger.h"
 #include "hstack_tree.h"
+#ifdef DEBUG_TCMALLOC
+#include <google/heap-profiler.h>
+#endif
 
 int   n_hdf_src;
 int   verbosity = 1;
@@ -49,6 +52,9 @@ int copy_set_stack(const char * parent, hdirent_t * node, void * op_data) {
 }
 
 int main(int argc, char *argv[]) {
+#ifdef DEBUG_TCMALLOC
+    HeapProfilerStart("my_heap_profile.txt");
+#endif
     if (argc < 3) {
         fprintf(stderr,"usage: %s <target> <src1> [src2] [src3] [src4]...\n",argv[0]);
         return(1);
@@ -75,6 +81,9 @@ int main(int argc, char *argv[]) {
             }
         }
     }
+#ifdef DEBUG_TCMALLOC
+    HeapProfilerDump("after_reading_hdf_ro");
+#endif
     if (n_hdf_src == 0) {
         LOG_FATAL("no src files could be opened");
         hstack_tree_close(tree);
@@ -90,6 +99,13 @@ int main(int argc, char *argv[]) {
     css_data.compress    = 3;
     hdir_foreach_file(tree->root,HDIRENT_ITERATE_UNORDERED,
             copy_set_stack,&css_data);
+#ifdef DEBUG_TCMALLOC
+    HeapProfilerDump("after_copying_tree");
+#endif
     hstack_tree_close(tree);
+#ifdef DEBUG_TCMALLOC
+    HeapProfilerDump("end_of_code");
+    HeapProfilerStop();
+#endif
     return(0);
 }

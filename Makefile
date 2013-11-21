@@ -1,6 +1,11 @@
 CC:=gcc
 CFLAGS:=$(CFLAGS) -fpic -g -O0 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=4
 LDLIBS:=-ldl -lhdf5 -lc
+ifeq ($(strip $(DEBUG_TCMALLOC)),1)
+	CFLAGS:=$(CFLAGS) -DDEBUG_TCMALLOC
+	LDLIBS:=-ltcmalloc $(LDLIBS)
+	LDLIBS_WRAPPER:=-ltcmalloc
+endif
 
 ifeq ($(strip $(SOFT_BASE_OS)),x86_64-centos-6.3)
 LDFLAGS:="-Wl,-rpath,/work/glawe/.software/other/arch/x86_64-centos-6.3/lib64"
@@ -16,7 +21,7 @@ HDFFS_OBJ:=real_func_auto.o logger.o process_info.o hfile_ds.o chunksize.o hdir.
 wrapper_func_auto.o: CFLAGS:=$(CFLAGS) -Wno-unused-variable -Wno-unused-label -Wno-unused-but-set-variable
 # h5fs.o: CFLAGS:=$(CFLAGS) -ULOG_LEVEL -DLOG_LEVEL=5
 h5fs-wrap: LDFLAGS:=
-h5fs-wrap: LDLIBS:=
+h5fs-wrap: LDLIBS:=$(LDLIBS_WRAPPER)
 h5fs-wrap.o: CFLAGS:=$(CFLAGS) -DPREFIX="\"$(PREFIX)\""
 
 all: h5fs-wrapper.so h5fs-repack h5fs-unpack h5fs-md5sum-size h5fs-wrap
