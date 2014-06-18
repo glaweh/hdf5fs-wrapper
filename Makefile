@@ -55,6 +55,6 @@ install: all
 	cp -p h5fs-repack h5fs-unpack h5fs-md5sum-size h5fs-wrap $(PREFIX)/bin/
 
 clean:
-	rm -f *.o *.so test_rel2abs test_pathcmp test_env_util test_logger *_auto.c *_auto.h
+	rm -f *.o *.so test_rel2abs test_pathcmp test_env_util test_logger *_auto.c *_auto.h h5fs-repack h5fs-unpack h5fs-md5sum-size h5fs-wrap
 
 .PHONY: clean install
