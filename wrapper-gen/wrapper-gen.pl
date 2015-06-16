@@ -137,7 +137,7 @@ sub function_process() {
     unless (exists $func_i{$func_name}) {
         my $funcbody='';
         $need_khiter |= (($#file_args >= 0) or ($#fd_args >= 0) or ($#dir_args >= 0));
-        $funcbody.="$ret_type $func_name($func_arg) {\n";
+        $funcbody.="$ret_type ($func_name)($func_arg) {\n";
         $funcbody.="    int need_to_wrap = 0;\n";
         $funcbody.="    khiter_t k;\n"                                         if     ($need_khiter);
         $funcbody.="    // khiter_t k;\n"                                      unless ($need_khiter);
