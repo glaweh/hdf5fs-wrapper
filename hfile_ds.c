@@ -233,6 +233,7 @@ herr_t hfile_ds_copy_contents(hfile_ds_t * dst, hfile_ds_t *src) {
     }
     hid_t source_space = -1;
     hid_t dst_space    = -1;
+    hid_t   readspace = -1;
     if ((source_space=H5Dget_space(src->set)) < 0) {
         LOG_ERR("error getting source space for '%s'",src->name);
         goto errlabel;
@@ -245,7 +246,6 @@ herr_t hfile_ds_copy_contents(hfile_ds_t * dst, hfile_ds_t *src) {
     hsize_t offset[1] = { 0 };
     hsize_t to_copy = src->length;
     hsize_t hs_count[1];
-    hid_t   readspace = -1;
     while (to_copy > 0) {
         hs_count[0] = (to_copy > copy_block_size ? copy_block_size : to_copy);
         LOG_DBG("file: %s, length: %"PRIi64", offset: %llu, size: %llu, chunksize: %llu",src->name,
@@ -435,6 +435,7 @@ hssize_t hfile_ds_export(hfile_ds_t * src, const char * filename) {
         return(-2);
     }
     hid_t source_space = -1;
+    hid_t   readspace = -1;
     if ((source_space=H5Dget_space(src->set)) < 0) {
         LOG_ERR("error getting source space for '%s'",src->name);
         goto errlabel;
@@ -442,7 +443,6 @@ hssize_t hfile_ds_export(hfile_ds_t * src, const char * filename) {
     hsize_t offset[1] = { 0 };
     hsize_t to_copy = src->length;
     hsize_t hs_count[1];
-    hid_t   readspace = -1;
     while (to_copy > 0) {
         hs_count[0] = (to_copy > copy_block_size ? copy_block_size : to_copy);
         LOG_DBG("file: %s, length: %"PRIi64", offset: %llu, size: %llu",src->name,
