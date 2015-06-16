@@ -1,6 +1,6 @@
 CC:=gcc
-CFLAGS:=$(CFLAGS) -fpic -g -O0 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=4
-LDLIBS:=-ldl -lhdf5 -lc
+CFLAGS:=$(CFLAGS) -fpic -g -O0 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=4 `pkg-config hdf5 --cflags`
+LDLIBS:=-ldl `pkg-config hdf5 --libs` -lc
 ifeq ($(strip $(DEBUG_TCMALLOC)),1)
 	CFLAGS:=$(CFLAGS) -DDEBUG_TCMALLOC
 	LDLIBS:=-ltcmalloc $(LDLIBS)
