@@ -1,5 +1,5 @@
 CC:=gcc
-CFLAGS:=$(CFLAGS) -fpic -g -O0 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=4 `pkg-config hdf5 --cflags`
+CFLAGS:=$(CFLAGS) -fpic -g -O2 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=4 `pkg-config hdf5 --cflags`
 LDLIBS:=-ldl `pkg-config hdf5 --libs` -lc
 SSLLIBS:=`pkg-config libssl --libs`
 ifeq ($(strip $(DEBUG_TCMALLOC)),1)
