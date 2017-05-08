@@ -1,3 +1,4 @@
+//begin_preamble
 /*
  * Copyright (c) 2013 Henning Glawe <glaweh@debian.org>
  *
@@ -16,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with hdf5fs-wrapper.  If not, see <http://www.gnu.org/licenses/>.
  */
-//begin_preamble
+
 #define _GNU_SOURCE
 #define __USE_LARGEFILE64
 #include <dirent.h>
