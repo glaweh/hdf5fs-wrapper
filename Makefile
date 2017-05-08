@@ -1,3 +1,21 @@
+#
+# Copyright (c) 2013-2015 Henning Glawe <glaweh@debian.org>
+#
+# This file is part of hdf5fs-wrapper.
+#
+# hdf5fs-wrapper is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# hdf5fs-wrapper is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with hdf5fs-wrapper.  If not, see <http://www.gnu.org/licenses/>.
+#
 CC:=gcc
 CFLAGS:=$(CFLAGS) -fpic -g -O2 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=4 `pkg-config hdf5 --cflags`
 LDLIBS:=-ldl `pkg-config hdf5 --libs` -lc
