@@ -370,7 +370,7 @@ hssize_t hfile_ds_write(hfile_ds_t * hfile_ds, hsize_t offset, const void *buf, 
         }
         hfile_ds->dims[0]=newdims[0];
     }
-    LOG_DBG("'%s', offset: %"PRIi64", count: %"PTIi64", length: %"PRIi64", newlength: %"PRIi64,
+    LOG_DBG("'%s', offset: %"PRIi64", count: %"PRIi64", length: %"PRIi64", newlength: %"PRIi64,
             hfile_ds->name,(int64_t)offset,(int64_t)count,(int64_t)hfile_ds->length,(int64_t)newlength);
     hsize_t hs_offset[1], hs_count[1];
     hs_offset[0]=offset;
