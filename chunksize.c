@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2013 Henning Glawe <glaweh@debian.org>
+ * Utility functions to suggest chunk size of HDF5 datasets (1D, used
+ * to represent files in hdf5fs-wrapper)
+ *
+ * Copyright (c) 2013, 2017 Henning Glawe <glaweh@debian.org>
  *
  * This file is part of hdf5fs-wrapper.
  *

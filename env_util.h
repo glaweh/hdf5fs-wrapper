@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2013 Henning Glawe <glaweh@debian.org>
+ * expand string with formatted values from environment variables
+ *
+ * Copyright (c) 2013, 2017 Henning Glawe <glaweh@debian.org>
  *
  * This file is part of hdf5fs-wrapper.
  *

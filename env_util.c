@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2013 Henning Glawe <glaweh@debian.org>
+ * expand string with formatted values from environment variables
+ *
+ * Copyright (c) 2013, 2017 Henning Glawe <glaweh@debian.org>
  *
  * This file is part of hdf5fs-wrapper.
  *
@@ -21,6 +23,25 @@
 #include <string.h>
 #include "env_util.h"
 #include "logger.h"
+
+/*
+ * input:  string which may contain '${VAR[:FORMAT[:DEFAULT]]}'
+ * output: string with substitutions from Environment:
+ *         if VAR exists:
+ *             if FORMAT is given:
+ *                 sprintf(FORMAT, VAR)
+ *             else:
+ *                 sprintf('%s', VAR)
+ *         elif DEFAULT is given:
+ *             sprintf(FORMAT, DEFAULT)
+ * return value:
+ *     1: all substitutions worked OK
+ *    -1: at least one substitution failed
+ *        * VAR did not exist and no DEFAULT was given
+ *        * bad format string: ATM only %d and %s are implemented (with field length)
+ *
+ */
+
 int strn_env_expand(const char * input, char * output, int length) {
     const char *input_end = input+strnlen(input,length);
     int had_backslash = 0;
