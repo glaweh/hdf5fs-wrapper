@@ -14,7 +14,9 @@ serious trouble with the 'many-files' pattern:
  - creation/deletion of a file is an expensive operation (involves updates
    of filesystem metadata)
 
-## Basic Usage
+## Examples
+### Basic Usage
+
 ```sh
 H5FS_FILE='./tmp.h5' LD_PRELOAD=h5fs-wrapper.so H5FS_BASE=./my_tmp my_program
 ```
@@ -23,10 +25,13 @@ to the hdf5 archive 'tmp.h5'.
 So if my_program writes to a file 'my_tmp/blah.txt', that file will end up
 as dataset 'blah.txt' inside 'tmp.h5'.
 
+
 ### MPI (parallel) usage (openmpi)
+
 ```sh
 mpirun -np 2 -x H5FS_FILE='./tmp${OMPI_COMM_WORLD_RANK:%04d:0}.h5' -x LD_PRELOAD=h5fs-wrapper.so -x H5FS_BASE=./my_tmp my_program
 ```
+
 Note:
  - each MPI rank needs to have its own hdf5 archive (the wrapper supports
    expansion of environment variables, with optional printf-format-string
@@ -37,8 +42,9 @@ Note:
    a simple shell loader must be used; mpirun itself should not be run
    with LD_PRELOAD
 
-## Advanced usage
-### Copy-on-write (COW)
+
+### Advanced usage: Copy-on-write (COW) stacks
+
 An advanced feature of hdf5fs-wrapper is the ability to work in copy-on-write (COW) mode:
 ```sh
 # run my_program to create 'basis' of COW
