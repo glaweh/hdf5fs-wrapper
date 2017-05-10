@@ -38,10 +38,6 @@ ifeq ($(strip $(DEBUG_TCMALLOC)),1)
 	LDLIBS_WRAPPER:=-ltcmalloc
 endif
 
-ifeq ($(strip $(SOFT_BASE_OS)),x86_64-centos-6.3)
-LDFLAGS:="-Wl,-rpath,/work/glawe/.software/other/arch/x86_64-centos-6.3/lib64"
-endif
-
 
 # stolen from: http://stackoverflow.com/questions/10858261/abort-makefile-if-variable-not-set
 #   Macros which check defined-ness of variables, with user-defined error messages
@@ -58,7 +54,6 @@ HDFFS_OBJ:=real_func_auto.o logger.o process_info.o hfile_ds.o chunksize.o hdir.
 
 wrapper_func_auto.o: CFLAGS:=$(CFLAGS) -Wno-unused-variable -Wno-unused-label -Wno-unused-but-set-variable
 # h5fs.o: CFLAGS:=$(CFLAGS) -ULOG_LEVEL -DLOG_LEVEL=5
-h5fs-wrap: LDFLAGS:=
 h5fs-wrap: LDLIBS:=$(LDLIBS_WRAPPER)
 h5fs-wrap.o: CFLAGS:=$(CFLAGS) -DPREFIX="\"$(PREFIX)\""
 h5fs-md5sum-size.o: CFLAGS:=$(CFLAGS) $(SSL_CFLAGS)
