@@ -14,6 +14,10 @@ serious trouble with the 'many-files' pattern:
  - creation/deletion of a file is an expensive operation (involves updates
    of filesystem metadata)
 
+## Usage:
+Installation instructions can be found in [INSTALL.md](INSTALL.md).
+
+
 ## Examples
 ### Basic Usage
 
