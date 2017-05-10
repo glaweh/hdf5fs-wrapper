@@ -56,3 +56,20 @@ h5fs-repack COW_basis.h5 tmp0*.h5
 # run my_postprocessor with COW_basis.h5 as read-only part of the COW stack
 mpirun -np 2 -x H5FS_FILE='./tmp${OMPI_COMM_WORLD_RANK:%04d:0}.h5' -x H5FS_RO=COW_basis.h5 -x LD_PRELOAD=h5fs-wrapper.so -x H5FS_BASE=./my_tmp my_postprocessor
 ```
+
+
+## Mechanism
+
+hdf5fs-wrapper is a library, inserted via $LD_PRELOAD in between your
+program and the system library (libc).
+It then intercepts all symbols (functions) related to file-IO.
+
+If a filename lies below the directory $H5FS_BASE, the operation is
+executed internally in the wrapper.
+For all other files, the intercepted call is forwarded to the system
+library without modification.
+
+This kind of implementation comes with no decrease in performance; in
+fact, execution speed even increases (due to the cost of
+metadata-modifications on parallel filesystems and the lack thereof
+when using hdf5fs-wrapper).
