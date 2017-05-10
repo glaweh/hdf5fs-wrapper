@@ -17,7 +17,7 @@
 # along with hdf5fs-wrapper.  If not, see <http://www.gnu.org/licenses/>.
 #
 -include Makefile.inc
-CC?=gcc
+CC:=gcc
 
 ifeq ($(strip $(HDF5_LIBS)),)
 HDF5_CFLAGS := $(shell pkg-config hdf5 --cflags 2>/dev/null)
