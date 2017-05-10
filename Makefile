@@ -69,7 +69,7 @@ h5fs-wrap: LDLIBS:=$(LDLIBS_WRAPPER)
 h5fs-wrap.o: CFLAGS:=$(CFLAGS) -DPREFIX="\"$(PREFIX)\""
 h5fs-md5sum-size.o: CFLAGS:=$(CFLAGS) $(SSL_CFLAGS)
 
-all: h5fs-wrapper.so h5fs-repack h5fs-unpack h5fs-md5sum-size h5fs-wrap
+all: check_defined_libs h5fs-wrapper.so h5fs-repack h5fs-unpack h5fs-md5sum-size h5fs-wrap
 check_defined_libs:
 	@:$(call check_defined, SSL_LIBS, pkg-config libssl failed. please specify SSL_CFLAGS and SSL_LIBS manually)
 	@:$(call check_defined, HDF5_LIBS, pkg-config hdf5 failed. please spcify HDF5_CFLAGS and HDF5_LIBS manually)
