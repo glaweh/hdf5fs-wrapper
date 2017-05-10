@@ -14,9 +14,41 @@ serious trouble with the 'many-files' pattern:
  - creation/deletion of a file is an expensive operation (involves updates
    of filesystem metadata)
 
-## Usage:
+## Installation:
+
 Installation instructions can be found in [INSTALL.md](INSTALL.md).
 
+
+## Usage
+
+```sh
+LD_PRELOAD=h5fs-wrapper.so [H5FS_BASE=...] [H5FS_FILE=...] my_program
+```
+### Environment variables
+
+Options to h5fs-wrapper.so can only be passed as environment variables and
+support simple expansion (see below):
+
+  - $H5FS_BASE [Default: './H5FS_SCRATCH']
+    IO of my_program is redirected if file resides below this directory
+  - $H5FS_FILE [Default: './scratch/scratch${OMPI_COMM_WORLD_RANK:%04d:0}.h5']
+    IO of my_program will be redirected to this file
+
+Only for advanced usage (COW support)
+  - $H5FS_RO [Default: empty]
+    If set, build a Copy-On-Write (COW) stack and use this hdf5 file as the
+    read-only base.
+
+Simple expansion inside the wrapper is supported. String literals are expanded
+from other environment variables in the following cases:
+  - ${VARIABLE}
+    expands to the contents of environment variabe $VARIABLE
+  - ${VARIABLE:format_string:default_value}
+    * value is taken from $VARIABLE, or the literal default_value if $VARIABLE
+      is not defined in environment (fallback mechanism
+    * value is then formatted via sprintf format_string (currently supported
+      formats: '%s' and '%d').
+      e.g. 'scratch${OMPI_COMM_WORLD_RANK:%04d:0}.h5' expands to scratch0000.h5
 
 ## Examples
 ### Basic Usage
