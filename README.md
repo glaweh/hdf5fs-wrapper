@@ -9,7 +9,7 @@ files.
 
 HPC filesystems perform well for large files, and may even run into
 serious trouble with the 'many-files' pattern:
- - worst of all: running out of INODES (i.e. reaching the maximum possible
+ - worst-case: running out of INODES (i.e. reaching the maximum possible
    number of files on the filesystem)
  - creation/deletion of a file is an expensive operation (involves updates
    of filesystem metadata)
