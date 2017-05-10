@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with hdf5fs-wrapper.  If not, see <http://www.gnu.org/licenses/>.
 #
+-include Makefile.inc
 CC:=gcc
 HDF5_CFLAGS:=$(shell pkg-config hdf5 --cflags)
 HDF5_LIBS:=$(shell pkg-config hdf5 --libs)
