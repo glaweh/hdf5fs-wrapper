@@ -1,1 +1,0 @@
-mpirun -np 2 -x H5FS_FILE=./scratch/scratch${OMPI_COMM_WORLD_RANK:%04d:0}.h5' -x H5FS_RO=/srv/work/storage/2014-03-05-loc_thesis_fine/KO2.1402771416/110-DOS.scf/archive.h5 -x LD_PRELOAD=/home/glawe/.software/other/arch/x86_64-debian-wheezy/lib/h5fs-wrapper.so -x H5FS_BASE=./H5FS_SCRATCH -x OMP_NUM_THREADS=1
