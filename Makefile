@@ -18,16 +18,15 @@
 #
 -include Makefile.inc
 CC?=gcc
-HDF5_CFLAGS:=$(shell pkg-config hdf5 --cflags)
-HDF5_LIBS:=$(shell pkg-config hdf5 --libs)
-SSL_CFLAGS:=$(shell pkg-config libssl --cflags)
-SSL_LIBS:=$(shell pkg-config libssl --libs)
+
+ifeq ($(strip $(HDF5_LIBS)),)
+HDF5_CFLAGS := $(shell pkg-config hdf5 --cflags 2>/dev/null)
+HDF5_LIBS   := $(shell pkg-config hdf5 --libs)
+endif
 
 ifeq ($(strip $(SSL_LIBS)),)
-$(error pkg-config libssl failed, please specify SSL_CFLAGS and SSL_LIBS manually)
-endif
-ifeq ($(strip $(HDF5_LIBS)),)
-$(error pkg-config hdf5 failed, please spcify HDF5_CFLAGS and HDF5_LIBS manually)
+SSL_CFLAGS  := $(shell pkg-config libssl --cflags 2>/dev/null)
+SSL_LIBS    := $(shell pkg-config libssl --libs)
 endif
 
 CFLAGS:=$(CFLAGS) -fpic -g -O2 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=4 $(HDF5_CFLAGS)
