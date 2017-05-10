@@ -18,6 +18,7 @@
 #
 -include Makefile.inc
 CC:=gcc
+PREFIX?=/usr/local
 
 ifeq ($(strip $(HDF5_LIBS)),)
 HDF5_CFLAGS := $(shell pkg-config hdf5 --cflags 2>/dev/null)
@@ -39,12 +40,6 @@ endif
 
 ifeq ($(strip $(SOFT_BASE_OS)),x86_64-centos-6.3)
 LDFLAGS:="-Wl,-rpath,/work/glawe/.software/other/arch/x86_64-centos-6.3/lib64"
-endif
-
-ifneq ($(strip $(SOFT_BASE_OS)),)
-PREFIX:=$(HOME)/.software/other/arch/$(SOFT_BASE_OS)
-else
-PREFIX:=/usr/local
 endif
 
 
