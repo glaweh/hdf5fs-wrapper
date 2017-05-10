@@ -17,9 +17,20 @@
 # along with hdf5fs-wrapper.  If not, see <http://www.gnu.org/licenses/>.
 #
 CC:=gcc
-CFLAGS:=$(CFLAGS) -fpic -g -O2 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=4 `pkg-config hdf5 --cflags`
-LDLIBS:=-ldl `pkg-config hdf5 --libs` -lc
-SSLLIBS:=`pkg-config libssl --libs`
+HDF5_CFLAGS:=$(shell pkg-config hdf5 --cflags)
+HDF5_LIBS:=$(shell pkg-config hdf5 --libs)
+SSL_CFLAGS:=$(shell pkg-config libssl --cflags)
+SSL_LIBS:=$(shell pkg-config libssl --libs)
+
+ifeq ($(strip $(SSL_LIBS)),)
+$(error pkg-config libssl failed, please specify SSL_CFLAGS and SSL_LIBS manually)
+endif
+ifeq ($(strip $(HDF5_LIBS)),)
+$(error pkg-config hdf5 failed, please spcify HDF5_CFLAGS and HDF5_LIBS manually)
+endif
+
+CFLAGS:=$(CFLAGS) -fpic -g -O2 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=4 $(HDF5_CFLAGS)
+LDLIBS:=-ldl $(HDF5_LIBS) -lc
 ifeq ($(strip $(DEBUG_TCMALLOC)),1)
 	CFLAGS:=$(CFLAGS) -DDEBUG_TCMALLOC
 	LDLIBS:=-ltcmalloc $(LDLIBS)
