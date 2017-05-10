@@ -47,6 +47,19 @@ PREFIX:=$(HOME)/.software/other/arch/$(SOFT_BASE_OS)
 else
 PREFIX:=/usr/local
 endif
+
+
+# stolen from: http://stackoverflow.com/questions/10858261/abort-makefile-if-variable-not-set
+#   Macros which check defined-ness of variables, with user-defined error messages
+check_defined = \
+    $(strip $(foreach 1,$1, \
+        $(call __check_defined,$1,$(strip $(value 2)))))
+__check_defined = \
+    $(if $(value $1),, \
+        $(error Undefined $1$(if $2, ($2))$(if $(value @), \
+                required by target '$@')))
+
+
 HDFFS_OBJ:=real_func_auto.o logger.o process_info.o hfile_ds.o chunksize.o hdir.o path_util.o hstack_tree.o env_util.o
 
 wrapper_func_auto.o: CFLAGS:=$(CFLAGS) -Wno-unused-variable -Wno-unused-label -Wno-unused-but-set-variable
@@ -57,6 +70,10 @@ h5fs-wrap.o: CFLAGS:=$(CFLAGS) -DPREFIX="\"$(PREFIX)\""
 h5fs-md5sum-size.o: CFLAGS:=$(CFLAGS) $(SSL_CFLAGS)
 
 all: h5fs-wrapper.so h5fs-repack h5fs-unpack h5fs-md5sum-size h5fs-wrap
+check_defined_libs:
+	@:$(call check_defined, SSL_LIBS, pkg-config libssl failed. please specify SSL_CFLAGS and SSL_LIBS manually)
+	@:$(call check_defined, HDF5_LIBS, pkg-config hdf5 failed. please spcify HDF5_CFLAGS and HDF5_LIBS manually)
+
 test: test_h5fs_01_hfile_ds
 
 logger.o: logger.c real_func_auto.h
@@ -90,4 +107,4 @@ install: all
 clean:
 	rm -f *.o *.so test_rel2abs test_pathcmp test_env_util test_logger *_auto.c *_auto.h h5fs-repack h5fs-unpack h5fs-md5sum-size h5fs-wrap
 
-.PHONY: clean install
+.PHONY: clean install check_defined_libs
