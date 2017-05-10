@@ -54,6 +54,7 @@ wrapper_func_auto.o: CFLAGS:=$(CFLAGS) -Wno-unused-variable -Wno-unused-label -W
 h5fs-wrap: LDFLAGS:=
 h5fs-wrap: LDLIBS:=$(LDLIBS_WRAPPER)
 h5fs-wrap.o: CFLAGS:=$(CFLAGS) -DPREFIX="\"$(PREFIX)\""
+h5fs-md5sum-size.o: CFLAGS:=$(CFLAGS) $(SSL_CFLAGS)
 
 all: h5fs-wrapper.so h5fs-repack h5fs-unpack h5fs-md5sum-size h5fs-wrap
 test: test_h5fs_01_hfile_ds
