@@ -32,10 +32,18 @@ endif
 
 CFLAGS:=$(CFLAGS) -fpic -g -O2 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=4 $(HDF5_CFLAGS)
 LDLIBS:=-ldl $(HDF5_LIBS) -lc
+
+# if DEBUG_TCMALLOC is 1, use tcmalloc to track possible memory leaks
+# tcmalloc is part of "Google Performance Tools":
+#   http://goog-perftools.sourceforge.net/
+# currently, "DEBUG_TCMALLOC" is used in 'h5fs-repack', which traces/prints
+#   heap usage
+# Tracing heap usage within the wrapper itself is confused by the mallocs in
+#   the wrapped code
 ifeq ($(strip $(DEBUG_TCMALLOC)),1)
-	CFLAGS:=$(CFLAGS) -DDEBUG_TCMALLOC
-	LDLIBS:=-ltcmalloc $(LDLIBS)
-	LDLIBS_WRAPPER:=-ltcmalloc
+CFLAGS:=$(CFLAGS) -DDEBUG_TCMALLOC
+LDLIBS:=-ltcmalloc $(LDLIBS)
+LDLIBS_WRAPPER:=-ltcmalloc
 endif
 
 
