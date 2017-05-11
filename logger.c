@@ -30,9 +30,9 @@ FILE * log_stream = NULL;
 
 void log_msg_function(const char *function_name, const char *fstring, ...) {
     char msg_buffer[LOGMSG_MAX];
-	if (my_pid == 0) {
+    if (my_pid == 0) {
         process_info_init();
-	}
+    }
     if (log_stream == NULL) {
         log_stream = stderr;
         log_msg_function(__func__,"prog: '%s'",my_cmdline_info.argv[0]);
