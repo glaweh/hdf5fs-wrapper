@@ -11,3 +11,4 @@ test_env_util
 test_logger
 *_auto.c
 *_auto.h
+Makefile.inc
