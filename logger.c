@@ -28,6 +28,18 @@ extern void process_info_init();
 
 FILE * log_stream = NULL;
 
+const char * log_level_str[] = {
+    "ACOPALYPSE", // Level 0: should never happen
+    "FATAL",      // Level 1
+    "ERROR",      // Level 2
+    "WARNING",    // Level 3
+    "INFO",       // Level 4
+    "DEBUG",      // Level 5
+    "DEBUG2",     // Level 6
+    "DEBUG3",     // Level 7
+    "WTF",        // Level 8: should never happen
+};
+
 void log_msg_function(const char *function_name, const char *fstring, ...) {
     char msg_buffer[LOGMSG_MAX];
     if (my_pid == 0) {
