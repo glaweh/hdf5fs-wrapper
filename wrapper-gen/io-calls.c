@@ -461,13 +461,12 @@ int
 //no_syminit:    // openmpi's malloc()-wrapper calls stat on infiniband/myrinet device nodes
 //no_syminit:    // dlsym() calls malloc()
 //no_syminit:    // break the deadlock by pretending the device exists
-//no_syminit:    printf("__xstat prematurely called: '%s'\n",name);
+//no_syminit:    LOG_EARLY_DBG("called before wrapper initialization (\"%s\")",name);
 //no_syminit:    int i; const char * dev_str = "/dev/"; const char * sys_str="/sys/";
 //no_syminit:    for (i=0;i<5;i++) if (*(dev_str+i)!=*(name+i)) break;
 //no_syminit:    if (i==5) return(0);
 //no_syminit:    for (i=0;i<5;i++) if (*(sys_str+i)!=*(name+i)) break;
 //no_syminit:    if (i==5) return(0);
-//no_syminit:    printf("resolving __xtat\n");
 //no_syminit:    __real___xstat=dlsym(RTLD_NEXT, "__xstat");
 //autowrap:      retval=h5fs_stat(scr_name,buf);
 int
@@ -482,13 +481,12 @@ int
 //no_syminit:    // openmpi's malloc()-wrapper calls stat on infiniband/myrinet device nodes
 //no_syminit:    // dlsym() calls malloc()
 //no_syminit:    // break the deadlock by pretending the device exists
-//no_syminit:    printf("__lxstat prematurely called: '%s'\n",name);
+//no_syminit:    LOG_EARLY_DBG("called before wrapper initialization (\"%s\")",name);
 //no_syminit:    int i; const char * dev_str = "/dev/"; const char * sys_str="/sys/";
 //no_syminit:    for (i=0;i<5;i++) if (*(dev_str+i)!=*(name+i)) break;
 //no_syminit:    if (i==5) return(0);
 //no_syminit:    for (i=0;i<5;i++) if (*(sys_str+i)!=*(name+i)) break;
 //no_syminit:    if (i==5) return(0);
-//no_syminit:    printf("resolving __lxtat\n");
 //no_syminit:    __real___lxstat=dlsym(RTLD_NEXT, "__lxstat");
 //autowrap:      retval=h5fs_stat(scr_name,buf);
 int
@@ -513,13 +511,12 @@ int
 //no_syminit:    // openmpi's malloc()-wrapper calls stat on infiniband/myrinet device nodes
 //no_syminit:    // dlsym() calls malloc()
 //no_syminit:    // break the deadlock by pretending the device exists
-//no_syminit:    printf("__xstat64 prematurely called: '%s'\n",name);
+//no_syminit:    LOG_EARLY_DBG("called before wrapper initialization (\"%s\")",name);
 //no_syminit:    int i; const char * dev_str = "/dev/"; const char * sys_str="/sys/";
 //no_syminit:    for (i=0;i<5;i++) if (*(dev_str+i)!=*(name+i)) break;
 //no_syminit:    if (i==5) return(0);
 //no_syminit:    for (i=0;i<5;i++) if (*(sys_str+i)!=*(name+i)) break;
 //no_syminit:    if (i==5) return(0);
-//no_syminit:    printf("resolving __xtat64\n");
 //no_syminit:    __real___xstat64=dlsym(RTLD_NEXT, "__xstat64");
 //autowrap:      retval=h5fs_stat64(scr_name,buf);
 int
@@ -534,13 +531,12 @@ int
 //no_syminit:    // openmpi's malloc()-wrapper calls stat on infiniband/myrinet device nodes
 //no_syminit:    // dlsym() calls malloc()
 //no_syminit:    // break the deadlock by pretending the device exists
-//no_syminit:    printf("__lxstat64 prematurely called: '%s'\n",name);
+//no_syminit:    LOG_EARLY_DBG("called before wrapper initialization (\"%s\")",name);
 //no_syminit:    int i; const char * dev_str = "/dev/"; const char * sys_str="/sys/";
 //no_syminit:    for (i=0;i<5;i++) if (*(dev_str+i)!=*(name+i)) break;
 //no_syminit:    if (i==5) return(0);
 //no_syminit:    for (i=0;i<5;i++) if (*(sys_str+i)!=*(name+i)) break;
 //no_syminit:    if (i==5) return(0);
-//no_syminit:    printf("resolving __lxtat64\n");
 //no_syminit:    __real___lxstat64=dlsym(RTLD_NEXT, "__lxstat64");
 //autowrap:      retval=h5fs_stat64(scr_name,buf);
 int
@@ -578,13 +574,12 @@ int
 //no_syminit:    // openmpi's malloc()-wrapper calls access on infiniband/myrinet device nodes
 //no_syminit:    // dlsym() calls malloc()
 //no_syminit:    // break the deadlock by pretending the device exists
-//no_syminit:    printf("access prematurely called: '%s'\n",name);
+//no_syminit:    LOG_EARLY_DBG("called before wrapper initialization (\"%s\")",name);
 //no_syminit:    int i; const char * dev_str = "/dev/"; const char * sys_str="/sys/";
 //no_syminit:    for (i=0;i<5;i++) if (*(dev_str+i)!=*(name+i)) break;
 //no_syminit:    if (i==5) return(0);
 //no_syminit:    for (i=0;i<5;i++) if (*(sys_str+i)!=*(name+i)) break;
 //no_syminit:    if (i==5) return(0);
-//no_syminit:    printf("resolving access\n");
 //no_syminit:    __real_access=dlsym(RTLD_NEXT, "access");
 int
     access(
