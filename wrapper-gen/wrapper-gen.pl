@@ -50,6 +50,7 @@ my @autowrap;
 my $need_khiter = 0;
 my @autoerr;
 my @no_syminit;
+my $lineno = 0;
 
 push @orig_init,"//first resolve fprintf, so it can be used for log messages";
 push @orig_init,"__real_vfprintf = dlsym(RTLD_NEXT, \"vfprintf\");";
@@ -230,7 +231,7 @@ sub function_process() {
                 $funcbody.="        $_\n";
             }
         } else {
-            $funcbody.="        LOG_ERR(\"wrapping_needed\"$d_option);\n";
+            $funcbody.="        LOG_ERR(\"NOT IMPLEMENTED in $io_calls_template:$lineno ! Call arguments: \"$d_option);\n";
             $funcbody.="        retval = $orig_func_name($chaincall_arg);\n"       unless ($void_ret);
             $funcbody.="        $orig_func_name($chaincall_arg);\n"                if     ($void_ret);
         }
@@ -267,7 +268,6 @@ while (<$wfm_fh>) {
 }
 close($wfm_fh);
 
-my $lineno = 0;
 my $in_preamble = 0;
 open (my $in_fh,'<',$io_calls_template) or die "fukk: $io_calls_template";
 while (<$in_fh>) {
