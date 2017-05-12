@@ -113,7 +113,7 @@ void __attribute__ ((constructor)) h5fs_init(void) {
     if (stat(hdf_expand2,&hdf_file_stat) < 0) {
         LOG_WARN("error calling stat on '%s', %s",hdf_expand2,strerror(errno));
     }
-    LOG_INFO("fixing refcounters");
+    LOG_DBG("fixing refcounters");
     hdir_foreach_file(tree->root,HDIRENT_ITERATE_UNORDERED,init_refcounts,NULL);
 }
 
