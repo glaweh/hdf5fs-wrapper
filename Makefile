@@ -20,6 +20,7 @@
 CC:=gcc
 PREFIX?=/usr/local
 WRAPPER_GEN_FLAGS?= #possible values: --noautowrap, --debugwrap
+LOG_LEVEL?=4
 
 ifeq ($(strip $(HDF5_LIBS)),)
 HDF5_CFLAGS := $(shell pkg-config hdf5 --cflags 2>/dev/null)
@@ -31,7 +32,7 @@ SSL_CFLAGS  := $(shell pkg-config libssl --cflags 2>/dev/null)
 SSL_LIBS    := $(shell pkg-config libssl --libs)
 endif
 
-CFLAGS:=$(CFLAGS) -fpic -g -O2 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=4 $(HDF5_CFLAGS)
+CFLAGS:=$(CFLAGS) -fpic -g -O2 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=$(LOG_LEVEL) $(HDF5_CFLAGS)
 LDLIBS:=-ldl $(HDF5_LIBS) -lc
 
 # if DEBUG_TCMALLOC is 1, use tcmalloc to track possible memory leaks
