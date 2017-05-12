@@ -192,8 +192,8 @@ sub function_process() {
                 $funcbody.="        $_\n";
             }
         } else {
-            $funcbody.="        $orig_func_name=dlsym(RTLD_NEXT, \"$func_name\");";
-            $funcbody.="        LOG_ERR(\"called prematurely \"$d_option);\n";
+            $funcbody.="        $orig_func_name=dlsym(RTLD_NEXT, \"$func_name\");\n";
+            $funcbody.="        LOG_DBG(\"called before wrapper initialization \"$d_option);\n";
         }
         $funcbody.="    }\n";
         $funcbody.="    if (wrapper_files==NULL) return($orig_func_name($chaincall_arg));\n";
