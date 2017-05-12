@@ -31,6 +31,7 @@
 #define LOG_LEVEL_DBG3     (7)
 
 void log_msg_function(const int log_level, const char *function_name, const char *fstring, ...) __attribute__ ((format (printf, 3, 4)));
+void log_early_msg_function(const int log_level, const char *function_name, const char *fstring, ...) __attribute__ ((format (printf, 3, 4)));
 
 #if (LOG_LEVEL >= LOG_LEVEL_FATAL)
 #define LOG_FATAL(...) log_msg_function(LOG_LEVEL_FATAL, __func__, __VA_ARGS__)
@@ -66,6 +67,42 @@ void log_msg_function(const int log_level, const char *function_name, const char
 #define LOG_DBG3(...) log_msg_function(LOG_LEVEL_DBG3, __func__, __VA_ARGS__)
 #else
 #define LOG_DBG3(...) do {} while(0)
+#endif
+
+#if (LOG_LEVEL >= LOG_LEVEL_FATAL)
+#define LOG_EARLY_FATAL(...) log_early_msg_function(LOG_LEVEL_FATAL, __func__, __VA_ARGS__)
+#else
+#define LOG_EARLY_FATAL(...) do {} while(0)
+#endif
+#if (LOG_LEVEL >= LOG_LEVEL_ERR)
+#define LOG_EARLY_ERR(...) log_early_msg_function(LOG_LEVEL_ERR, __func__, __VA_ARGS__)
+#else
+#define LOG_EARLY_ERR(...) do {} while(0)
+#endif
+#if (LOG_LEVEL >= LOG_LEVEL_WARN)
+#define LOG_EARLY_WARN(...) log_early_msg_function(LOG_LEVEL_WARN, __func__, __VA_ARGS__)
+#else
+#define LOG_EARLY_WARN(...) do {} while(0)
+#endif
+#if (LOG_LEVEL >= LOG_LEVEL_INFO)
+#define LOG_EARLY_INFO(...) log_early_msg_function(LOG_LEVEL_INFO, __func__, __VA_ARGS__)
+#else
+#define LOG_EARLY_INFO(...) do {} while(0)
+#endif
+#if (LOG_LEVEL >= LOG_LEVEL_DBG)
+#define LOG_EARLY_DBG(...) log_early_msg_function(LOG_LEVEL_DBG, __func__, __VA_ARGS__)
+#else
+#define LOG_EARLY_DBG(...) do {} while(0)
+#endif
+#if (LOG_LEVEL >= LOG_LEVEL_DBG2)
+#define LOG_EARLY_DBG2(...) log_early_msg_function(LOG_LEVEL_DBG2, __func__, __VA_ARGS__)
+#else
+#define LOG_EARLY_DBG2(...) do {} while(0)
+#endif
+#if (LOG_LEVEL >= LOG_LEVEL_DBG3)
+#define LOG_EARLY_DBG3(...) log_early_msg_function(LOG_LEVEL_DBG3, __func__, __VA_ARGS__)
+#else
+#define LOG_EARLY_DBG3(...) do {} while(0)
 #endif
 
 #endif

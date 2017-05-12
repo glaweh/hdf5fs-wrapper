@@ -63,3 +63,22 @@ void log_msg_function(const int log_level, const char *function_name, const char
     msg_buffer[msglen+1]=0;
     fputs(msg_buffer,log_stream);
 }
+
+void log_early_msg_function(const int log_level, const char *function_name, const char *fstring, ...) {
+    // early-callable log-msg function which cannot use 'wrapped-away' symbols due to dependency loops
+    // note that we _have to_ write to stdout here, as fputs is wrapped-away
+    char msg_buffer[LOGMSG_MAX];
+
+    int prefix_len=snprintf(msg_buffer,LOGMSG_MAX,"%6d %7s %15.15s | ",getpid(),log_level_str[log_level],function_name);
+    va_list vargs;
+    va_start(vargs,fstring);
+    int user_len=vsnprintf(msg_buffer+prefix_len,LOGMSG_MAX-prefix_len,fstring,vargs);
+    va_end(vargs);
+    int msglen = prefix_len+user_len;
+    if (msglen > (LOGMSG_MAX-3)) {
+        msglen = LOGMSG_MAX-3;
+    }
+    msg_buffer[msglen]='\n';
+    msg_buffer[msglen+1]=0;
+    puts(msg_buffer);
+}
