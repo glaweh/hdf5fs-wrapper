@@ -31,7 +31,7 @@ support simple expansion (see below):
 
   - $H5FS_BASE [Default: './H5FS_SCRATCH']
     IO of my_program is redirected if file resides below this directory
-  - $H5FS_FILE [Default: './scratch/scratch${OMPI_COMM_WORLD_RANK:%04d:0}.h5']
+  - $H5FS_FILE [Default: './scratch_${OMPI_COMM_WORLD_RANK:%04d:0}.h5']
     IO of my_program will be redirected to this file
 
 Only for advanced usage (COW support)
