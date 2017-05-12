@@ -39,7 +39,7 @@ void __attribute__ ((constructor(300))) wrapper_func_init(void) {
         strncpy(scratch_base,env_ptr,PATH_MAX);
     }
     rel2abs(scratch_base,scratch_abs);
-    LOG_INFO("scratch_abs: '%s'",scratch_abs);
+    LOG_INFO("root path treated by wrapper: '%s/'",scratch_abs);
 }
 
 void __attribute__ ((destructor(300)))  wrapper_func_fini(void) {

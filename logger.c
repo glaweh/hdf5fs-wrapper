@@ -44,7 +44,6 @@ void log_msg_function(const int log_level, const char *function_name, const char
     char msg_buffer[LOGMSG_MAX];
     if (my_pid == 0) {
         process_info_init();
-        LOG_INFO("log for program name '%s'", my_cmdline_info.argv[0]);
     }
     if (log_stream == NULL) {
         log_stream = stderr;

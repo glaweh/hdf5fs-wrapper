@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include "process_info.h"
 #include <stdlib.h>
+#include "logger.h"
 
 pid_t          my_pid = 0;
 cmdline_info_t my_cmdline_info;
@@ -56,4 +57,5 @@ void __attribute__ ((constructor(220))) process_info_init() {
     if (my_pid != 0) return;
     my_pid = getpid();
     if (cmdline_info_init() < 0) abort();
+    LOG_INFO("program name '%s'", my_cmdline_info.argv[0]);
 }
