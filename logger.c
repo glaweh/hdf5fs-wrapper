@@ -50,7 +50,7 @@ void log_msg_function(const int log_level, const char *function_name, const char
         log_stream = stderr;
     }
 
-    int prefix_len=snprintf(msg_buffer,LOGMSG_MAX,"%6d %15.15s | ",my_pid,function_name);
+    int prefix_len=snprintf(msg_buffer,LOGMSG_MAX,"%6d %7s %15.15s | ",my_pid,log_level_str[log_level],function_name);
     va_list vargs;
     va_start(vargs,fstring);
     int user_len=vsnprintf(msg_buffer+prefix_len,LOGMSG_MAX-prefix_len,fstring,vargs);
