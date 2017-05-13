@@ -21,6 +21,12 @@
 #include <stdlib.h>
 
 char *wrapper = PREFIX"/lib/h5fs-wrapper.so";
+char *wrapper_basename = "h5fs-wrapper.so";
+int rel_wrapper_testdir_len = 2;
+char * rel_wrapper_testdir[] = {
+    "..",         // same dir as h5fs-wrap
+    "../../lib",  // or ../lib
+};
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
