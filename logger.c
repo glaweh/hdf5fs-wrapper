@@ -50,7 +50,7 @@ void log_msg_function(const int log_level, const char *function_name, const char
         log_stream = stderr;
     }
 
-    int prefix_len=snprintf(msg_buffer,LOGMSG_MAX,"%-10s %6d %7s %20.20s | ",log_tag,my_pid,log_level_str[log_level],function_name);
+    int prefix_len=snprintf(msg_buffer,LOGMSG_MAX,"%-10s %6d %-7s %-20s | ",log_tag,my_pid,log_level_str[log_level],function_name);
     va_list vargs;
     va_start(vargs,fstring);
     int user_len=vsnprintf(msg_buffer+prefix_len,LOGMSG_MAX-prefix_len,fstring,vargs);
@@ -69,7 +69,7 @@ void log_early_msg_function(const int log_level, const char *function_name, cons
     // note that we _have to_ write to stdout here, as fputs is wrapped-away
     char msg_buffer[LOGMSG_MAX];
 
-    int prefix_len=snprintf(msg_buffer,LOGMSG_MAX,"%-10s %6d %7s %20.20s | ",log_tag,getpid(),log_level_str[log_level],function_name);
+    int prefix_len=snprintf(msg_buffer,LOGMSG_MAX,"%-10s %6d %-7s %-20s | ",log_tag,getpid(),log_level_str[log_level],function_name);
     va_list vargs;
     va_start(vargs,fstring);
     int user_len=vsnprintf(msg_buffer+prefix_len,LOGMSG_MAX-prefix_len,fstring,vargs);
