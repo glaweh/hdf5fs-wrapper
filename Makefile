@@ -32,7 +32,7 @@ SSL_CFLAGS  := $(shell pkg-config libssl --cflags 2>/dev/null)
 SSL_LIBS    := $(shell pkg-config libssl --libs)
 endif
 
-CFLAGS:=$(CFLAGS) -fpic -g -O2 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=$(LOG_LEVEL) $(HDF5_CFLAGS)
+CFLAGS:=$(CFLAGS) -std=gnu99 -fpic -g -O2 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=$(LOG_LEVEL) $(HDF5_CFLAGS)
 LDLIBS:=-ldl $(HDF5_LIBS) -lc
 
 # if DEBUG_TCMALLOC is 1, use tcmalloc to track possible memory leaks
