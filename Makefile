@@ -89,7 +89,7 @@ h5fs-repack: h5fs-repack.o logger.h process_info.h $(HDFFS_OBJ)
 h5fs-unpack: h5fs-unpack.o logger.h process_info.h $(HDFFS_OBJ)
 h5fs-md5sum-size:  h5fs-md5sum-size.o logger.h process_info.h $(HDFFS_OBJ)
 	gcc $(LDFLAGS) -o $@ $^ $(LDLIBS) $(SSL_LIBS)
-h5fs-wrap: h5fs-wrap.o
+h5fs-wrap: h5fs-wrap.o logger.o path_util.o process_info.o
 
 test_rel2abs:    test_rel2abs.o path_util.o     logger.o process_info.o
 test_env_util:   test_env_util.o env_util.o     logger.o process_info.o

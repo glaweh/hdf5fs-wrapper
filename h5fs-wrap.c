@@ -19,8 +19,12 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/auxv.h>
+#include <limits.h>
+#include <string.h>
+#include "logger.h"
+#include "path_util.h"
 
-char *wrapper = PREFIX"/lib/h5fs-wrapper.so";
 char *wrapper_basename = "h5fs-wrapper.so";
 int rel_wrapper_testdir_len = 2;
 char * rel_wrapper_testdir[] = {
@@ -29,11 +33,37 @@ char * rel_wrapper_testdir[] = {
 };
 
 int main(int argc, char *argv[]) {
+    char wrapper_path[PATH_MAX];
+    char * exec_filename;
+    log_tag="H5FS-WRAP ";
+    wrapper_path[0] = 0x00;
+    exec_filename = (char *)getauxval(AT_EXECFN);
+    if (exec_filename == NULL) {
+        LOG_FATAL("unable to get filename of executable\n");
+        abort();
+    }
+    for (int testdir_i=0; testdir_i<rel_wrapper_testdir_len; testdir_i++) {
+        char wrapper_path_rel_test[PATH_MAX];
+        char wrapper_path_abs_test[PATH_MAX];
+        snprintf(wrapper_path_rel_test, PATH_MAX, "%s/%s/%s", argv[0], rel_wrapper_testdir[testdir_i], wrapper_basename);
+        if (rel2abs(wrapper_path_rel_test, wrapper_path_abs_test) != NULL) {
+            LOG_DBG2("check wrapper_path: %s", wrapper_path_abs_test);
+            if (access(wrapper_path_abs_test, R_OK | X_OK) == 0) {
+                strncpy(wrapper_path, wrapper_path_abs_test, PATH_MAX);
+                LOG_DBG("found wrapper_path: %s", wrapper_path_abs_test);
+                break;
+            }
+        }
+    }
+    if (wrapper_path[0] == 0x00) {
+        LOG_ERR("unable to find \"%s\"", wrapper_basename);
+        abort();
+    }
     if (argc < 2) {
         fprintf(stderr,"usage: h5fs-wrap <command> <args> ...\n");
         return(1);
     }
-    setenv("LD_PRELOAD",wrapper,1);
+    setenv("LD_PRELOAD",wrapper_path,1);
     execvp(argv[1],argv+1);
     return(1);
 }
