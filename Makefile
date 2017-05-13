@@ -65,7 +65,6 @@ HDFFS_OBJ:=real_func_auto.o logger.o process_info.o hfile_ds.o chunksize.o hdir.
 wrapper_func_auto.o: CFLAGS:=$(CFLAGS) -Wno-unused-variable -Wno-unused-label -Wno-unused-but-set-variable
 # h5fs.o: CFLAGS:=$(CFLAGS) -ULOG_LEVEL -DLOG_LEVEL=5
 h5fs-wrap: LDLIBS:=$(LDLIBS_WRAPPER)
-h5fs-wrap.o: CFLAGS:=$(CFLAGS) -DPREFIX="\"$(PREFIX)\""
 h5fs-md5sum-size.o: CFLAGS:=$(CFLAGS) $(SSL_CFLAGS)
 
 all: check_defined_libs h5fs-wrapper.so h5fs-repack h5fs-unpack h5fs-md5sum-size h5fs-wrap
