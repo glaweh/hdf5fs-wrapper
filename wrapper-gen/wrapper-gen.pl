@@ -30,12 +30,6 @@ Getopt::Long::GetOptions(
 
 my $io_calls_template   = shift @ARGV;
 my $wrapper_func_manual = shift @ARGV;
-my %type = (
-    PATHNAME => 'char*',
-    FD       => 'int',
-    DIR      => 'DIR',
-    FILE     => 'FILE',
-);
 my @orig_ptr;
 my @orig_init;
 my %func_i;
