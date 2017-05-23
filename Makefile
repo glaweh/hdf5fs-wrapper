@@ -94,6 +94,7 @@ test_rel2abs:    test_rel2abs.o path_util.o     logger.o process_info.o
 test_env_util:   test_env_util.o env_util.o     logger.o process_info.o
 test_pathcmp:    test_pathcmp.o path_util.o     logger.o process_info.o
 test_logger:     test_logger.o                  logger.o process_info.o
+exp_truncate_setextent: exp_truncate_setextent.o logger.o process_info.o
 
 test_h5fs_01_hfile_ds.o: test_h5fs_01_hfile_ds.c hfile_ds.h
 test_h5fs_01_hfile_ds: test_h5fs_01_hfile_ds.o hfile_ds.o logger.o process_info.o chunksize.o path_util.o real_func_auto.o

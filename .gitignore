@@ -9,6 +9,7 @@ h5fs-md5sum-size
 scratch
 test_env_util
 test_logger
+exp_truncate_setextent
 *_auto.c
 *_auto.h
 Makefile.inc
