@@ -54,7 +54,6 @@ herr_t hfile_ds_close(hfile_ds_t * info) {
                 LOG_ERR("error resizing datset for '%s' to %llu",info->name,info->dims[0]);
             }
         }
-        // FIXME: use H5Dfill to fill the emtpy part
     }
     int status = 1;
     if ((info->length_space >= 0) && (H5Sclose(info->length_space) < 0)) {
@@ -214,6 +213,95 @@ hfile_ds_t * hfile_ds_open(hid_t loc_id, const char *name) {
         return(NULL);
     }
     return(info);
+}
+
+int hfile_ds_truncate(hfile_ds_t * hfile_ds, hssize_t newlength) {
+    hid_t filespace=-1;
+    hid_t memspace=-1;
+    char * chunk_of_zeroes = NULL;
+
+    if (hfile_ds->set < 0) return(-1);
+    if (hfile_ds->rdonly) return(-1);
+    if (hfile_ds->length == newlength) return(0);
+
+    // we are shrinking a file
+    if (newlength < hfile_ds->length) {
+        // we assume that calloc does only allocate a small amount of
+        // physical memory (COW memory symantics in kernel/mem-allocator)
+        // so "calloc" is cheap, up until a write occurs
+        if ((chunk_of_zeroes = calloc(hfile_ds->chunk[0], sizeof(H5T_HFILE_DS)))==NULL) {
+            LOG_WARN("error allocating chunk_of_zeroes");
+            goto errlabel;
+        }
+
+        if ((filespace=H5Dget_space(hfile_ds->set)) < 0) {
+            LOG_WARN("error getting filespace for '%s'",hfile_ds->name);
+            goto errlabel;
+        }
+
+        // overwrite the now-empty area with zeroes
+        // (consistency with H5Dset_extent, compatibility with sparse files...)
+        //   first initialize remaining bytes in lowest chunk
+        hsize_t hs_count[1];
+        hs_count[0] = hfile_ds->chunk[0] - (newlength % hfile_ds->chunk[0]);
+        if ((memspace=H5Screate_simple(1, hs_count, __hfile_ds_maxdims)) < 0) {
+            LOG_WARN("error creating memory space");
+            goto errlabel;
+        }
+        hsize_t hs_offset[1];
+        hs_offset[0]=newlength;
+        if (H5Sselect_hyperslab(filespace, H5S_SELECT_SET, hs_offset, NULL, hs_count, NULL) < 0) {
+            LOG_WARN("error selecting first hyperslab");
+            goto errlabel;
+        }
+        if (H5Dwrite(hfile_ds->set,H5T_HFILE_DS,memspace,filespace,H5P_DEFAULT,chunk_of_zeroes) < 0) {
+            LOG_WARN("error erasing first hyperslab");
+            goto errlabel;
+        }
+
+        // erase remaining chunks
+        //   move offset to beginning of the following chunk
+        hs_offset[0] += hs_count[0];
+        //   and set erase-size to a full chunk
+        hs_count[0] = hfile_ds->chunk[0];
+        if (H5Sset_extent_simple(memspace, 1, hs_count, __hfile_ds_maxdims) < 0) {
+            LOG_WARN("error resizing memspace to a full chunk");
+            goto errlabel;
+        }
+        //   erase up to the chunk containing the final byte of a file
+        while (hs_offset[0] < hfile_ds->length) {
+            if (H5Sselect_hyperslab(filespace, H5S_SELECT_SET, hs_offset, NULL, hs_count, NULL) < 0) {
+                LOG_WARN("error selecting hyperslab");
+                goto errlabel;
+            }
+            if (H5Dwrite(hfile_ds->set,H5T_HFILE_DS,memspace,filespace,H5P_DEFAULT,chunk_of_zeroes) < 0) {
+                LOG_WARN("error erasing hyperslab");
+                goto errlabel;
+            }
+            hs_offset[0] += hfile_ds->chunk[0];
+        }
+        free(chunk_of_zeroes);
+        H5Sclose(filespace);
+        H5Sclose(memspace);
+    }
+    // extend dataset if necessary
+    if (hfile_ds->dims[0] < (newlength+1)) {
+        hsize_t newdims[1];
+        newdims[0] = DIM_CHUNKED(newlength+1, hfile_ds->chunk[0]);
+        LOG_DBG("resizing dataset '%s' from %"PRIi64" to %"PRIi64,hfile_ds->name,(int64_t)hfile_ds->dims[0],(int64_t)newdims[0]);
+        if (H5Dset_extent(hfile_ds->set, newdims) < 0) {
+            LOG_ERR("error resizing dataset '%s'",hfile_ds->name);
+            return(-2);
+        }
+        hfile_ds->dims[0]=newdims[0];
+    }
+    hfile_ds->length = newlength;
+    return(0);
+errlabel:
+    if (filespace >= 0) H5Sclose(filespace);
+    if (memspace >= 0) H5Sclose(memspace);
+    if (chunk_of_zeroes != NULL) free(chunk_of_zeroes);
+    return(-1);
 }
 
 hfile_ds_t * hfile_ds_copy(hid_t dst_loc_id, hfile_ds_t * src, hsize_t chunk_size, int deflate) {
