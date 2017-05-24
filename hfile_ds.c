@@ -305,6 +305,8 @@ errlabel:
 }
 
 hfile_ds_t * hfile_ds_copy(hid_t dst_loc_id, hfile_ds_t * src, hssize_t copy_length, hsize_t chunk_size, int deflate) {
+    // in typical HPC codes, files with same name will store the same quantities
+    //   so allocate the whole length now, in order to avoid fragmentation in later writes
     hfile_ds_t * target_set = hfile_ds_create(dst_loc_id, src->name,
         chunk_size, src->length, src->length, deflate);
     if (target_set == NULL) {
