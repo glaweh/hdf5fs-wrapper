@@ -321,8 +321,12 @@ hfile_ds_t * hfile_ds_copy(hid_t dst_loc_id, hfile_ds_t * src, hsize_t chunk_siz
 }
 
 herr_t hfile_ds_copy_contents(hfile_ds_t * dst, hfile_ds_t *src, hssize_t copy_length) {
-    if (dst->dims[0] < (src->length+1)) {
-        dst->dims[0] = DIM_CHUNKED(src->length+1,dst->chunk[0]);
+    // copy whole dataset if copy_length==-1
+    if (copy_length<0)
+        copy_length = src->length;
+    // resize destination dataset if necessary
+    if (dst->dims[0] < copy_length) {
+        dst->dims[0] = DIM_CHUNKED(copy_length+1,dst->chunk[0]);
         if (H5Dset_extent(dst->set, dst->dims) < 0) {
             LOG_ERR("error resizing dst dataset when copying '%s'",src->name);
             return(-1);
@@ -331,7 +335,7 @@ herr_t hfile_ds_copy_contents(hfile_ds_t * dst, hfile_ds_t *src, hssize_t copy_l
     // by default, copy in blocks of 10MB, but adapt to be commensurate with dst chunk size
     hsize_t copy_block_size = DIM_CHUNKED(10*1024*1024,dst->chunk[0]);
     // for smaller sets, fall back to actual set length
-    if (copy_block_size > src->length) copy_block_size = src->length;
+    if (copy_block_size > copy_length) copy_block_size = copy_length;
     char *buffer = malloc(copy_block_size);
     if (buffer == NULL) {
         LOG_ERR("error allocating copy buffer for '%s', size %llu",src->name,copy_block_size);
@@ -350,12 +354,14 @@ herr_t hfile_ds_copy_contents(hfile_ds_t * dst, hfile_ds_t *src, hssize_t copy_l
     }
 
     hsize_t offset[1] = { 0 };
-    hsize_t to_copy = src->length;
+    hsize_t to_copy = copy_length;
+    if (copy_length > src->length)
+        to_copy = src->length;
     hsize_t hs_count[1];
     while (to_copy > 0) {
         hs_count[0] = (to_copy > copy_block_size ? copy_block_size : to_copy);
         LOG_DBG("file: %s, length: %"PRIi64", offset: %llu, size: %llu, chunksize: %llu",src->name,
-                src->length,offset[0],hs_count[0], dst->chunk[0]);
+                copy_length,offset[0],hs_count[0], dst->chunk[0]);
         if (H5Sselect_hyperslab(source_space,H5S_SELECT_SET, offset, NULL, hs_count, NULL) < 0) {
             LOG_ERR("error selecting source hyperslab");
             goto errlabel;
@@ -380,7 +386,7 @@ herr_t hfile_ds_copy_contents(hfile_ds_t * dst, hfile_ds_t *src, hssize_t copy_l
         to_copy -= hs_count[0];
         offset[0]+=hs_count[0];
     }
-    dst->length = src->length;
+    dst->length = copy_length;
 
     free(buffer);
     H5Sclose(source_space);
