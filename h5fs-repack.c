@@ -58,7 +58,7 @@ int copy_set_stack(const char * parent, hdirent_t * node, void * op_data) {
         fflush(stdout);
     }
     hfile_ds_reopen(node->dataset);
-    hfile_ds_t * target_set = hfile_ds_copy(css_data->target_file, node->dataset, 0, css_data->compress);
+    hfile_ds_t * target_set = hfile_ds_copy(css_data->target_file, node->dataset, -1, 0, css_data->compress);
     if (target_set == NULL) {
         LOG_ERR("error copying dataset '%s'",node->name);
         return(-1);

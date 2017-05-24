@@ -304,7 +304,7 @@ errlabel:
     return(-1);
 }
 
-hfile_ds_t * hfile_ds_copy(hid_t dst_loc_id, hfile_ds_t * src, hsize_t chunk_size, int deflate) {
+hfile_ds_t * hfile_ds_copy(hid_t dst_loc_id, hfile_ds_t * src, hssize_t copy_length, hsize_t chunk_size, int deflate) {
     hfile_ds_t * target_set = hfile_ds_create(dst_loc_id, src->name,
         chunk_size, src->length, src->length, deflate);
     if (target_set == NULL) {
