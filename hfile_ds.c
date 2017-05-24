@@ -313,9 +313,7 @@ hfile_ds_t * hfile_ds_copy(hid_t dst_loc_id, hfile_ds_t * src, hssize_t copy_len
         LOG_ERR("target set creation failed when copying '%s'",src->name);
         return(NULL);
     }
-    if (src->length <= 0)
-        return(target_set);
-    if (hfile_ds_copy_contents(target_set,src,-1) < 0) {
+    if (hfile_ds_copy_contents(target_set, src, copy_length) < 0) {
         hfile_ds_close(target_set);
         return(NULL);
     }
