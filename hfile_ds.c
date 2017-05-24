@@ -313,14 +313,14 @@ hfile_ds_t * hfile_ds_copy(hid_t dst_loc_id, hfile_ds_t * src, hsize_t chunk_siz
     }
     if (src->length <= 0)
         return(target_set);
-    if (hfile_ds_copy_contents(target_set,src) < 0) {
+    if (hfile_ds_copy_contents(target_set,src,-1) < 0) {
         hfile_ds_close(target_set);
         return(NULL);
     }
     return(target_set);
 }
 
-herr_t hfile_ds_copy_contents(hfile_ds_t * dst, hfile_ds_t *src) {
+herr_t hfile_ds_copy_contents(hfile_ds_t * dst, hfile_ds_t *src, hssize_t copy_length) {
     if (dst->dims[0] < (src->length+1)) {
         dst->dims[0] = DIM_CHUNKED(src->length+1,dst->chunk[0]);
         if (H5Dset_extent(dst->set, dst->dims) < 0) {

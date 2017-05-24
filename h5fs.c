@@ -270,7 +270,7 @@ ssize_t h5fd_write(h5fd_t * h5fd, const void * buf, size_t count) {
             return(-1);
         }
         if ((h5fd->hdirent->dataset!=NULL) && (h5fd->hdirent->dataset->length > 0)) {
-            herr_t copy_res = hfile_ds_copy_contents(ds, h5fd->hdirent->dataset);
+            herr_t copy_res = hfile_ds_copy_contents(ds, h5fd->hdirent->dataset, -1);
             if (copy_res <= 0) {
                 LOG_ERR("error in COW '%s'",h5fd->hdirent->name);
                 hfile_ds_close(ds);
