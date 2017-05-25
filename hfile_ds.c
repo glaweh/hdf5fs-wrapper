@@ -360,8 +360,8 @@ herr_t hfile_ds_copy_contents(hfile_ds_t * dst, hfile_ds_t *src, hssize_t copy_l
     hsize_t hs_count[1];
     while (to_copy > 0) {
         hs_count[0] = (to_copy > copy_block_size ? copy_block_size : to_copy);
-        LOG_DBG("file: %s, length: %"PRIi64", offset: %llu, size: %llu, chunksize: %llu",src->name,
-                copy_length,offset[0],hs_count[0], dst->chunk[0]);
+        LOG_DBG("file: %s, length: %"PRIi64", offset: %"PRIi64", size: %"PRIi64", chunksize: %"PRIi64"",
+                src->name, (int64_t)copy_length, (int64_t)offset[0], (int64_t)hs_count[0], (int64_t)dst->chunk[0]);
         if (H5Sselect_hyperslab(source_space,H5S_SELECT_SET, offset, NULL, hs_count, NULL) < 0) {
             LOG_ERR("error selecting source hyperslab");
             goto errlabel;
