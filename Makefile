@@ -74,9 +74,9 @@ check_defined_libs:
 
 test: test_h5fs_01_hfile_ds
 
-logger.o: logger.c real_func_auto.h
-process_info.o: process_info.c real_func_auto.h
-path_util.o: path_util.c real_func_auto.h
+logger.o: logger.c logger.h process_info.h
+process_info.o: process_info.c process_info.h logger.h
+path_util.o: path_util.c path_util.h logger.h
 wrapper_func.o: wrapper_func.c real_func_auto.h
 
 h5fs-wrapper.so: wrapper_func.o wrapper_func_auto.o $(HDFFS_OBJ) h5fs.o
