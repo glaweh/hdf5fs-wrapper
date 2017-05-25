@@ -334,3 +334,55 @@ int      h5fd_feof(h5fd_t * h5fd) {
         return(1);
     return(0);
 }
+
+ssize_t h5fd_ftruncate(h5fd_t * h5fd, size_t length) {
+    if (h5fd->rdonly) {
+        LOG_DBG("ftruncate on read-only fd '%s'",h5fd->hdirent->name);
+        errno = EBADF;
+        return(-1);
+    }
+    // perform the COW dance
+    if ((h5fd->hdirent->dataset==NULL) || (h5fd->hdirent->dataset->rdonly)) {
+        // we need to create a COW copy in the RW overlay
+        if (tree->hdf_rw < 0) {
+            LOG_ERR("ftruncate attempt, but no rw hdf '%s'",h5fd->hdirent->name);
+            errno = ENOSPC;
+            return(-1);
+        }
+        hsize_t initial_size = length;
+        hfile_ds_t * ds = hfile_ds_create(tree->hdf_rw, h5fd->hdirent->name, 0, initial_size, 0, 0);
+        if (ds == NULL) {
+            LOG_ERR("error creating dataset '%s'",h5fd->hdirent->name);
+            errno = EIO;
+            return(-1);
+        }
+        if ((h5fd->hdirent->dataset!=NULL) && (h5fd->hdirent->dataset->length > 0)) {
+            // copy up to truncated length
+            herr_t copy_res = hfile_ds_copy_contents(ds, h5fd->hdirent->dataset, length);
+            if (copy_res <= 0) {
+                LOG_ERR("error in COW '%s'",h5fd->hdirent->name);
+                hfile_ds_close(ds);
+                H5Ldelete(tree->hdf_rw, h5fd->hdirent->name, H5P_DEFAULT);
+                errno=EIO;
+                return(-1);
+            }
+            LOG_INFO("COW succeeded '%s'",h5fd->hdirent->name);
+        }
+        // close original (RO) dataset
+        if (h5fd->hdirent->dataset!=NULL) {
+            hfile_ds_close(h5fd->hdirent->dataset);
+            ds->next=h5fd->hdirent->dataset;
+        }
+        // and make RW COW copy the dataset to represent the present file
+        h5fd->hdirent->dataset=ds;
+    }
+    hssize_t truncate_result = hfile_ds_truncate(h5fd->hdirent->dataset,length);
+    if (truncate_result == 0) {
+        return(0);
+    } else {
+        errno=EIO;
+        return(-1);
+    }
+    errno = EINVAL;
+    return(-1);
+}
