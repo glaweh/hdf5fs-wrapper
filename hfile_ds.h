@@ -55,4 +55,5 @@ hssize_t     hfile_ds_read(hfile_ds_t * hfile_ds, hsize_t offset, void * buf, hs
 hssize_t     hfile_ds_write(hfile_ds_t * hfile_ds, hsize_t offset, const void *buf, hsize_t count);
 hssize_t     hfile_ds_export(hfile_ds_t * src, const char * filename);
 void         hfile_ds_update_timestamps(hfile_ds_t * ds);
+hssize_t     hfile_ds_truncate(hfile_ds_t * hfile_ds, hssize_t newlength);
 #endif

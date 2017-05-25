@@ -215,7 +215,7 @@ hfile_ds_t * hfile_ds_open(hid_t loc_id, const char *name) {
     return(info);
 }
 
-int hfile_ds_truncate(hfile_ds_t * hfile_ds, hssize_t newlength) {
+hssize_t hfile_ds_truncate(hfile_ds_t * hfile_ds, hssize_t newlength) {
     hid_t filespace=-1;
     hid_t memspace=-1;
     char * chunk_of_zeroes = NULL;
