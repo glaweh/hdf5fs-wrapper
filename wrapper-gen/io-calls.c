@@ -626,6 +626,8 @@ int
         FD
             fd
         );
+//autowrap:      retval=h5fd_ftruncate(scr_fd,length);
+//autowrap:      LOG_DBG("called ftruncate (%d, %ld)", fd, (long int)length);
 int
     ftruncate(
         FD
