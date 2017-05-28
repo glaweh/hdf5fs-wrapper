@@ -255,6 +255,8 @@ sub function_process() {
     }
 }
 
+# check for "manually" wrapped symbols
+# in order to skip automatic wrapper generation of them
 open(my $wfm_fh,'-|','ctags','-x','--c-kinds=f',$wrapper_func_manual) or die "error calling ctags on '$wrapper_func_manual'";
 while (<$wfm_fh>) {
     chomp;
