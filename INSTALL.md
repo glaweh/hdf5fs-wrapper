@@ -7,6 +7,7 @@
  - HDF5 library (1.8) and development/header files, compiled for serial
    usage (i.e. without built-in MPI support)
  - OpenSSL and development/header files
+ - exuberant ctags (http://ctags.sourceforge.net/)
 
 
 ### Build
