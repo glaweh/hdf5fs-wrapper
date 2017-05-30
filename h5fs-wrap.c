@@ -22,6 +22,7 @@
 #include <sys/auxv.h>
 #include <limits.h>
 #include <string.h>
+#include <errno.h>
 #include "logger.h"
 #include "path_util.h"
 
@@ -64,6 +65,11 @@ int main(int argc, char *argv[]) {
         return(1);
     }
     setenv("LD_PRELOAD",wrapper_path,1);
-    execvp(argv[1],argv+1);
+    int retval = execvp(argv[1],argv+1);
+    if (retval < 0) {
+        LOG_ERR("Error calling '%s': %s", argv[1], strerror(errno));
+        return(1);
+    }
+    LOG_FATAL("this should never happen");
     return(1);
 }
