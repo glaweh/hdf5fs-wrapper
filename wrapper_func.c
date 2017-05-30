@@ -16,12 +16,11 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with hdf5fs-wrapper.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "real_func_auto.h"
+#include <errno.h>
+#include <sys/types.h>
 #include "wrapper_func.h"
 #include "logger.h"
 #include "path_util.h"
-#include <stdarg.h>
-#include <errno.h>
 
 khash_t(WFILE) * wrapper_files;
 khash_t(WFD)   * wrapper_fds;
