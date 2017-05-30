@@ -32,6 +32,10 @@ SSL_CFLAGS  := $(shell pkg-config libssl --cflags 2>/dev/null)
 SSL_LIBS    := $(shell pkg-config libssl --libs)
 endif
 
+ifneq ($(strip $(PREFIX_HARDCODE)),)
+CFLAGS:=$(CFLAGS) -DPREFIX_HARDCODE=$(PREFIX_HARDCODE)
+endif
+
 CFLAGS:=$(CFLAGS) -std=gnu99 -fpic -g -O2 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=$(LOG_LEVEL) $(HDF5_CFLAGS)
 LDLIBS:=-ldl $(HDF5_LIBS) -lc
 
