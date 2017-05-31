@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
     for (int testdir_i=0; testdir_i<rel_wrapper_testdir_len; testdir_i++) {
         char wrapper_path_rel_test[PATH_MAX];
         char wrapper_path_abs_test[PATH_MAX];
-        snprintf(wrapper_path_rel_test, PATH_MAX, "%s/%s/"WRAPPER_BASENAME, argv[0], rel_wrapper_testdir[testdir_i]);
+        snprintf(wrapper_path_rel_test, PATH_MAX, "%s/%s/"WRAPPER_BASENAME, exec_filename, rel_wrapper_testdir[testdir_i]);
         if (rel2abs(wrapper_path_rel_test, wrapper_path_abs_test) != NULL) {
             LOG_DBG2("check wrapper_path: %s", wrapper_path_abs_test);
             if (access(wrapper_path_abs_test, R_OK | X_OK) == 0) {
