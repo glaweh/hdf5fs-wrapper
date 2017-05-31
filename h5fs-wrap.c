@@ -40,6 +40,7 @@ char * rel_wrapper_testdir[] = {
 };
 
 void detect_wrapper_path(char * wrapper_path) {
+    wrapper_path[0] = 0;
     char exec_filename[PATH_MAX];
     ssize_t exec_filename_length = readlink("/proc/self/exe", exec_filename, PATH_MAX);
     if (exec_filename_length>0) {
@@ -75,7 +76,6 @@ int main(int argc, char *argv[]) {
     }
 #else
     char wrapper_path[PATH_MAX];
-    wrapper_path[0] = 0x00;
     detect_wrapper_path(wrapper_path);
 #endif
     if (wrapper_path[0] == 0x00) {
