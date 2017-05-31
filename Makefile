@@ -34,8 +34,8 @@ SSL_CFLAGS  := $(shell pkg-config libssl --cflags 2>/dev/null)
 SSL_LIBS    := $(shell pkg-config libssl --libs)
 endif
 
-ifneq ($(strip $(PREFIX_HARDCODE)),)
-CFLAGS:=$(CFLAGS) -DPREFIX_HARDCODE=$(PREFIX_HARDCODE)
+ifneq ($(strip $(HARDCODE_PREFIX)),)
+CFLAGS:=$(CFLAGS) -DHARDCODE_PREFIX=1
 endif
 
 CFLAGS:=$(CFLAGS) -DLOG_LEVEL=$(LOG_LEVEL) -DPREFIX=$(PREFIX) $(HDF5_CFLAGS)
