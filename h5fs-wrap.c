@@ -26,7 +26,7 @@
 #include "logger.h"
 #include "path_util.h"
 
-char *wrapper_basename = "h5fs-wrapper.so";
+#define WRAPPER_BASENAME "h5fs-wrapper.so"
 int rel_wrapper_testdir_len = 2;
 char * rel_wrapper_testdir[] = {
     "..",         // same dir as h5fs-wrap
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
     for (int testdir_i=0; testdir_i<rel_wrapper_testdir_len; testdir_i++) {
         char wrapper_path_rel_test[PATH_MAX];
         char wrapper_path_abs_test[PATH_MAX];
-        snprintf(wrapper_path_rel_test, PATH_MAX, "%s/%s/%s", argv[0], rel_wrapper_testdir[testdir_i], wrapper_basename);
+        snprintf(wrapper_path_rel_test, PATH_MAX, "%s/%s/"WRAPPER_BASENAME, argv[0], rel_wrapper_testdir[testdir_i]);
         if (rel2abs(wrapper_path_rel_test, wrapper_path_abs_test) != NULL) {
             LOG_DBG2("check wrapper_path: %s", wrapper_path_abs_test);
             if (access(wrapper_path_abs_test, R_OK | X_OK) == 0) {
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
         }
     }
     if (wrapper_path[0] == 0x00) {
-        LOG_ERR("unable to find \"%s\"", wrapper_basename);
+        LOG_FATAL("unable to find \""WRAPPER_BASENAME"\"");
         abort();
     }
     if (argc < 2) {
