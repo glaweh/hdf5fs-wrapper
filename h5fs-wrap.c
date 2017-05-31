@@ -19,7 +19,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <sys/auxv.h>
 #include <limits.h>
 #include <string.h>
 #include <errno.h>
@@ -32,6 +31,10 @@
 #define STR(macro) QUOTE(macro)
 
 #define WRAPPER_BASENAME "h5fs-wrapper.so"
+
+#ifndef PREFIX_HARDCODE
+// glibc versions < 2.16 do not have auxv.h
+#include <sys/auxv.h>
 int rel_wrapper_testdir_len = 2;
 char * rel_wrapper_testdir[] = {
     "..",         // same dir as h5fs-wrap
@@ -59,12 +62,21 @@ void detect_wrapper_path(char * wrapper_path) {
         }
     }
 }
+#endif
 
 int main(int argc, char *argv[]) {
     log_tag="H5FS-WRAP ";
+#ifdef PREFIX_HARDCODE
+    char * wrapper_path = STR(PREFIX_HARDCODE)"/lib/"WRAPPER_BASENAME;
+    if (access(wrapper_path, R_OK | X_OK) != 0) {
+        LOG_FATAL("unable to access wrapper \"%s\"", wrapper_path);
+        abort();
+    }
+#else
     char wrapper_path[PATH_MAX];
     wrapper_path[0] = 0x00;
     detect_wrapper_path(wrapper_path);
+#endif
     if (wrapper_path[0] == 0x00) {
         LOG_FATAL("unable to find \""WRAPPER_BASENAME"\"");
         abort();
