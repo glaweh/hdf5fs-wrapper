@@ -33,15 +33,12 @@ char * rel_wrapper_testdir[] = {
     "../../lib",  // or ../lib
 };
 
-int main(int argc, char *argv[]) {
-    char wrapper_path[PATH_MAX];
+void detect_wrapper_path(char * wrapper_path) {
     char * exec_filename;
-    log_tag="H5FS-WRAP ";
-    wrapper_path[0] = 0x00;
     exec_filename = (char *)getauxval(AT_EXECFN);
     if (exec_filename == NULL) {
         LOG_FATAL("unable to get filename of executable\n");
-        abort();
+        return;
     }
     for (int testdir_i=0; testdir_i<rel_wrapper_testdir_len; testdir_i++) {
         char wrapper_path_rel_test[PATH_MAX];
@@ -56,6 +53,13 @@ int main(int argc, char *argv[]) {
             }
         }
     }
+}
+
+int main(int argc, char *argv[]) {
+    char wrapper_path[PATH_MAX];
+    log_tag="H5FS-WRAP ";
+    wrapper_path[0] = 0x00;
+    detect_wrapper_path(wrapper_path);
     if (wrapper_path[0] == 0x00) {
         LOG_FATAL("unable to find \""WRAPPER_BASENAME"\"");
         abort();
