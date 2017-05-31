@@ -32,7 +32,6 @@
 
 #define WRAPPER_BASENAME "h5fs-wrapper.so"
 
-#ifndef PREFIX_HARDCODE
 int rel_wrapper_testdir_len = 2;
 char * rel_wrapper_testdir[] = {
     "..",         // same dir as h5fs-wrap
@@ -71,7 +70,6 @@ int detect_wrapper_path(char * wrapper_path) {
     }
     return(0);
 }
-#endif
 
 int main(int argc, char *argv[]) {
     log_tag="H5FS-WRAP ";
