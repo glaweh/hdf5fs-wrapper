@@ -56,8 +56,8 @@ void detect_wrapper_path(char * wrapper_path) {
 }
 
 int main(int argc, char *argv[]) {
-    char wrapper_path[PATH_MAX];
     log_tag="H5FS-WRAP ";
+    char wrapper_path[PATH_MAX];
     wrapper_path[0] = 0x00;
     detect_wrapper_path(wrapper_path);
     if (wrapper_path[0] == 0x00) {
