@@ -39,7 +39,7 @@ char * rel_wrapper_testdir[] = {
     "../../lib",  // or ../lib
 };
 
-void detect_wrapper_path(char * wrapper_path) {
+int detect_wrapper_path(char * wrapper_path) {
     wrapper_path[0] = 0;
     char exec_filename[PATH_MAX];
     ssize_t exec_filename_length = readlink("/proc/self/exe", exec_filename, PATH_MAX);
@@ -47,7 +47,8 @@ void detect_wrapper_path(char * wrapper_path) {
         exec_filename[exec_filename_length] = 0;
     } else {
         LOG_FATAL("unable to get filename of executable\n");
-        return;
+        errno = ENOENT;
+        return(-1);
     }
     LOG_DBG("h5fs-wrap path: %s", exec_filename);
     for (int testdir_i=0; testdir_i<rel_wrapper_testdir_len; testdir_i++) {
@@ -63,6 +64,11 @@ void detect_wrapper_path(char * wrapper_path) {
             }
         }
     }
+    if (wrapper_path[0] == 0) {
+        errno = ENOENT;
+        return(-1);
+    }
+    return(0);
 }
 #endif
 
