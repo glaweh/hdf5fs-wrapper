@@ -26,6 +26,11 @@
 #include "logger.h"
 #include "path_util.h"
 
+// preprocessor macros to insert macro as quoted string
+// from: https://stackoverflow.com/questions/195975/how-to-make-a-char-string-from-a-c-macros-value
+#define QUOTE(name) #name
+#define STR(macro) QUOTE(macro)
+
 #define WRAPPER_BASENAME "h5fs-wrapper.so"
 int rel_wrapper_testdir_len = 2;
 char * rel_wrapper_testdir[] = {
