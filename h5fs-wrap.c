@@ -33,8 +33,6 @@
 #define WRAPPER_BASENAME "h5fs-wrapper.so"
 
 #ifndef PREFIX_HARDCODE
-// glibc versions < 2.16 do not have auxv.h
-#include <sys/auxv.h>
 int rel_wrapper_testdir_len = 2;
 char * rel_wrapper_testdir[] = {
     "..",         // same dir as h5fs-wrap
