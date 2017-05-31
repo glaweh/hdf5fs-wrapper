@@ -42,9 +42,11 @@ char * rel_wrapper_testdir[] = {
 };
 
 void detect_wrapper_path(char * wrapper_path) {
-    char * exec_filename;
-    exec_filename = (char *)getauxval(AT_EXECFN);
-    if (exec_filename == NULL) {
+    char exec_filename[PATH_MAX];
+    ssize_t exec_filename_length = readlink("/proc/self/exe", exec_filename, PATH_MAX);
+    if (exec_filename_length>0) {
+        exec_filename[exec_filename_length] = 0;
+    } else {
         LOG_FATAL("unable to get filename of executable\n");
         return;
     }
