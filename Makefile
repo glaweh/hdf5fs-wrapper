@@ -18,6 +18,8 @@
 #
 -include Makefile.inc
 CC:=gcc
+CFLAGS:=$(CFLAGS) -std=gnu99 -fpic -g -O2 -Wall -Werror
+
 PREFIX?=/usr/local
 WRAPPER_GEN_FLAGS?= #possible values: --noautowrap, --debugwrap
 LOG_LEVEL?=4
@@ -36,7 +38,7 @@ ifneq ($(strip $(PREFIX_HARDCODE)),)
 CFLAGS:=$(CFLAGS) -DPREFIX_HARDCODE=$(PREFIX_HARDCODE)
 endif
 
-CFLAGS:=$(CFLAGS) -std=gnu99 -fpic -g -O2 -Wall -Werror -Wno-error=unused-variable -DLOG_LEVEL=$(LOG_LEVEL) $(HDF5_CFLAGS)
+CFLAGS:=$(CFLAGS) -DLOG_LEVEL=$(LOG_LEVEL) -DPREFIX=$(PREFIX) $(HDF5_CFLAGS)
 LDLIBS:=-ldl $(HDF5_LIBS) -lc
 
 # if DEBUG_TCMALLOC is 1, use tcmalloc to track possible memory leaks
