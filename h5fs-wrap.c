@@ -65,6 +65,7 @@ int detect_wrapper_path(char * wrapper_path) {
         }
     }
     if (wrapper_path[0] == 0) {
+        LOG_FATAL("unable to find \""WRAPPER_BASENAME"\"");
         errno = ENOENT;
         return(-1);
     }
@@ -82,12 +83,9 @@ int main(int argc, char *argv[]) {
     }
 #else
     char wrapper_path[PATH_MAX];
-    detect_wrapper_path(wrapper_path);
-#endif
-    if (wrapper_path[0] == 0x00) {
-        LOG_FATAL("unable to find \""WRAPPER_BASENAME"\"");
+    if (detect_wrapper_path(wrapper_path) < 0)
         abort();
-    }
+#endif
     if (argc < 2) {
         fprintf(stderr,"usage: h5fs-wrap <command> <args> ...\n");
         return(1);
