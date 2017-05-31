@@ -48,6 +48,7 @@ void detect_wrapper_path(char * wrapper_path) {
         LOG_FATAL("unable to get filename of executable\n");
         return;
     }
+    LOG_DBG("h5fs-wrap path: %s", exec_filename);
     for (int testdir_i=0; testdir_i<rel_wrapper_testdir_len; testdir_i++) {
         char wrapper_path_rel_test[PATH_MAX];
         char wrapper_path_abs_test[PATH_MAX];
