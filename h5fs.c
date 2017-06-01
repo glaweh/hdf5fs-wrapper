@@ -199,11 +199,13 @@ int h5fs_##stattype(const char * name, struct stattype * sstat) {\
     khiter_t k = kh_get(HDIR, tree->root->dirents, name);\
     if (k==kh_end(tree->root->dirents)) {\
         errno=ENOENT;\
+        memset(sstat, 0, sizeof(struct stattype));\
         return(-1);\
     }\
     hdirent_t * dirent = kh_value(tree->root->dirents,k);\
     if (dirent->deleted) {\
         errno=ENOENT;\
+        memset(sstat, 0, sizeof(struct stattype));\
         return(-1);\
     }\
     *sstat=hdf_file_##stattype;\
