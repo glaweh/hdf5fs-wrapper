@@ -469,6 +469,7 @@ int
 //no_syminit:    if (i==5) return(0);
 //no_syminit:    __real___xstat=dlsym(RTLD_NEXT, "__xstat");
 //autowrap:      retval=h5fs_stat(scr_name,buf);
+//autowrap:      LOG_DBG("__xstat(\"%s\") = %d, st_dev = %lld, st_ino = %lld", name, retval, (long long)buf->st_dev, (long long)buf->st_ino);
 int
     __xstat(
         int 
