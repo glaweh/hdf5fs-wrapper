@@ -244,6 +244,7 @@ int hdir_foreach_file(hdirent_t * root, int order, hdirent_iterate_t op, void * 
     }
     return(res);
 }
+
 #define FSTAT_HELPER(stattype) \
 int hdir_f##stattype##_helper(hdirent_t * node, struct stattype * sstat) {\
     if (node->type == HDIRENT_FILE) {\
