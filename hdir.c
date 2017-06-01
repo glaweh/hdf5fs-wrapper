@@ -265,6 +265,8 @@ int hdir_f##stattype##_helper(hdirent_t * node, struct stattype * sstat) {\
         sstat->st_size = 0;\
         sstat->st_blocks = 0;\
     }\
+    sstat->st_dev=0;\
+    sstat->st_ino=node->inode;\
     sstat->st_atime=node->atime;\
     sstat->st_ctime=node->ctime;\
     sstat->st_mtime=node->mtime;\
