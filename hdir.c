@@ -57,6 +57,10 @@ hdirent_t __hdirent_initializer_dir = {
     .deleted = 0,
     .parent = NULL
 };
+
+// global counter to simulate 'unique' inodes
+ino_t global_inode_counter = 0;
+
 hdirent_t * hdir_new(hdirent_t * parent, const char * name) {
     hdirent_t * hdir = malloc(sizeof(hdirent_t)+strlen(name));
     if (hdir == NULL) {
@@ -67,6 +71,7 @@ hdirent_t * hdir_new(hdirent_t * parent, const char * name) {
     strcpy(hdir->name,name);
     hdir->dirents=kh_init(HDIR);
     hdir->parent=parent;
+    hdir->inode = ++global_inode_counter;
     return(hdir);
 }
 hdirent_t * hdir_add_dirent(hdirent_t * parent, const char *name, hfile_ds_t * hfile_ds) {
@@ -81,6 +86,7 @@ hdirent_t * hdir_add_dirent(hdirent_t * parent, const char *name, hfile_ds_t * h
         }
         *hdirent = __hdirent_initializer_file;
         strcpy(hdirent->name,name);
+        hdirent->inode = ++global_inode_counter;
         int ret;
         k = kh_put(HDIR,parent->dirents,hdirent->name,&ret);
         if (! ret) {
