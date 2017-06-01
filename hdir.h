@@ -33,6 +33,7 @@ struct hdirent {
     time_t atime;
     time_t mtime;
     time_t ctime;
+    ino_t inode;
     hsize_t chunk_size;
     int ref_name;
     int ref_open;
