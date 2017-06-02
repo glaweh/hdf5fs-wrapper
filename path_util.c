@@ -23,6 +23,8 @@
 #include <sys/stat.h>
 #include "logger.h"
 #include "path_util.h"
+
+
 char *rel2abs(const char *orig_path, char *new_path) {
     char tmp_path[PATH_MAX];
     if (orig_path[0] == '/') {
@@ -77,6 +79,7 @@ char *rel2abs(const char *orig_path, char *new_path) {
     new_path[j+1]=0;
     return new_path;
 }
+
 
 int pathcmp(const char *pattern_path,const char *test_path) {
     const char *test_path_base = test_path;
@@ -185,6 +188,8 @@ int pathcmp(const char *pattern_path,const char *test_path) {
     if (*pattern_path == 0) return(test_path - test_path_base);
     return(-1);
 }
+
+
 int mkpath(const char * path) {
     struct stat dirstat;
     // short circuit: path exists
