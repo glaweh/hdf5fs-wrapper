@@ -26,7 +26,6 @@
 hdirent_t __hdirent_initializer_file = {
     .type = HDIRENT_FILE,
     .dir_iterator = -1,
-    .n_sets = 0,
     .dataset = NULL,
     .dirents = NULL,
     .ref_name=1,
@@ -43,7 +42,6 @@ hdirent_t __hdirent_initializer_file = {
 hdirent_t __hdirent_initializer_dir = {
     .type = HDIRENT_DIR,
     .dir_iterator = -1,
-    .n_sets = 0,
     .dataset = NULL,
     .dirents = NULL,
     .ref_name=1,
@@ -114,7 +112,6 @@ hdirent_t * hdir_add_dirent(hdirent_t * parent, const char *name, hfile_ds_t * h
         hdirent->mtime = now;
         hdirent->chunk_size = chunksize_suggest(name,0);
     }
-    hdirent->n_sets++;
     return(hdirent);
 }
 void __hdirent_unlink_helper(hdirent_t * dirent,hid_t hdf_rw) {

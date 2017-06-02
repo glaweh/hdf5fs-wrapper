@@ -27,7 +27,6 @@ KHASH_MAP_INIT_STR(HDIR,struct hdirent *);
 struct hdirent {
     int type;
     khiter_t dir_iterator;
-    int n_sets;
     hfile_ds_t    * dataset;
     khash_t(HDIR) * dirents;
     time_t atime;
