@@ -46,11 +46,13 @@ struct stat   hdf_file_stat;
 hstack_tree_t * tree;
 char hdf_file[PATH_MAX] = "./scratch_${OMPI_COMM_WORLD_RANK:%04d:0}.h5";
 
+
 int init_refcounts(const char * parent, hdirent_t * node, void * op_data) {
     LOG_DBG("'%s', deleted: %d, refcount: %d/%d, length: %"PRId64"",node->name,node->deleted,node->ref_name,node->ref_open,node->dataset->length);
     node->ref_open=0;
     return(0);
 }
+
 
 void __attribute__ ((constructor)) h5fs_init(void) {
     tree=hstack_tree_new();
@@ -117,9 +119,12 @@ void __attribute__ ((constructor)) h5fs_init(void) {
     hdir_foreach_file(tree->root,HDIRENT_ITERATE_UNORDERED,init_refcounts,NULL);
 }
 
+
 void __attribute__ ((destructor)) h5fs_fini(void) {
     if (tree != NULL) hstack_tree_close(tree);
 }
+
+
 h5fd_t * h5fd_open(const char * name, int flags, mode_t mode) {
     hdirent_t * existing_dirent;
     int set_exists = 0;
@@ -168,6 +173,8 @@ errlabel:
     errno=old_errno;
     return(NULL);
 }
+
+
 int h5fd_close(h5fd_t * h5fd) {
     if (h5fd == NULL) {
         LOG_WARN("unknown fh");
@@ -183,6 +190,8 @@ int h5fd_close(h5fd_t * h5fd) {
     free(h5fd);
     return(0);
 }
+
+
 int h5fs_unlink(const char * name) {
     int old_errno;
     if (hdir_unlink(tree->root,name,tree->hdf_rw) < 0)
@@ -193,6 +202,7 @@ errlabel:
     errno=old_errno;
     return(-1);
 }
+
 
 #define H5FS_STAT(stattype) \
 int h5fs_##stattype(const char * name, struct stattype * sstat) {\
@@ -215,6 +225,7 @@ int h5fs_##stattype(const char * name, struct stattype * sstat) {\
 H5FS_STAT(stat)
 H5FS_STAT(stat64)
 
+
 #define H5FD_FSTAT(stattype) \
 int h5fd_f##stattype(h5fd_t * fd, struct stattype * sstat) {\
     *sstat=hdf_file_##stattype;\
@@ -223,6 +234,7 @@ int h5fd_f##stattype(h5fd_t * fd, struct stattype * sstat) {\
 
 H5FD_FSTAT(stat)
 H5FD_FSTAT(stat64)
+
 
 off64_t    h5fd_seek(h5fd_t * h5fd, off64_t offset, int whence) {
     off64_t new_offset;
@@ -247,6 +259,7 @@ off64_t    h5fd_seek(h5fd_t * h5fd, off64_t offset, int whence) {
     h5fd->offset=new_offset;
     return(h5fd->offset);
 }
+
 
 ssize_t h5fd_write(h5fd_t * h5fd, const void * buf, size_t count) {
     if (count == 0)
@@ -308,6 +321,7 @@ ssize_t h5fd_write(h5fd_t * h5fd, const void * buf, size_t count) {
     return(-1);
 }
 
+
 ssize_t h5fd_read(h5fd_t * h5fd, void *buf, size_t count) {
     // end of file
     if (h5fd->hdirent->dataset == NULL) {
@@ -329,6 +343,7 @@ ssize_t h5fd_read(h5fd_t * h5fd, void *buf, size_t count) {
     return(-1);
 }
 
+
 int      h5fd_feof(h5fd_t * h5fd) {
     if (h5fd->hdirent->dataset == NULL)
         return(1);
@@ -336,6 +351,7 @@ int      h5fd_feof(h5fd_t * h5fd) {
         return(1);
     return(0);
 }
+
 
 ssize_t h5fd_ftruncate(h5fd_t * h5fd, size_t length) {
     if (h5fd->rdonly) {
