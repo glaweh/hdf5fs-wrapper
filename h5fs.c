@@ -206,18 +206,21 @@ errlabel:
 
 #define H5FS_STAT(stattype) \
 int h5fs_##stattype(const char * name, struct stattype * sstat) {\
-    khiter_t k = kh_get(HDIR, tree->root->dirents, name);\
-    if (k==kh_end(tree->root->dirents)) {\
-        errno=ENOENT;\
-        memset(sstat, 0, sizeof(struct stattype));\
-        return(-1);\
-    }\
-    hdirent_t * dirent = kh_value(tree->root->dirents,k);\
-    if (dirent->deleted) {\
-        errno=ENOENT;\
-        memset(sstat, 0, sizeof(struct stattype));\
-        return(-1);\
-    }\
+    hdirent_t * dirent = NULL; \
+    if (name[0] == 0) { \
+        dirent = tree->root; \
+    } else { \
+        khiter_t k = kh_get(HDIR, tree->root->dirents, name); \
+        if (k != kh_end(tree->root->dirents)) { \
+            dirent = kh_value(tree->root->dirents,k); \
+            if (dirent->deleted) \
+                dirent = NULL; \
+        } \
+    } \
+    if (dirent == NULL) { \
+        memset(sstat, 0, sizeof(struct stattype)); \
+        return(-1); \
+    } \
     *sstat=hdf_file_##stattype;\
     return(hdir_f##stattype##_helper(dirent,sstat));\
 }
