@@ -248,7 +248,7 @@ int
 //autowrap:      size_t count = size * nmemb;
 //dbgautowrap:   size_t real_retval;
 //dbgautowrap:   void * ptr2 = malloc(count);
-//dbgautowrao:   if (ptr2 == NULL) { LOG_ERR("malloc error"); goto errlabel; }
+//dbgautowrap:   if (ptr2 == NULL) { LOG_ERR("malloc error"); goto errlabel; }
 //dbgautowrap:   real_retval=__real_fread(ptr2,size,nmemb,stream);
 //dbgautowrap:   nmemb = real_retval;
 //dbgautowrap:   count = size * nmemb;
@@ -698,7 +698,7 @@ int
 //dbgautowrap:       LOG_ERR("different offsets h5/real %ld/%ld FUCK",scr_fd->offset,real_offset);
 //dbgautowrap:   }
 //dbgautowrap:   void * buf2 = malloc(count);
-//dbgautowrao:   if (buf2 == NULL) { LOG_ERR("malloc error"); goto errlabel; }
+//dbgautowrap:   if (buf2 == NULL) { LOG_ERR("malloc error"); goto errlabel; }
 //dbgautowrap:   ssize_t real_retval = __real_read(fd,buf2,count);
 //dbgautowrap:   if (real_retval < count) { LOG_DBG("read only %ld bytes instead of %ld",real_retval,count); }
 //dbgautowrap:   if (real_retval < 0) { old_errno=errno; free(buf2); errno=old_errno; goto errlabel; }
