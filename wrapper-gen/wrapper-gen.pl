@@ -74,7 +74,6 @@ sub function_process() {
     my $orig_func_name="__real_${func_name}";
     my $orig_func="$ret_type (*$orig_func_name)($func_arg);";
     print $header_fh "extern $orig_func\n";
-    push @orig_ptr,$orig_func;
     my $chaincall_arg=join(', ',@nonvar_args);
     my $vafunc = 0;
     my @all_argn = @nonvar_args;
@@ -137,7 +136,7 @@ sub function_process() {
 
     my $void_ret = ($ret_type eq 'void');
     unless (exists $func_i{$func_name}) {
-        my $funcbody='';
+        my $funcbody="$orig_func\n";
         $need_khiter |= (($#file_args >= 0) or ($#fd_args >= 0) or ($#dir_args >= 0));
         $funcbody.="$ret_type ($func_name)($func_arg) {\n";
         $funcbody.="    int need_to_wrap = 0;\n";
