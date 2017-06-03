@@ -11,6 +11,8 @@
 #include <unistd.h>
 #include <wchar.h>
 #include <fcntl.h>
+#include <errno.h>
+#include <stdarg.h>
 
 #define PATHNAME char*
 #define FD int
