@@ -293,11 +293,11 @@ while (<$in_fh>) {
         next;
     }
     if (/^\/\/dbgautowrap:\s+(.+?)\s*$/) {
-        push @autowrap,$1 unless ($noautowrap and (! $debugwrap));
+        push @autowrap,$1 if ((! $noautowrap) and $debugwrap);
         next;
     }
     if (/^\/\/nodbgautowrap:\s+(.+?)\s*$/) {
-        push @autowrap,$1 unless ($noautowrap and $debugwrap);
+        push @autowrap,$1 if ((! $noautowrap) and (! $debugwrap));
         next;
     }
     if (/^\/\/need_khiter\s*$/) {
