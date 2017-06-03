@@ -18,17 +18,6 @@
  * along with hdf5fs-wrapper.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define _GNU_SOURCE
-#define __USE_LARGEFILE64
-#include <dirent.h>
-#include <libio.h>
-#include <stdio.h>
-#include <sys/ioctl.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <wchar.h>
-#include <fcntl.h>
-
 #include "wrapper_libc.h"
 //end_preamble
 
