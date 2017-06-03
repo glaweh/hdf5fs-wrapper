@@ -313,12 +313,14 @@ while (<$in_fh>) {
         next;
     }
     if (/^\/\// or /^\s*$/) {
+        # forward //-style comments and empty lines
         push @orig_ptr,$_;
         push @funcs,$_;
         print $header_fh "$_\n";
         next;
     }
     if (/^#/) {
+        # forward preprocessor macros like 'include'
         push @orig_ptr,$_;
         next;
     }
