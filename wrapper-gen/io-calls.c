@@ -29,8 +29,7 @@
 #include <wchar.h>
 #include <fcntl.h>
 
-#define PATHNAME char*
-#define FD int
+#include "wrapper_libc.h"
 //end_preamble
 
 // dirent.h
