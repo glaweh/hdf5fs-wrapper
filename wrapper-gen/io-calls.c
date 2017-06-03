@@ -70,6 +70,7 @@ int
         int
             (*compar)(const struct dirent **, const struct dirent **)
         ); 
+
 // fcntl.h
 //vac: (flags & O_CREAT ? 1 : 0)
 //vat: mode_t
