@@ -180,7 +180,7 @@ sub function_process() {
             }
         } else {
             $funcbody.="        $orig_func_name=dlsym(RTLD_NEXT, \"$func_name\");\n";
-            $funcbody.="        LOG_DBG(\"called before wrapper initialization \"$d_option);\n";
+            $funcbody.="        if ($orig_func_name == NULL) { LOG_EARLY_FATAL(\"cannot resolve $func_name\\n\"); abort(); };";
         }
         $funcbody.="    }\n";
         $funcbody.="    if (wrapper_files==NULL) return($orig_func_name($chaincall_arg));\n";
