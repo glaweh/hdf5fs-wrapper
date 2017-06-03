@@ -314,7 +314,6 @@ while (<$in_fh>) {
     }
     if (/^\/\// or /^\s*$/) {
         # forward //-style comments and empty lines
-        push @orig_ptr,$_;
         push @funcs,$_;
         print $header_fh "$_\n";
         next;
