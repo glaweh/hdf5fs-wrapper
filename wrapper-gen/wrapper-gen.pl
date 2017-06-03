@@ -284,23 +284,21 @@ while (<$in_fh>) {
         push @van,$1;
         next;
     }
-    unless ($noautowrap) {
-        if (/^\/\/autowrap:\s+(.+?)\s*$/) {
-            push @autowrap,$1;
-            next;
-        }
-        if (/^\/\/autoerr:\s+(.+?)\s*$/) {
-            push @autoerr,$1;
-            next;
-        }
-        if (($debugwrap) and (/^\/\/dbgautowrap:\s+(.+?)\s*$/)) {
-            push @autowrap,$1;
-            next;
-        }
-        if ((! $debugwrap) and (/^\/\/nodbgautowrap:\s+(.+?)\s*$/)) {
-            push @autowrap,$1;
-            next;
-        }
+    if (/^\/\/autowrap:\s+(.+?)\s*$/) {
+        push @autowrap,$1 unless ($noautowrap);
+        next;
+    }
+    if (/^\/\/autoerr:\s+(.+?)\s*$/) {
+        push @autoerr,$1 unless ($noautowrap);
+        next;
+    }
+    if (/^\/\/dbgautowrap:\s+(.+?)\s*$/) {
+        push @autowrap,$1 unless ($noautowrap and (! $debugwrap));
+        next;
+    }
+    if (/^\/\/nodbgautowrap:\s+(.+?)\s*$/) {
+        push @autowrap,$1 unless ($noautowrap and $debugwrap);
+        next;
     }
     if (/^\/\/need_khiter\s*$/) {
         $need_khiter = 1;
