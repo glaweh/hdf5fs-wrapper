@@ -319,7 +319,7 @@ while (<$in_fh>) {
     }
     if (/^#/) {
         # forward preprocessor macros like 'include'
-        push @orig_ptr,$_;
+        push @funcs, $_;
         next;
     }
     s/^\s*//;
