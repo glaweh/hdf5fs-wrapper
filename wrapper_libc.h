@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <stdlib.h>
 
 #define PATHNAME char*
 #define FD int
