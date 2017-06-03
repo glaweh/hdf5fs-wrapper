@@ -372,6 +372,7 @@ print $out_fh <<"CCODE";
 #include "logger.h"
 #include <dlfcn.h>
 #include "hdir.h"
+#include "wrapper_libc_real.h"
 
 inline char * __h5fs_filename(char * name) {
     if (name==NULL) return(NULL);

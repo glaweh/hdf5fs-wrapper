@@ -19,6 +19,7 @@
  */
 
 #include "wrapper_libc.h"
+#include "wrapper_libc_real.h"
 //end_preamble
 
 // dirent.h
