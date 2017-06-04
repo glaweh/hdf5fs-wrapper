@@ -78,8 +78,6 @@ check_defined_libs:
 	@:$(call check_defined, SSL_LIBS, pkg-config libssl failed. please specify SSL_CFLAGS and SSL_LIBS manually)
 	@:$(call check_defined, HDF5_LIBS, pkg-config hdf5 failed. please spcify HDF5_CFLAGS and HDF5_LIBS manually)
 
-test: test_h5fs_01_hfile_ds
-
 logger.o: logger.c logger.h process_info.h
 process_info.o: process_info.c process_info.h logger.h
 path_util.o: path_util.c path_util.h logger.h
