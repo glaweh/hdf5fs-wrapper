@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (c) 2013, 2015 Henning Glawe <glaweh@debian.org>
+# Copyright (c) 2013, 2015, 2017 Henning Glawe <glaweh@debian.org>
 #
 # This file is part of hdf5fs-wrapper.
 #
