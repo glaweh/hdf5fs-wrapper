@@ -268,6 +268,7 @@ while (<$in_fh>) {
             next;
         }
         print $header_fh "$_\n";
+        print $out_fh "$_\n";
         next;
     }
     if (/^\/\/vaforward/) {
