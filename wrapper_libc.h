@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <dlfcn.h>
 
 #define PATHNAME char*
 #define FD int

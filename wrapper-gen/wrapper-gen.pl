@@ -370,7 +370,6 @@ print $out_fh <<"CCODE";
 #include "wrapper_libc.h"
 #include "wrapper_func.h"
 #include "logger.h"
-#include <dlfcn.h>
 #include "hdir.h"
 #include "wrapper_libc_real.h"
 
