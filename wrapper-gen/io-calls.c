@@ -1,6 +1,6 @@
 //begin_preamble
 /*
- * Copyright (c) 2013 Henning Glawe <glaweh@debian.org>
+ * Copyright (c) 2013, 2017 Henning Glawe <glaweh@debian.org>
  *
  * This file is part of hdf5fs-wrapper.
  *
