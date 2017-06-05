@@ -382,17 +382,6 @@ print $out_fh <<"CCODE";
 #include "wrapper_func.h"
 #include "logger.h"
 #include "hdir.h"
-
-inline char * __h5fs_filename(char * name) {
-    if (name==NULL) return(NULL);
-    char * iterator = name;
-    while (*iterator!=0) {
-        if (*iterator=='/') *iterator='%';
-        iterator++;
-    }
-    return(name);
-}
-
 CCODE
 foreach my $func (@funcs) {
     print $out_fh "$func\n";
