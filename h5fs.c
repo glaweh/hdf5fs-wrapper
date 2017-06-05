@@ -47,6 +47,17 @@ hstack_tree_t * tree;
 char hdf_file[PATH_MAX] = "./scratch_${OMPI_COMM_WORLD_RANK:%04d:0}.h5";
 
 
+inline char * __h5fs_filename(char * name) {
+    if (name==NULL) return(NULL);
+    char * iterator = name;
+    while (*iterator!=0) {
+        if (*iterator=='/') *iterator='%';
+        iterator++;
+    }
+    return(name);
+}
+
+
 int init_refcounts(const char * parent, hdirent_t * node, void * op_data) {
     LOG_DBG("'%s', deleted: %d, refcount: %d/%d, length: %"PRId64"",node->name,node->deleted,node->ref_name,node->ref_open,node->dataset->length);
     node->ref_open=0;
@@ -131,7 +142,12 @@ h5fd_t * h5fd_open(const char * name, int flags, mode_t mode) {
     int file_exists = 0;
     h5fd_t * h5fd = NULL;
     int old_errno;
-    existing_dirent = hdirent_open(tree->root,name);
+
+    char mapped_name[PATH_MAX];
+    strncpy(mapped_name, name, PATH_MAX);
+    __h5fs_filename(mapped_name);
+
+    existing_dirent = hdirent_open(tree->root,mapped_name);
     set_exists = (existing_dirent != NULL);
     if (set_exists) {
         LOG_DBG("set '%s', deleted: %d, length: %ld",existing_dirent->name,existing_dirent->deleted,existing_dirent->dataset->length);
@@ -140,7 +156,7 @@ h5fd_t * h5fd_open(const char * name, int flags, mode_t mode) {
         file_exists = 1;
     if (file_exists) {
         if (((flags & O_CREAT)>0) && ((flags & O_EXCL)>0)) {
-            LOG_DBG("file already exists '%s'",name);
+            LOG_DBG("file already exists '%s'",mapped_name);
             errno=EEXIST;
             goto errlabel;
         }
@@ -149,7 +165,7 @@ h5fd_t * h5fd_open(const char * name, int flags, mode_t mode) {
         goto errlabel;
     }
     if (set_exists) {
-        LOG_DBG("set '%s' exists",name);
+        LOG_DBG("set '%s' exists",mapped_name);
     }
     h5fd = malloc(sizeof(h5fd_t));
     *h5fd = __h5fd_t_initializer;
@@ -210,7 +226,10 @@ int h5fs_##stattype(const char * name, struct stattype * sstat) {\
     if (name[0] == 0) { \
         dirent = tree->root; \
     } else { \
-        khiter_t k = kh_get(HDIR, tree->root->dirents, name); \
+        char mapped_name[PATH_MAX]; \
+        strncpy(mapped_name, name, PATH_MAX); \
+        __h5fs_filename(mapped_name); \
+        khiter_t k = kh_get(HDIR, tree->root->dirents, mapped_name); \
         if (k != kh_end(tree->root->dirents)) { \
             dirent = kh_value(tree->root->dirents,k); \
             if (dirent->deleted) \

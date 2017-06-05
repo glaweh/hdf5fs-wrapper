@@ -194,7 +194,7 @@ sub function_process() {
         $funcbody.="    }\n";
         $funcbody.="    if (wrapper_files==NULL) return($orig_func_name($chaincall_arg));\n";
         for (my $i=0;$i<=$#pathname_args;$i++) {
-            $funcbody.="    need_to_wrap|=((scr_$pathname_args[$i]=__h5fs_filename(path_below_scratch($pathname_args[$i])))!=NULL);\n";
+            $funcbody.="    need_to_wrap|=((scr_$pathname_args[$i]=path_below_scratch($pathname_args[$i]))!=NULL);\n";
         }
         for (my $i=0;$i<=$#file_args;$i++) {
             $funcbody.="    k=kh_get(WFILE,wrapper_files,(PTR2INT)$file_args[$i]);\n";

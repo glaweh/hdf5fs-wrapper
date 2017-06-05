@@ -58,14 +58,4 @@ int         hdir_foreach_file(hdirent_t * root,int order,hdirent_iterate_t op, v
 int         hdir_fstat_helper(hdirent_t * node, struct stat * sstat);
 int         hdir_fstat64_helper(hdirent_t * node, struct stat64 * sstat);
 
-inline char * __h5fs_filename(char * name) {
-    if (name==NULL) return(NULL);
-    char * iterator = name;
-    while (*iterator!=0) {
-        if (*iterator=='/') *iterator='%';
-        iterator++;
-    }
-    return(name);
-}
-
 #endif
