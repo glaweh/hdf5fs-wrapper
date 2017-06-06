@@ -22,13 +22,14 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <limits.h>
 #include <stdlib.h>
 #include "process_info.h"
 #define LOGMSG_MAX 512
 extern void process_info_init();
 
 FILE * logger_stream = NULL;
-char * logger_tag = "H5FS";
+char   logger_tag[PATH_MAX] = "H5FS";
 pid_t  logger_pid = 0;
 
 const char * log_level_str[] = {
@@ -87,4 +88,8 @@ void log_early_msg_function(const int log_level, const char *function_name, cons
     msg_buffer[msglen]='\n';
     msg_buffer[msglen+1]=0;
     puts(msg_buffer);
+}
+
+void logger_init(const char * init_logger_tag) {
+    strncpy(logger_tag, init_logger_tag, PATH_MAX);
 }

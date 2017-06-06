@@ -32,7 +32,7 @@
 
 void log_msg_function(const int log_level, const char *function_name, const char *fstring, ...) __attribute__ ((format (printf, 3, 4)));
 void log_early_msg_function(const int log_level, const char *function_name, const char *fstring, ...) __attribute__ ((format (printf, 3, 4)));
-extern char * logger_tag;
+void logger_init(const char * init_logger_tag);
 
 #if (LOG_LEVEL >= LOG_LEVEL_FATAL)
 #define LOG_FATAL(...) log_msg_function(LOG_LEVEL_FATAL, __func__, __VA_ARGS__)

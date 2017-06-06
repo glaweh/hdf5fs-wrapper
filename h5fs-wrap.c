@@ -72,7 +72,7 @@ int detect_wrapper_path(char * wrapper_path) {
 }
 
 int main(int argc, char *argv[]) {
-    log_tag="H5FS-WRAP ";
+    logger_init("H5FS-WRAP");
 #ifdef HARDCODE_PREFIX
     char * wrapper_path = STR(HARDCODE_PREFIX)"/lib/"WRAPPER_BASENAME;
     if (access(wrapper_path, R_OK | X_OK) != 0) {
