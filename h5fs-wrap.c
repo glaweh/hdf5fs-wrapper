@@ -74,7 +74,7 @@ int detect_wrapper_path(char * wrapper_path) {
 int main(int argc, char *argv[]) {
     log_tag="H5FS-WRAP ";
 #ifdef HARDCODE_PREFIX
-    char * wrapper_path = STR(PREFIX)"/lib/"WRAPPER_BASENAME;
+    char * wrapper_path = STR(HARDCODE_PREFIX)"/lib/"WRAPPER_BASENAME;
     if (access(wrapper_path, R_OK | X_OK) != 0) {
         LOG_FATAL("unable to access wrapper \"%s\"", wrapper_path);
         abort();

@@ -35,7 +35,7 @@ SSL_LIBS    := $(shell pkg-config libssl --libs)
 endif
 
 ifneq ($(strip $(HARDCODE_PREFIX)),)
-CFLAGS:=$(CFLAGS) -DHARDCODE_PREFIX=1
+CFLAGS:=$(CFLAGS) -DHARDCODE_PREFIX=$(HARDCODE_PREFIX)
 endif
 
 CFLAGS:=$(CFLAGS) -DLOG_LEVEL=$(LOG_LEVEL) -DPREFIX=$(PREFIX) $(HDF5_CFLAGS)
