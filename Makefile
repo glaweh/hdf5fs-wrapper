@@ -21,7 +21,7 @@ CC:=gcc
 CFLAGS:=$(CFLAGS) -std=gnu99 -fpic -g -O2 -Wall -Werror
 
 PREFIX?=/usr/local
-WRAPPER_GEN_FLAGS?= #possible values: --noautowrap, --debugwrap
+WRAPPER_GEN_FLAGS?= #possible values: --noautowrap, --comparewrap
 LOG_LEVEL?=4
 
 ifeq ($(strip $(HDF5_LIBS)),)

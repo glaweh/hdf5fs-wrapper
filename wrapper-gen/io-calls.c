@@ -68,8 +68,8 @@ int
 //autowrap:      int ret;
 //autowrap:      h5fd_t *h5fd = h5fd_open(scr_name, flags, mode);
 //autowrap:      if (h5fd == NULL) goto errlabel;
-//dbgautowrap:   retval=__real_open(name, flags, mode);
-//nodbgautowrap: retval=__real_open("/dev/null", O_RDONLY, mode);
+//cmpautowrap:   retval=__real_open(name, flags, mode);
+//nocmpautowrap: retval=__real_open("/dev/null", O_RDONLY, mode);
 //autowrap:      h5fd->fd = retval;
 //autowrap:      LOG_DBG("fd %d, filename %s, flags 0%o",retval,scr_name,flags);
 //autowrap:      k=kh_put(WFD,wrapper_fds,retval,&ret);
@@ -90,8 +90,8 @@ FD
 //autowrap:      int ret;
 //autowrap:      h5fd_t *h5fd = h5fd_open(scr_name, flags, mode);
 //autowrap:      if (h5fd == NULL) goto errlabel;
-//dbgautowrap:   retval=__real_open64(name, flags, mode);
-//nodbgautowrap: retval=__real_open64("/dev/null", O_RDONLY, mode);
+//cmpautowrap:   retval=__real_open64(name, flags, mode);
+//nocmpautowrap: retval=__real_open64("/dev/null", O_RDONLY, mode);
 //autowrap:      h5fd->fd = retval;
 //autowrap:      LOG_DBG("fd %d, filename %s, flags 0%o",retval,scr_name,flags);
 //autowrap:      k=kh_put(WFD,wrapper_fds,retval,&ret);
@@ -128,17 +128,17 @@ int
 //autowrap:      if (retval < 0) goto errlabel;
 //autowrap:      kh_del(WFILE,wrapper_files,k);
 //autowrap:      real_retval = __real_fclose(stream);
-//dbgautowrap:   if (real_retval!=retval) LOG_ERR("different retval h5/real: %d,%d",retval,real_retval);
+//cmpautowrap:   if (real_retval!=retval) LOG_ERR("different retval h5/real: %d,%d",retval,real_retval);
 //autoerr:       retval=EOF;
 int
     fclose(
         FILE*
             stream
         );
-//dbgautowrap:   int real_retval;
+//cmpautowrap:   int real_retval;
 //autowrap:      retval = h5fd_feof(scr_stream);
-//dbgautowrap:   real_retval= __real_feof(stream);
-//dbgautowrap:   if (real_retval!=retval) LOG_ERR("different retval h5/real: %d,%d",retval,real_retval);
+//cmpautowrap:   real_retval= __real_feof(stream);
+//cmpautowrap:   if (real_retval!=retval) LOG_ERR("different retval h5/real: %d,%d",retval,real_retval);
 int
     feof(
         FILE*
@@ -178,8 +178,8 @@ FD
 //autowrap:      int flags = fopen_mode2open_flags(mode);
 //autowrap:      h5fd_t *h5fd = h5fd_open(scr_name, flags, 0666);
 //autowrap:      if (h5fd == NULL) goto errlabel;
-//dbgautowrap:   retval=__real_fopen(name, mode);
-//nodbgautowrap: retval=__real_fopen("/dev/null", "r");
+//cmpautowrap:   retval=__real_fopen(name, mode);
+//nocmpautowrap: retval=__real_fopen("/dev/null", "r");
 //autowrap:      h5fd->stream = retval;
 //autowrap:      LOG_DBG("stream %p, filename %s, h5fd %p",retval,scr_name,h5fd);
 //autowrap:      k=kh_put(WFILE,wrapper_files,(PTR2INT)retval,&ret);
@@ -197,8 +197,8 @@ FILE*
 //autowrap:      int flags = fopen_mode2open_flags(mode);
 //autowrap:      h5fd_t *h5fd = h5fd_open(scr_name, flags, 0666);
 //autowrap:      if (h5fd == NULL) goto errlabel;
-//dbgautowrap:   retval=__real_fopen64(name, mode);
-//nodbgautowrap: retval=__real_fopen64("/dev/null", "r");
+//cmpautowrap:   retval=__real_fopen64(name, mode);
+//nocmpautowrap: retval=__real_fopen64("/dev/null", "r");
 //autowrap:      h5fd->stream = retval;
 //autowrap:      LOG_DBG("stream %p, filename %s, h5fd %p",retval,scr_name,h5fd);
 //autowrap:      k=kh_put(WFILE,wrapper_files,(PTR2INT)retval,&ret);
@@ -236,16 +236,16 @@ int
             stream
         );
 //autowrap:      size_t count = size * nmemb;
-//dbgautowrap:   size_t real_retval;
-//dbgautowrap:   void * ptr2 = malloc(count);
-//dbgautowrap:   if (ptr2 == NULL) { LOG_ERR("malloc error"); goto errlabel; }
-//dbgautowrap:   real_retval=__real_fread(ptr2,size,nmemb,stream);
-//dbgautowrap:   nmemb = real_retval;
-//dbgautowrap:   count = size * nmemb;
+//cmpautowrap:   size_t real_retval;
+//cmpautowrap:   void * ptr2 = malloc(count);
+//cmpautowrap:   if (ptr2 == NULL) { LOG_ERR("malloc error"); goto errlabel; }
+//cmpautowrap:   real_retval=__real_fread(ptr2,size,nmemb,stream);
+//cmpautowrap:   nmemb = real_retval;
+//cmpautowrap:   count = size * nmemb;
 //autowrap:      retval=h5fd_read(scr_stream,ptr,count) / size;
-//dbgautowrap:   if (real_retval!=retval) LOG_ERR("different retval h5/real: %ld/%ld",(long int)retval,(long int)real_retval);
-//dbgautowrap:   if (memcmp(ptr2,ptr,(retval < real_retval ? retval : real_retval)*size) != 0) LOG_ERR("different data h5/real");
-//dbgautowrap:   free(ptr2);
+//cmpautowrap:   if (real_retval!=retval) LOG_ERR("different retval h5/real: %ld/%ld",(long int)retval,(long int)real_retval);
+//cmpautowrap:   if (memcmp(ptr2,ptr,(retval < real_retval ? retval : real_retval)*size) != 0) LOG_ERR("different data h5/real");
+//cmpautowrap:   free(ptr2);
 size_t
     fread(
         void*
@@ -258,15 +258,15 @@ size_t
             stream
         );
 //autowrap:      size_t count = size * nmemb;
-//dbgautowrap:   size_t real_retval;
-//dbgautowrap:   void * ptr2 = malloc(count);
-//dbgautowrap:   real_retval=__real_fread_unlocked(ptr2,size,nmemb,stream);
-//dbgautowrap:   nmemb = real_retval;
-//dbgautowrap:   count = size * nmemb;
+//cmpautowrap:   size_t real_retval;
+//cmpautowrap:   void * ptr2 = malloc(count);
+//cmpautowrap:   real_retval=__real_fread_unlocked(ptr2,size,nmemb,stream);
+//cmpautowrap:   nmemb = real_retval;
+//cmpautowrap:   count = size * nmemb;
 //autowrap:      retval=h5fd_read(scr_stream,ptr,count) / size;
-//dbgautowrap:   if (real_retval!=retval) LOG_ERR("different retval h5/real: %ld/%ld",(long int)retval,(long int)real_retval);
-//dbgautowrap:   if (memcmp(ptr2,ptr,(retval < real_retval ? retval : real_retval)*size) != 0) LOG_ERR("different data h5/real");
-//dbgautowrap:   free(ptr2);
+//cmpautowrap:   if (real_retval!=retval) LOG_ERR("different retval h5/real: %ld/%ld",(long int)retval,(long int)real_retval);
+//cmpautowrap:   if (memcmp(ptr2,ptr,(retval < real_retval ? retval : real_retval)*size) != 0) LOG_ERR("different data h5/real");
+//cmpautowrap:   free(ptr2);
 size_t
     fread_unlocked(
         void*
@@ -302,8 +302,8 @@ size_t
         );
 //autowrap:      retval=h5fd_seek(scr_stream,offset,whence);
 //autowrap:      if (retval>=0) retval=0;
-//dbgautowrap:   off_t real_retval=__real_fseek(stream,offset,whence);
-//dbgautowrap:   if (real_retval != retval) LOG_ERR("stream: %p, h5: %ld, real: %ld FUCK",stream,(long int)retval,(long int)real_retval);
+//cmpautowrap:   off_t real_retval=__real_fseek(stream,offset,whence);
+//cmpautowrap:   if (real_retval != retval) LOG_ERR("stream: %p, h5: %ld, real: %ld FUCK",stream,(long int)retval,(long int)real_retval);
 int
     fseek(
         FILE*
@@ -315,8 +315,8 @@ int
         );
 //autowrap:      retval=h5fd_seek(scr_stream,offset,whence);
 //autowrap:      if (retval>=0) retval=0;
-//dbgautowrap:   off_t real_retval=__real_fseeko(stream,offset,whence);
-//dbgautowrap:   if (real_retval != retval) LOG_ERR("stream: %p, h5: %ld, real: %ld FUCK",stream,(long int)retval,(long int)real_retval);
+//cmpautowrap:   off_t real_retval=__real_fseeko(stream,offset,whence);
+//cmpautowrap:   if (real_retval != retval) LOG_ERR("stream: %p, h5: %ld, real: %ld FUCK",stream,(long int)retval,(long int)real_retval);
 int
     fseeko(
         FILE*
@@ -328,8 +328,8 @@ int
         );
 //autowrap:      retval=h5fd_seek(scr_stream,offset,whence);
 //autowrap:      if (retval>=0) retval=0;
-//dbgautowrap:   off_t real_retval=__real_fseeko64(stream,offset,whence);
-//dbgautowrap:   if (real_retval != retval) LOG_ERR("stream: %p, h5: %ld, real: %ld FUCK",stream,(long int)retval,(long int)real_retval);
+//cmpautowrap:   off_t real_retval=__real_fseeko64(stream,offset,whence);
+//cmpautowrap:   if (real_retval != retval) LOG_ERR("stream: %p, h5: %ld, real: %ld FUCK",stream,(long int)retval,(long int)real_retval);
 int
     fseeko64(
         FILE*
@@ -340,24 +340,24 @@ int
             whence
         );
 //autowrap:      retval=scr_stream->offset;
-//dbgautowrap:   long real_retval=__real_ftell(stream);
-//dbgautowrap:   if (real_retval != retval) LOG_ERR("stream: %p, h5: %ld, real: %ld FUCK",stream,(long int)retval,(long int)real_retval);
+//cmpautowrap:   long real_retval=__real_ftell(stream);
+//cmpautowrap:   if (real_retval != retval) LOG_ERR("stream: %p, h5: %ld, real: %ld FUCK",stream,(long int)retval,(long int)real_retval);
 long
     ftell(
         FILE*
             stream
         );
 //autowrap:      retval=scr_stream->offset;
-//dbgautowrap:   off_t real_retval=__real_ftello(stream);
-//dbgautowrap:   if (real_retval != retval) LOG_ERR("stream: %p, h5: %ld, real: %ld FUCK",stream,(long int)retval,(long int)real_retval);
+//cmpautowrap:   off_t real_retval=__real_ftello(stream);
+//cmpautowrap:   if (real_retval != retval) LOG_ERR("stream: %p, h5: %ld, real: %ld FUCK",stream,(long int)retval,(long int)real_retval);
 off_t
     ftello(
         FILE*
             stream
         );
 //autowrap:      retval=scr_stream->offset;
-//dbgautowrap:   off64_t real_retval=__real_ftello64(stream);
-//dbgautowrap:   if (real_retval != retval) LOG_ERR("stream: %p, h5: %ld, real: %ld FUCK",stream,(long int)retval,(long int)real_retval);
+//cmpautowrap:   off64_t real_retval=__real_ftello64(stream);
+//cmpautowrap:   if (real_retval != retval) LOG_ERR("stream: %p, h5: %ld, real: %ld FUCK",stream,(long int)retval,(long int)real_retval);
 off64_t
     ftello64(
         FILE*
@@ -625,7 +625,7 @@ int
 //autowrap:      if (retval < 0) goto errlabel;
 //autowrap:      kh_del(WFD,wrapper_fds,k);
 //autowrap:      int real_retval = __real_close(fd);
-//dbgautowrap:   if (real_retval != retval) LOG_ERR("fd: %d, h5: %d, real: %d FUCK",fd,retval,real_retval);
+//cmpautowrap:   if (real_retval != retval) LOG_ERR("fd: %d, h5: %d, real: %d FUCK",fd,retval,real_retval);
 int
     close(
         FD
@@ -673,8 +673,8 @@ int
         const PATHNAME
             newpath
         );
-//dbgautowrap:   retval=__real_mkdir(name,mode);
-//nodbgautowrap: retval=0; //disable mkdir
+//cmpautowrap:   retval=__real_mkdir(name,mode);
+//nocmpautowrap: retval=0; //disable mkdir
 int
     mkdir(
         const PATHNAME
@@ -682,31 +682,31 @@ int
         mode_t
             mode
         );
-//dbgautowrap:   retval = 0;
-//dbgautowrap:   ssize_t real_offset=__real_lseek64(fd,0,SEEK_CUR);
-//dbgautowrap:   if (real_offset != scr_fd->offset) {
-//dbgautowrap:       LOG_ERR("different offsets h5/real %ld/%ld FUCK",scr_fd->offset,real_offset);
-//dbgautowrap:   }
-//dbgautowrap:   void * buf2 = malloc(count);
-//dbgautowrap:   if (buf2 == NULL) { LOG_ERR("malloc error"); goto errlabel; }
-//dbgautowrap:   ssize_t real_retval = __real_read(fd,buf2,count);
-//dbgautowrap:   if (real_retval < count) { LOG_DBG("read only %ld bytes instead of %ld",real_retval,count); }
-//dbgautowrap:   if (real_retval < 0) { old_errno=errno; free(buf2); errno=old_errno; goto errlabel; }
-//dbgautowrap:   count=real_retval;
+//cmpautowrap:   retval = 0;
+//cmpautowrap:   ssize_t real_offset=__real_lseek64(fd,0,SEEK_CUR);
+//cmpautowrap:   if (real_offset != scr_fd->offset) {
+//cmpautowrap:       LOG_ERR("different offsets h5/real %ld/%ld FUCK",scr_fd->offset,real_offset);
+//cmpautowrap:   }
+//cmpautowrap:   void * buf2 = malloc(count);
+//cmpautowrap:   if (buf2 == NULL) { LOG_ERR("malloc error"); goto errlabel; }
+//cmpautowrap:   ssize_t real_retval = __real_read(fd,buf2,count);
+//cmpautowrap:   if (real_retval < count) { LOG_DBG("read only %ld bytes instead of %ld",real_retval,count); }
+//cmpautowrap:   if (real_retval < 0) { old_errno=errno; free(buf2); errno=old_errno; goto errlabel; }
+//cmpautowrap:   count=real_retval;
 //autowrap:      retval = h5fd_read(scr_fd,buf,count);
-//dbgautowrap:   if (real_retval != retval) LOG_ERR("fd: %d, h5: %ld, real: %ld FUCK",fd,(long int)retval,(long int)real_retval);
-//dbgautowrap:   int pos;
-//dbgautowrap:   int len=(retval < real_retval ? retval : real_retval);
-//dbgautowrap:   LOG_DBG("rv: %ld/%ld",(long int)retval,(long int)real_retval);
-//dbgautowrap:   char * b1 = buf;
-//dbgautowrap:   char * b2 = buf2;
-//dbgautowrap:   for (pos=0;pos<len;pos++) { if (*(b1+pos)!=*(b2+pos)) break; }
-//dbgautowrap:   if (pos != len) {
-//dbgautowrap:       real_offset=__real_lseek64(fd,0,SEEK_CUR);
-//dbgautowrap:       LOG_ERR("different data h5/real '%s'/%ld/%ld %d 0x%02x 0x%02x FUCK",scr_fd->hdirent->name,(long int)scr_fd->offset,real_offset,pos,*(b1+pos),*(b2+pos));
-//dbgautowrap:       abort();
-//dbgautowrap:   }
-//dbgautowrap:   free(buf2);
+//cmpautowrap:   if (real_retval != retval) LOG_ERR("fd: %d, h5: %ld, real: %ld FUCK",fd,(long int)retval,(long int)real_retval);
+//cmpautowrap:   int pos;
+//cmpautowrap:   int len=(retval < real_retval ? retval : real_retval);
+//cmpautowrap:   LOG_DBG("rv: %ld/%ld",(long int)retval,(long int)real_retval);
+//cmpautowrap:   char * b1 = buf;
+//cmpautowrap:   char * b2 = buf2;
+//cmpautowrap:   for (pos=0;pos<len;pos++) { if (*(b1+pos)!=*(b2+pos)) break; }
+//cmpautowrap:   if (pos != len) {
+//cmpautowrap:       real_offset=__real_lseek64(fd,0,SEEK_CUR);
+//cmpautowrap:       LOG_ERR("different data h5/real '%s'/%ld/%ld %d 0x%02x 0x%02x FUCK",scr_fd->hdirent->name,(long int)scr_fd->offset,real_offset,pos,*(b1+pos),*(b2+pos));
+//cmpautowrap:       abort();
+//cmpautowrap:   }
+//cmpautowrap:   free(buf2);
 ssize_t
     read(
         FD
@@ -757,19 +757,19 @@ char*
             fd
         );
 //autowrap:      retval=h5fs_unlink(scr_name);
-//dbgautowrap:   int real_retval=__real_unlink(name);
-//dbgautowrap:   if (real_retval != retval) LOG_ERR("path: %s, h5: %d, real: %d FUCK",name,retval,real_retval);
+//cmpautowrap:   int real_retval=__real_unlink(name);
+//cmpautowrap:   if (real_retval != retval) LOG_ERR("path: %s, h5: %d, real: %d FUCK",name,retval,real_retval);
 int
     unlink(
         const PATHNAME
             name
         );
-//dbgautowrap:   retval = -1;
-//dbgautowrap:   ssize_t real_retval=__real_write(fd,buf,count);
-//dbgautowrap:   if (real_retval < 0) goto errlabel;
-//dbgautowrap:   count = real_retval;
+//cmpautowrap:   retval = -1;
+//cmpautowrap:   ssize_t real_retval=__real_write(fd,buf,count);
+//cmpautowrap:   if (real_retval < 0) goto errlabel;
+//cmpautowrap:   count = real_retval;
 //autowrap:      retval=h5fd_write(scr_fd,buf,count);
-//dbgautowrap:   if (real_retval != retval) LOG_ERR("fd: %d, h5: %ld, real: %ld FUCK",fd,(long int)retval,(long int)real_retval);
+//cmpautowrap:   if (real_retval != retval) LOG_ERR("fd: %d, h5: %ld, real: %ld FUCK",fd,(long int)retval,(long int)real_retval);
 ssize_t
     write(
         FD
@@ -780,8 +780,8 @@ ssize_t
             count
         );
 //autowrap:      retval=h5fd_seek(scr_fd,offset,whence);
-//dbgautowrap:   off_t real_retval=__real_lseek(fd,offset,whence);
-//dbgautowrap:   if (real_retval != retval) LOG_ERR("fd: %d, h5: %ld, real: %ld FUCK",fd,(long int)retval,(long int)real_retval);
+//cmpautowrap:   off_t real_retval=__real_lseek(fd,offset,whence);
+//cmpautowrap:   if (real_retval != retval) LOG_ERR("fd: %d, h5: %ld, real: %ld FUCK",fd,(long int)retval,(long int)real_retval);
 off_t
     lseek(
         FD
@@ -792,10 +792,10 @@ off_t
             whence
         );
 //autowrap:      retval=h5fd_seek(scr_fd,offset,whence);
-//dbgautowrap:   off64_t real_retval=__real_lseek64(fd,offset,whence);
-//dbgautowrap:   if (real_retval != retval) LOG_ERR("fd: %d, h5: %ld, real: %ld FUCK",fd,(long int)retval,(long int)real_retval);
-//dbgautowrap:   real_retval=__real_lseek64(fd,0,SEEK_CUR);
-//dbgautowrap:   if (scr_fd->offset != real_retval) LOG_ERR("offset_diff, fd: %d, h5/real: %ld / %ld FUCK",fd,(long int)scr_fd->offset,(long int)real_retval);
+//cmpautowrap:   off64_t real_retval=__real_lseek64(fd,offset,whence);
+//cmpautowrap:   if (real_retval != retval) LOG_ERR("fd: %d, h5: %ld, real: %ld FUCK",fd,(long int)retval,(long int)real_retval);
+//cmpautowrap:   real_retval=__real_lseek64(fd,0,SEEK_CUR);
+//cmpautowrap:   if (scr_fd->offset != real_retval) LOG_ERR("offset_diff, fd: %d, h5/real: %ld / %ld FUCK",fd,(long int)scr_fd->offset,(long int)real_retval);
 off64_t
     lseek64(
         FD
