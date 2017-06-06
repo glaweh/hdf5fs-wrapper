@@ -26,8 +26,8 @@
 #define LOGMSG_MAX 512
 extern void process_info_init();
 
-FILE * log_stream = NULL;
-char * log_tag = "H5FS";
+FILE * logger_stream = NULL;
+char * logger_tag = "H5FS";
 
 const char * log_level_str[] = {
     "ACOPALYPSE", // Level 0: should never happen
@@ -46,11 +46,11 @@ void log_msg_function(const int log_level, const char *function_name, const char
     if (my_pid == 0) {
         process_info_init();
     }
-    if (log_stream == NULL) {
-        log_stream = stderr;
+    if (logger_stream == NULL) {
+        logger_stream = stderr;
     }
 
-    int prefix_len=snprintf(msg_buffer,LOGMSG_MAX,"%-10s %6d %-7s %-20s | ",log_tag,my_pid,log_level_str[log_level],function_name);
+    int prefix_len=snprintf(msg_buffer,LOGMSG_MAX,"%-10s %6d %-7s %-20s | ", logger_tag, my_pid, log_level_str[log_level], function_name);
     va_list vargs;
     va_start(vargs,fstring);
     int user_len=vsnprintf(msg_buffer+prefix_len,LOGMSG_MAX-prefix_len,fstring,vargs);
@@ -61,7 +61,7 @@ void log_msg_function(const int log_level, const char *function_name, const char
     }
     msg_buffer[msglen]='\n';
     msg_buffer[msglen+1]=0;
-    fputs(msg_buffer,log_stream);
+    fputs(msg_buffer, logger_stream);
 }
 
 void log_early_msg_function(const int log_level, const char *function_name, const char *fstring, ...) {
@@ -69,7 +69,7 @@ void log_early_msg_function(const int log_level, const char *function_name, cons
     // note that we _have to_ write to stdout here, as fputs is wrapped-away
     char msg_buffer[LOGMSG_MAX];
 
-    int prefix_len=snprintf(msg_buffer,LOGMSG_MAX,"%-10s %6d %-7s %-20s | ",log_tag,getpid(),log_level_str[log_level],function_name);
+    int prefix_len=snprintf(msg_buffer,LOGMSG_MAX,"%-10s %6d %-7s %-20s | ", logger_tag, getpid(), log_level_str[log_level], function_name);
     va_list vargs;
     va_start(vargs,fstring);
     int user_len=vsnprintf(msg_buffer+prefix_len,LOGMSG_MAX-prefix_len,fstring,vargs);
