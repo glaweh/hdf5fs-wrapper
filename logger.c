@@ -22,12 +22,14 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <stdlib.h>
 #include "process_info.h"
 #define LOGMSG_MAX 512
 extern void process_info_init();
 
 FILE * logger_stream = NULL;
 char * logger_tag = "H5FS";
+pid_t  logger_pid = 0;
 
 const char * log_level_str[] = {
     "ACOPALYPSE", // Level 0: should never happen
@@ -43,14 +45,15 @@ const char * log_level_str[] = {
 
 void log_msg_function(const int log_level, const char *function_name, const char *fstring, ...) {
     char msg_buffer[LOGMSG_MAX];
-    if (my_pid == 0) {
+    if (logger_pid == 0) {
         process_info_init();
+        logger_pid = getpid();
     }
     if (logger_stream == NULL) {
         logger_stream = stderr;
     }
 
-    int prefix_len=snprintf(msg_buffer,LOGMSG_MAX,"%-10s %6d %-7s %-20s | ", logger_tag, my_pid, log_level_str[log_level], function_name);
+    int prefix_len=snprintf(msg_buffer,LOGMSG_MAX,"%-10s %6d %-7s %-20s | ", logger_tag, logger_pid, log_level_str[log_level], function_name);
     va_list vargs;
     va_start(vargs,fstring);
     int user_len=vsnprintf(msg_buffer+prefix_len,LOGMSG_MAX-prefix_len,fstring,vargs);
@@ -68,8 +71,11 @@ void log_early_msg_function(const int log_level, const char *function_name, cons
     // early-callable log-msg function which cannot use 'wrapped-away' symbols due to dependency loops
     // note that we _have to_ write to stdout here, as fputs is wrapped-away
     char msg_buffer[LOGMSG_MAX];
+    if (logger_pid == 0) {
+        logger_pid = getpid();
+    }
 
-    int prefix_len=snprintf(msg_buffer,LOGMSG_MAX,"%-10s %6d %-7s %-20s | ", logger_tag, getpid(), log_level_str[log_level], function_name);
+    int prefix_len=snprintf(msg_buffer,LOGMSG_MAX,"%-10s %6d %-7s %-20s | ", logger_tag, logger_pid, log_level_str[log_level], function_name);
     va_list vargs;
     va_start(vargs,fstring);
     int user_len=vsnprintf(msg_buffer+prefix_len,LOGMSG_MAX-prefix_len,fstring,vargs);
