@@ -28,7 +28,9 @@ manually. This can be done via 'make' command line, or in a file
                code using OpenSSL
 * SSL_LIBS:    flags for the linker (e.g. library paths and linked libraries)
                to link objects using OpenSSL
-Further make variables available:
+
+Further make variables:
+
 * PREFIX:      Prefix, under which hdf5fs-wrapper will be installed (default: /usr/local)
 * HARDCODE_PREFIX:
                Path to override the automatic detection mechanism for h5fs-wrapper.so
