@@ -182,7 +182,7 @@ h5fd_t * h5fd_open(const char * name, int flags, mode_t mode) {
         }
         existing_dirent->deleted=0;
     } else {
-        h5fd->hdirent = hdir_add_dirent(tree->root,name,NULL);
+        h5fd->hdirent = hdir_add_dirent(tree->root,mapped_name,NULL);
     }
     return(h5fd);
 errlabel:
