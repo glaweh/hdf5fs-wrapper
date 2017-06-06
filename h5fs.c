@@ -47,14 +47,17 @@ hstack_tree_t * tree;
 char hdf_file[PATH_MAX] = "./scratch_${OMPI_COMM_WORLD_RANK:%04d:0}.h5";
 
 
-inline char * __h5fs_filename(char * name) {
-    if (name==NULL) return(NULL);
-    char * iterator = name;
-    while (*iterator!=0) {
-        if (*iterator=='/') *iterator='%';
-        iterator++;
+void __h5fs_filename(const char * name, char * mapped_name) {
+    int i = 0;
+    while (name[i] != 0) {
+        if (name[i] == '/') {
+            mapped_name[i] = '%';
+        } else {
+            mapped_name[i] = name[i];
+        }
+        i++;
     }
-    return(name);
+    mapped_name[i] = 0;
 }
 
 
@@ -144,8 +147,7 @@ h5fd_t * h5fd_open(const char * name, int flags, mode_t mode) {
     int old_errno;
 
     char mapped_name[PATH_MAX];
-    strncpy(mapped_name, name, PATH_MAX);
-    __h5fs_filename(mapped_name);
+    __h5fs_filename(name, mapped_name);
 
     existing_dirent = hdirent_open(tree->root,mapped_name);
     set_exists = (existing_dirent != NULL);
@@ -227,8 +229,7 @@ int h5fs_##stattype(const char * name, struct stattype * sstat) {\
         dirent = tree->root; \
     } else { \
         char mapped_name[PATH_MAX]; \
-        strncpy(mapped_name, name, PATH_MAX); \
-        __h5fs_filename(mapped_name); \
+        __h5fs_filename(name, mapped_name); \
         khiter_t k = kh_get(HDIR, tree->root->dirents, mapped_name); \
         if (k != kh_end(tree->root->dirents)) { \
             dirent = kh_value(tree->root->dirents,k); \
