@@ -66,6 +66,7 @@ int check_set_stack(const char * parent, hdirent_t * node, void * op_data) {
 }
 
 int main(int argc, char *argv[]) {
+    logger_init("H5FS");
     if (argc < 2) {
         fprintf(stderr,"usage: %s <src1> [src2] [src3] [src4]...\n",argv[0]);
         return(1);

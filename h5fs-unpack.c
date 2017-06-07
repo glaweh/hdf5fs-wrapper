@@ -71,6 +71,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr,"usage: %s <src1> [src2] [src3] [src4]...\n",argv[0]);
         return(1);
     }
+    logger_init("H5FS");
     tree = hstack_tree_new();
     n_hdf_src=0;
     int i;

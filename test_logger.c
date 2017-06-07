@@ -20,6 +20,7 @@
 #include <limits.h>
 #include "logger.h"
 int main(int argc, char *argv[]) {
+    logger_init("TEST");
     LOG_FATAL("bullshit %s","blahblahblah");
     return(0);
     if (argc < 2) {

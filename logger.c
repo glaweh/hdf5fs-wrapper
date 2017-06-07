@@ -27,7 +27,7 @@
 #define LOGMSG_MAX 512
 
 FILE * logger_stream = NULL;
-char   logger_tag[PATH_MAX] = "H5FS";
+char   logger_tag[PATH_MAX] = "UNKNOWN";
 pid_t  logger_pid = 0;
 
 const char * log_level_str[] = {

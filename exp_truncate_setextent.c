@@ -38,6 +38,7 @@ void die(const char * msg) {
 }
 
 int main (int argc, char * argv[]) {
+    logger_init("H5FS");
     // create HDF file for test
     hid_t this_hdf = -1;
     if ((this_hdf = H5Fcreate(hdf5name,H5F_ACC_TRUNC,H5P_DEFAULT,H5P_DEFAULT)) <= 0)

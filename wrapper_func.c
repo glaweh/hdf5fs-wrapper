@@ -29,6 +29,7 @@ char scratch_base[PATH_MAX] = "./H5FS_SCRATCH";
 char scratch_abs[PATH_MAX];
 
 void __attribute__ ((constructor(300))) wrapper_func_init(void) {
+    logger_init("H5FS");
     wrapper_files = kh_init(WFILE);
     wrapper_fds   = kh_init(WFD);
     wrapper_dirs  = kh_init(WDIR);
