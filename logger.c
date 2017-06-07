@@ -24,9 +24,7 @@
 #include <sys/types.h>
 #include <limits.h>
 #include <stdlib.h>
-#include "process_info.h"
 #define LOGMSG_MAX 512
-extern void process_info_init();
 
 FILE * logger_stream = NULL;
 char   logger_tag[PATH_MAX] = "H5FS";
@@ -47,7 +45,6 @@ const char * log_level_str[] = {
 void log_msg_function(const int log_level, const char *function_name, const char *fstring, ...) {
     char msg_buffer[LOGMSG_MAX];
     if (logger_pid == 0) {
-        process_info_init();
         logger_pid = getpid();
     }
     if (logger_stream == NULL) {
@@ -92,4 +89,11 @@ void log_early_msg_function(const int log_level, const char *function_name, cons
 
 void logger_init(const char * init_logger_tag) {
     strncpy(logger_tag, init_logger_tag, PATH_MAX);
+    char program_name[PATH_MAX];
+    if (readlink("/proc/self/exe", program_name, PATH_MAX) >=0 ) {
+        LOG_INFO("program name '%s'", program_name);
+    } else {
+        LOG_ERR("error getting program name");
+        abort();
+    }
 }
