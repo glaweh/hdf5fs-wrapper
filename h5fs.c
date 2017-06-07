@@ -427,3 +427,8 @@ ssize_t h5fd_ftruncate(h5fd_t * h5fd, size_t length) {
     errno = EINVAL;
     return(-1);
 }
+
+int h5fs_mkdir(const char * name, mode_t mode) {
+    LOG_INFO("called ""('%s', %4o)", name, (int)mode);
+    return(0);
+}

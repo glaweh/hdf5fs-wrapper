@@ -673,8 +673,9 @@ int
         const PATHNAME
             newpath
         );
-//cmpautowrap:   retval=__real_mkdir(name,mode);
-//nocmpautowrap: retval=0; //disable mkdir
+//cmpautowrap:   int real_retval;
+//cmpautowrap:   real_retval=__real_mkdir(name,mode);
+//autowrap:      retval=h5fs_mkdir(scr_name, mode);
 int
     mkdir(
         const PATHNAME
