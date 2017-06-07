@@ -381,7 +381,6 @@ close($header_fh);
 print $out_fh <<"CCODE";
 #include "wrapper_func.h"
 #include "logger.h"
-#include "hdir.h"
 CCODE
 foreach my $func (@funcs) {
     print $out_fh "$func\n";
