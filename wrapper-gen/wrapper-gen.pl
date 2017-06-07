@@ -192,15 +192,15 @@ sub function_process() {
             $funcbody.="        if ($orig_func_name == NULL) { LOG_EARLY_FATAL(\"cannot resolve $func_name\\n\"); abort(); };";
         }
         $funcbody.="    }\n";
-        $funcbody.="    if (wrapper_files==NULL) return($orig_func_name($chaincall_arg));\n";
+        $funcbody.="    if (wrapper_file_streams == NULL) return($orig_func_name($chaincall_arg));\n";
         for (my $i=0;$i<=$#pathname_args;$i++) {
             $funcbody.="    need_to_wrap|=((scr_$pathname_args[$i]=path_below_scratch($pathname_args[$i]))!=NULL);\n";
         }
         for (my $i=0;$i<=$#file_args;$i++) {
-            $funcbody.="    k=kh_get(WRAPPER_FILE_STREAM, wrapper_files, (PTR2INT)$file_args[$i]);\n";
-            $funcbody.="    if (k!=kh_end(wrapper_files)) {\n";
+            $funcbody.="    k=kh_get(WRAPPER_FILE_STREAM, wrapper_file_streams, (PTR2INT)$file_args[$i]);\n";
+            $funcbody.="    if (k!=kh_end(wrapper_file_streams)) {\n";
             $funcbody.="        need_to_wrap|=1;\n";
-            $funcbody.="        scr_$file_args[$i]=kh_value(wrapper_files,k);\n";
+            $funcbody.="        scr_$file_args[$i]=kh_value(wrapper_file_streams,k);\n";
             $funcbody.="    };\n";
         }
         for (my $i=0;$i<=$#fd_args;$i++) {

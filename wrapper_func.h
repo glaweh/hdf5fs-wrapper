@@ -31,7 +31,7 @@ KHASH_MAP_INIT_INT(WDIR,h5dd_t*)
 #endif
 KHASH_MAP_INIT_INT(WFD,h5fd_t*)
 
-extern khash_t(WRAPPER_FILE_STREAM) * wrapper_files;
+extern khash_t(WRAPPER_FILE_STREAM) * wrapper_file_streams;
 extern khash_t(WFD)   * wrapper_fds;
 extern khash_t(WDIR)  * wrapper_dirs;
 

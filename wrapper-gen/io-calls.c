@@ -126,7 +126,7 @@ int
 //autowrap:      retval = h5fd_close(scr_stream);
 //autowrap:      LOG_DBG("fclose(%p)=%d",scr_stream,retval);
 //autowrap:      if (retval < 0) goto errlabel;
-//autowrap:      kh_del(WRAPPER_FILE_STREAM, wrapper_files, k);
+//autowrap:      kh_del(WRAPPER_FILE_STREAM, wrapper_file_streams, k);
 //autowrap:      real_retval = __real_fclose(stream);
 //cmpautowrap:   if (real_retval!=retval) LOG_ERR("different retval h5/real: %d,%d",retval,real_retval);
 //autoerr:       retval=EOF;
@@ -182,8 +182,8 @@ FD
 //nocmpautowrap: retval=__real_fopen("/dev/null", "r");
 //autowrap:      h5fd->stream = retval;
 //autowrap:      LOG_DBG("stream %p, filename %s, h5fd %p",retval,scr_name,h5fd);
-//autowrap:      k=kh_put(WRAPPER_FILE_STREAM, wrapper_files, (PTR2INT)retval, &ret);
-//autowrap:      kh_value(wrapper_files,k)=h5fd;
+//autowrap:      k=kh_put(WRAPPER_FILE_STREAM, wrapper_file_streams, (PTR2INT)retval, &ret);
+//autowrap:      kh_value(wrapper_file_streams, k)=h5fd;
 //autoerr:       retval=NULL;
 FILE*
     fopen(
@@ -201,8 +201,8 @@ FILE*
 //nocmpautowrap: retval=__real_fopen64("/dev/null", "r");
 //autowrap:      h5fd->stream = retval;
 //autowrap:      LOG_DBG("stream %p, filename %s, h5fd %p",retval,scr_name,h5fd);
-//autowrap:      k=kh_put(WRAPPER_FILE_STREAM, wrapper_files, (PTR2INT)retval, &ret);
-//autowrap:      kh_value(wrapper_files,k)=h5fd;
+//autowrap:      k=kh_put(WRAPPER_FILE_STREAM, wrapper_file_streams, (PTR2INT)retval, &ret);
+//autowrap:      kh_value(wrapper_file_streams, k)=h5fd;
 //autoerr:       retval=NULL;
 FILE* 
     fopen64(
