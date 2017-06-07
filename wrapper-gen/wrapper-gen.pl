@@ -197,7 +197,7 @@ sub function_process() {
             $funcbody.="    need_to_wrap|=((scr_$pathname_args[$i]=path_below_scratch($pathname_args[$i]))!=NULL);\n";
         }
         for (my $i=0;$i<=$#file_args;$i++) {
-            $funcbody.="    k=kh_get(WFILE,wrapper_files,(PTR2INT)$file_args[$i]);\n";
+            $funcbody.="    k=kh_get(WRAPPER_FILE_STREAM, wrapper_files, (PTR2INT)$file_args[$i]);\n";
             $funcbody.="    if (k!=kh_end(wrapper_files)) {\n";
             $funcbody.="        need_to_wrap|=1;\n";
             $funcbody.="        scr_$file_args[$i]=kh_value(wrapper_files,k);\n";
