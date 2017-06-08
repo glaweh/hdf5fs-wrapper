@@ -33,7 +33,7 @@ KHASH_MAP_INIT_INT(WRAPPER_FILE_DESCRIPTOR, h5fd_t*)
 
 extern khash_t(WRAPPER_FILE_STREAM) * wrapper_file_streams;
 extern khash_t(WRAPPER_FILE_DESCRIPTOR) * wrapper_file_descriptors;
-extern khash_t(WRAPPER_DIR_STREAM) * wrapper_dirs;
+extern khash_t(WRAPPER_DIR_STREAM) * wrapper_dir_streams;
 
 char* path_below_scratch(const char *filename);
 int fopen_mode2open_flags(const char * mode);

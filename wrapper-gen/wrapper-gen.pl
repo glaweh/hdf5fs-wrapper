@@ -211,11 +211,11 @@ sub function_process() {
             $funcbody.="    };\n";
         }
         for (my $i=0;$i<=$#dir_args;$i++) {
-            $funcbody.="    k = kh_get(WRAPPER_DIR_STREAM, wrapper_dirs, (PTR2INT)$dir_args[$i]);\n";
-            $funcbody.="    need_to_wrap|=(k!=kh_end(wrapper_dirs));\n";
-            $funcbody.="    if (k!=kh_end(wrapper_dirs)) {\n";
+            $funcbody.="    k = kh_get(WRAPPER_DIR_STREAM, wrapper_dir_streams, (PTR2INT)$dir_args[$i]);\n";
+            $funcbody.="    need_to_wrap |= (k != kh_end(wrapper_dir_streams));\n";
+            $funcbody.="    if ( k != kh_end(wrapper_dir_streams)) {\n";
             $funcbody.="        need_to_wrap|=1;\n";
-            $funcbody.="        scr_$dir_args[$i]=kh_value(wrapper_dirs,k);\n";
+            $funcbody.="        scr_$dir_args[$i] = kh_value(wrapper_dir_streams, k);\n";
             $funcbody.="    };\n";
         }
         $funcbody.="    LOG_DBG2(\"called \"$d_option);\n";

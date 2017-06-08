@@ -24,7 +24,7 @@
 
 khash_t(WRAPPER_FILE_STREAM) * wrapper_file_streams;
 khash_t(WRAPPER_FILE_DESCRIPTOR) * wrapper_file_descriptors;
-khash_t(WRAPPER_DIR_STREAM) * wrapper_dirs;
+khash_t(WRAPPER_DIR_STREAM) * wrapper_dir_streams;
 char scratch_base[PATH_MAX] = "./H5FS_SCRATCH";
 char scratch_abs[PATH_MAX];
 
@@ -32,7 +32,7 @@ void __attribute__ ((constructor(300))) wrapper_func_init(void) {
     logger_init("H5FS");
     wrapper_file_streams = kh_init(WRAPPER_FILE_STREAM);
     wrapper_file_descriptors = kh_init(WRAPPER_FILE_DESCRIPTOR);
-    wrapper_dirs  = kh_init(WRAPPER_DIR_STREAM);
+    wrapper_dir_streams = kh_init(WRAPPER_DIR_STREAM);
     char * env_ptr;
     env_ptr=getenv("H5FS_BASE");
     if (env_ptr != NULL) {
@@ -52,7 +52,7 @@ void __attribute__ ((destructor(300)))  wrapper_func_fini(void) {
     }
     kh_destroy(WRAPPER_FILE_STREAM, wrapper_file_streams);
     kh_destroy(WRAPPER_FILE_DESCRIPTOR, wrapper_file_descriptors);
-    kh_destroy(WRAPPER_DIR_STREAM, wrapper_dirs);
+    kh_destroy(WRAPPER_DIR_STREAM, wrapper_dir_streams);
 }
 
 char* path_below_scratch(const char *filename) {
