@@ -72,8 +72,8 @@ int
 //nocmpautowrap: retval=__real_open("/dev/null", O_RDONLY, mode);
 //autowrap:      h5fd->fd = retval;
 //autowrap:      LOG_DBG("fd %d, filename %s, flags 0%o",retval,scr_name,flags);
-//autowrap:      k=kh_put(WRAPPER_FILE_DESCRIPTOR, wrapper_fds, retval, &ret);
-//autowrap:      kh_value(wrapper_fds,k)=h5fd;
+//autowrap:      k = kh_put(WRAPPER_FILE_DESCRIPTOR, wrapper_file_descriptors, retval, &ret);
+//autowrap:      kh_value(wrapper_file_descriptors, k) = h5fd;
 //autoerr:       retval=-1;
 FD
     open(
@@ -94,8 +94,8 @@ FD
 //nocmpautowrap: retval=__real_open64("/dev/null", O_RDONLY, mode);
 //autowrap:      h5fd->fd = retval;
 //autowrap:      LOG_DBG("fd %d, filename %s, flags 0%o",retval,scr_name,flags);
-//autowrap:      k=kh_put(WRAPPER_FILE_DESCRIPTOR, wrapper_fds, retval, &ret);
-//autowrap:      kh_value(wrapper_fds,k)=h5fd;
+//autowrap:      k = kh_put(WRAPPER_FILE_DESCRIPTOR, wrapper_file_descriptors, retval, &ret);
+//autowrap:      kh_value(wrapper_file_descriptors, k) = h5fd;
 //autoerr:       retval=-1;
 FD
     open64(
@@ -623,7 +623,7 @@ int
 //autowrap:      retval = h5fd_close(scr_fd);
 //autowrap:      LOG_DBG("close(%d)=%d",fd,retval);
 //autowrap:      if (retval < 0) goto errlabel;
-//autowrap:      kh_del(WRAPPER_FILE_DESCRIPTOR, wrapper_fds, k);
+//autowrap:      kh_del(WRAPPER_FILE_DESCRIPTOR, wrapper_file_descriptors, k);
 //autowrap:      int real_retval = __real_close(fd);
 //cmpautowrap:   if (real_retval != retval) LOG_ERR("fd: %d, h5: %d, real: %d FUCK",fd,retval,real_retval);
 int

@@ -32,7 +32,7 @@ KHASH_MAP_INIT_INT(WDIR,h5dd_t*)
 KHASH_MAP_INIT_INT(WRAPPER_FILE_DESCRIPTOR, h5fd_t*)
 
 extern khash_t(WRAPPER_FILE_STREAM) * wrapper_file_streams;
-extern khash_t(WRAPPER_FILE_DESCRIPTOR)   * wrapper_fds;
+extern khash_t(WRAPPER_FILE_DESCRIPTOR) * wrapper_file_descriptors;
 extern khash_t(WDIR)  * wrapper_dirs;
 
 char* path_below_scratch(const char *filename);

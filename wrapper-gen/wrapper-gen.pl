@@ -204,10 +204,10 @@ sub function_process() {
             $funcbody.="    };\n";
         }
         for (my $i=0;$i<=$#fd_args;$i++) {
-            $funcbody.="    k=kh_get(WRAPPER_FILE_DESCRIPTOR, wrapper_fds, (int)$fd_args[$i]);\n";
-            $funcbody.="    if (k!=kh_end(wrapper_fds)) {\n";
+            $funcbody.="    k = kh_get(WRAPPER_FILE_DESCRIPTOR, wrapper_file_descriptors, (int)$fd_args[$i]);\n";
+            $funcbody.="    if (k != kh_end(wrapper_file_descriptors)) {\n";
             $funcbody.="        need_to_wrap|=1;\n";
-            $funcbody.="        scr_$fd_args[$i]=kh_value(wrapper_fds,k);\n";
+            $funcbody.="        scr_$fd_args[$i] = kh_value(wrapper_file_descriptors, k);\n";
             $funcbody.="    };\n";
         }
         for (my $i=0;$i<=$#dir_args;$i++) {
