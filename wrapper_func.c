@@ -23,7 +23,7 @@
 #include "path_util.h"
 
 khash_t(WRAPPER_FILE_STREAM) * wrapper_file_streams;
-khash_t(WFD)   * wrapper_fds;
+khash_t(WRAPPER_FILE_DESCRIPTOR) * wrapper_fds;
 khash_t(WDIR)  * wrapper_dirs;
 char scratch_base[PATH_MAX] = "./H5FS_SCRATCH";
 char scratch_abs[PATH_MAX];
@@ -31,7 +31,7 @@ char scratch_abs[PATH_MAX];
 void __attribute__ ((constructor(300))) wrapper_func_init(void) {
     logger_init("H5FS");
     wrapper_file_streams = kh_init(WRAPPER_FILE_STREAM);
-    wrapper_fds   = kh_init(WFD);
+    wrapper_fds   = kh_init(WRAPPER_FILE_DESCRIPTOR);
     wrapper_dirs  = kh_init(WDIR);
     char * env_ptr;
     env_ptr=getenv("H5FS_BASE");
@@ -51,7 +51,7 @@ void __attribute__ ((destructor(300)))  wrapper_func_fini(void) {
         }
     }
     kh_destroy(WRAPPER_FILE_STREAM, wrapper_file_streams);
-    kh_destroy(WFD,wrapper_fds);
+    kh_destroy(WRAPPER_FILE_DESCRIPTOR, wrapper_fds);
     kh_destroy(WDIR,wrapper_dirs);
 }
 
