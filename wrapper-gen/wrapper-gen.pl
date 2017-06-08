@@ -211,7 +211,7 @@ sub function_process() {
             $funcbody.="    };\n";
         }
         for (my $i=0;$i<=$#dir_args;$i++) {
-            $funcbody.="    k=kh_get(WDIR,wrapper_dirs,(PTR2INT)$dir_args[$i]);\n";
+            $funcbody.="    k = kh_get(WRAPPER_DIR_STREAM, wrapper_dirs, (PTR2INT)$dir_args[$i]);\n";
             $funcbody.="    need_to_wrap|=(k!=kh_end(wrapper_dirs));\n";
             $funcbody.="    if (k!=kh_end(wrapper_dirs)) {\n";
             $funcbody.="        need_to_wrap|=1;\n";

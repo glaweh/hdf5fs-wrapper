@@ -22,18 +22,18 @@
 #include "khash.h"
 #ifdef __LP64__
 KHASH_MAP_INIT_INT64(WRAPPER_FILE_STREAM, h5fd_t*)
-KHASH_MAP_INIT_INT64(WDIR,h5dd_t*)
+KHASH_MAP_INIT_INT64(WRAPPER_DIR_STREAM, h5dd_t*)
 #define PTR2INT int64_t
 #else
 KHASH_MAP_INIT_INT(WRAPPER_FILE_STREAM, h5fd_t*)
-KHASH_MAP_INIT_INT(WDIR,h5dd_t*)
+KHASH_MAP_INIT_INT(WRAPPER_DIR_STREAM, h5dd_t*)
 #define PTR2INT int
 #endif
 KHASH_MAP_INIT_INT(WRAPPER_FILE_DESCRIPTOR, h5fd_t*)
 
 extern khash_t(WRAPPER_FILE_STREAM) * wrapper_file_streams;
 extern khash_t(WRAPPER_FILE_DESCRIPTOR) * wrapper_file_descriptors;
-extern khash_t(WDIR)  * wrapper_dirs;
+extern khash_t(WRAPPER_DIR_STREAM) * wrapper_dirs;
 
 char* path_below_scratch(const char *filename);
 int fopen_mode2open_flags(const char * mode);
