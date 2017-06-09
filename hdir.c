@@ -63,27 +63,35 @@ ino_t global_inode_counter = 0;
 
 
 hdirent_t * hdir_new(hdirent_t * parent, const char * name) {
-    hdirent_t * hdir = malloc(sizeof(hdirent_t)+strlen(name));
-    if (hdir == NULL) {
+    hdirent_t * hdirent = NULL;
+    if (parent != NULL) {
+        // if we have a parent directory, try to get dirent from there
+        khiter_t k = kh_get(HDIR, parent->dirents, name);
+        if (k != kh_end(parent->dirents))
+            return(kh_value(parent->dirents, k));
+    }
+    LOG_INFO("newdir: %s", name);
+    hdirent = malloc(sizeof(hdirent_t)+strlen(name));
+    if (hdirent == NULL) {
         LOG_ERR("malloc error");
         return(NULL);
     }
-    *hdir = __hdirent_initializer_dir;
-    strcpy(hdir->name,name);
-    hdir->dirents=kh_init(HDIR);
-    hdir->parent=parent;
-    hdir->inode = ++global_inode_counter;
+    *hdirent = __hdirent_initializer_dir;
+    strcpy(hdirent->name,name);
+    hdirent->dirents=kh_init(HDIR);
+    hdirent->parent=parent;
+    hdirent->inode = ++global_inode_counter;
     if (parent != NULL) {
-        int ret;
-        khiter_t k = kh_put(HDIR, parent->dirents, hdir->name, &ret);
-        if (! ret) {
-            LOG_ERR("error adding key to hash, %d", ret);
-            free(hdir);
+        int kh_ret;
+        khiter_t k = kh_put(HDIR, parent->dirents, hdirent->name, &kh_ret);
+        if (! kh_ret) {
+            LOG_ERR("error adding key to hash, %d", kh_ret);
+            free(hdirent);
             return(NULL);
         }
-        kh_value(parent->dirents, k) = hdir;
+        kh_value(parent->dirents, k) = hdirent;
     }
-    return(hdir);
+    return(hdirent);
 }
 
 
