@@ -70,7 +70,7 @@ hdirent_t * hdir_new(hdirent_t * parent, const char * name) {
         if (k != kh_end(parent->dirents))
             return(kh_value(parent->dirents, k));
     }
-    LOG_INFO("newdir: %s", name);
+    LOG_DBG("newdir: %s", name);
     hdirent = malloc(sizeof(hdirent_t)+strlen(name));
     if (hdirent == NULL) {
         LOG_ERR("malloc error");

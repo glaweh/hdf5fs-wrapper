@@ -316,7 +316,7 @@ ssize_t h5fd_write(h5fd_t * h5fd, const void * buf, size_t count) {
                 errno=EIO;
                 return(-1);
             }
-            LOG_INFO("COW succeeded '%s'",h5fd->hdirent->name);
+            LOG_DBG("COW succeeded '%s'",h5fd->hdirent->name);
         }
         if (h5fd->hdirent->dataset!=NULL) {
             hfile_ds_close(h5fd->hdirent->dataset);
@@ -407,7 +407,7 @@ ssize_t h5fd_ftruncate(h5fd_t * h5fd, size_t length) {
                 errno=EIO;
                 return(-1);
             }
-            LOG_INFO("COW succeeded '%s'",h5fd->hdirent->name);
+            LOG_DBG("COW succeeded '%s'",h5fd->hdirent->name);
         }
         // close original (RO) dataset
         if (h5fd->hdirent->dataset!=NULL) {
@@ -431,7 +431,7 @@ ssize_t h5fd_ftruncate(h5fd_t * h5fd, size_t length) {
 int h5fs_mkdir(const char * name, mode_t mode) {
     char mapped_name[PATH_MAX];
     __h5fs_filename(name, mapped_name);
-    LOG_INFO("called ""('%s', %4o)"", mapped: '%s'", name, (int)mode, mapped_name);
+    LOG_DBG("called ""('%s', %4o)"", mapped: '%s'", name, (int)mode, mapped_name);
     hdirent_t * existing_dirent = hdirent_open(tree->root, mapped_name);
     if (existing_dirent != NULL) {
         errno = EEXIST;
