@@ -274,8 +274,12 @@ int hdir_foreach_file(hdirent_t * root, int order, hdirent_iterate_t op, void * 
         if (dirent->type == HDIRENT_FILE) {
             res = op(root->name,dirent,op_data);
         } else if (dirent->type == HDIRENT_DIR) {
-            LOG_ERR("no recursion implemented");
-            res = 0;
+            if (dirent->dirents == NULL)
+                continue;
+            if (kh_size(dirent->dirents) == 0)
+                continue;
+            LOG_ERR("no recursion implemented %lld", (long long int) kh_size(dirent->dirents));
+            res = 1;
         }
         if (res != 0) break;
     }
