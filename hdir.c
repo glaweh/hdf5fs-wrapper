@@ -73,6 +73,16 @@ hdirent_t * hdir_new(hdirent_t * parent, const char * name) {
     hdir->dirents=kh_init(HDIR);
     hdir->parent=parent;
     hdir->inode = ++global_inode_counter;
+    if (parent != NULL) {
+        int ret;
+        khiter_t k = kh_put(HDIR, parent->dirents, hdir->name, &ret);
+        if (! ret) {
+            LOG_ERR("error adding key to hash, %d", ret);
+            free(hdir);
+            return(NULL);
+        }
+        kh_value(parent->dirents, k) = hdir;
+    }
     return(hdir);
 }
 

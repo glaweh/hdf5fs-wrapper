@@ -429,6 +429,17 @@ ssize_t h5fd_ftruncate(h5fd_t * h5fd, size_t length) {
 }
 
 int h5fs_mkdir(const char * name, mode_t mode) {
-    LOG_INFO("called ""('%s', %4o)", name, (int)mode);
+    char mapped_name[PATH_MAX];
+    __h5fs_filename(name, mapped_name);
+    LOG_INFO("called ""('%s', %4o)"", mapped: '%s'", name, (int)mode, mapped_name);
+    hdirent_t * existing_dirent = hdirent_open(tree->root, mapped_name);
+    if (existing_dirent != NULL) {
+        errno = EEXIST;
+        return(-1);
+    }
+    if (hdir_new(tree->root, mapped_name) == NULL) {
+        errno = EACCES;
+        return(-1);
+    }
     return(0);
 }
