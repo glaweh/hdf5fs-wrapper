@@ -39,6 +39,22 @@ typedef struct __hstack_tree_add_cb_data {
     hdirent_t * parent;
 } __hstack_tree_add_cb_data_t;
 
+void hstack_tree_create_fake_dirs(hdirent_t * parent, const char *name) {
+    char fake_path[PATH_MAX];
+    int i = 0;
+    while (name[i]!=0) {
+        if (name[i] == '%') {
+            fake_path[i] = 0;
+            LOG_DBG2("p: %s", fake_path);
+            hdir_new(parent, fake_path);
+            fake_path[i] = '%';
+        } else {
+            fake_path[i] = name[i];
+        }
+        i++;
+    }
+}
+
 static herr_t __hstack_tree_add_cb(hid_t loc_id, const char *name, const H5L_info_t *info, void *operator_data)
 {
     __hstack_tree_add_cb_data_t * cb_data = operator_data;
@@ -47,6 +63,7 @@ static herr_t __hstack_tree_add_cb(hid_t loc_id, const char *name, const H5L_inf
     if ((status < 0) || (infobuf.type != H5O_TYPE_DATASET)) return(0);
     hfile_ds_t * hfile_ds = hfile_ds_open(cb_data->hdf->hdf_id,name);
     if (hfile_ds != NULL) {
+        hstack_tree_create_fake_dirs(cb_data->parent,name);
         hdir_add_dirent(cb_data->parent,name,hfile_ds);
         hfile_ds_close(hfile_ds);
         hfile_ds->rdonly=cb_data->hdf->rdonly;
