@@ -298,7 +298,14 @@ ssize_t h5fd_write(h5fd_t * h5fd, const void * buf, size_t count) {
             errno = ENOSPC;
             return(-1);
         }
-        hsize_t initial_size = h5fd->offset+count+1;
+        // TODO: HG had originally
+        //   hsize_t initial_size = h5fd->offset+count+1;
+        // but HG does not remember the reason why:
+        //   * essentially, this meant one additional 0-byte in a file
+        //     unless it was truncated or extended by subsequent writes
+        //   * in the context of octopus, this caused NaNs and subsequent
+        //     failure on restart-writing of the restart files
+        hsize_t initial_size = h5fd->offset+count;
         if ((h5fd->hdirent->dataset!=NULL) && (h5fd->hdirent->dataset->length > initial_size))
             initial_size = h5fd->hdirent->dataset->length;
         hfile_ds_t * ds = hfile_ds_create(tree->hdf_rw, h5fd->hdirent->name, 0, initial_size, 0, 0);
