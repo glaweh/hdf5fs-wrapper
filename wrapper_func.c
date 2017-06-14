@@ -17,7 +17,6 @@
  * along with hdf5fs-wrapper.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <errno.h>
-#include <sys/types.h>
 #include "wrapper_func.h"
 #include "logger.h"
 #include "path_util.h"
