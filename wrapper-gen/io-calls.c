@@ -537,7 +537,6 @@ int
 //no_syminit:    // openmpi's malloc()-wrapper calls stat on infiniband/myrinet device nodes
 //no_syminit:    // dlsym() calls malloc()
 //no_syminit:    // break the deadlock by pretending the device exists
-//no_syminit:    LOG_EARLY_DBG("called before wrapper initialization (\"%s\")",name);
 //no_syminit:    int i; const char * dev_str = "/dev/"; const char * sys_str="/sys/";
 //no_syminit:    for (i=0;i<5;i++) if (*(dev_str+i)!=*(name+i)) break;
 //no_syminit:    if (i==5) {
