@@ -289,6 +289,7 @@ int hdir_foreach_file(hdirent_t * root, int order, hdirent_iterate_t op, void * 
 
 #define FSTAT_HELPER(stattype) \
 int hdir_f##stattype##_helper(hdirent_t * node, struct stattype * sstat) {\
+    sstat->st_blksize=node->chunk_size;\
     if (node->type == HDIRENT_FILE) {\
         sstat->st_mode = S_IFREG | S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;\
         if (node->dataset == NULL) {\
@@ -300,7 +301,8 @@ int hdir_f##stattype##_helper(hdirent_t * node, struct stattype * sstat) {\
             node->ctime=node->dataset->ctime;\
             node->mtime=node->dataset->mtime;\
             sstat->st_size = node->dataset->length;\
-            sstat->st_blocks = node->dataset->dims[0] / 512;\
+            /* ceiling, i.e. round-up */ \
+            sstat->st_blocks = 1 + ((node->dataset->dims[0] - 1) / sstat->st_blksize);\
         }\
     } else {\
         sstat->st_mode = S_IFDIR | S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;\
@@ -312,7 +314,6 @@ int hdir_f##stattype##_helper(hdirent_t * node, struct stattype * sstat) {\
     sstat->st_atime=node->atime;\
     sstat->st_ctime=node->ctime;\
     sstat->st_mtime=node->mtime;\
-    sstat->st_blksize=node->chunk_size;\
     return(0);\
 }
 
