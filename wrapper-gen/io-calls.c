@@ -464,7 +464,7 @@ int
 //no_syminit:    }
 //no_syminit:    __real___xstat=dlsym(RTLD_NEXT, "__xstat");
 //autowrap:      retval=h5fs_stat(scr_name,buf);
-//autowrap:      LOG_DBG("__xstat(\"%s\") = %d, st_dev = %lld, st_ino = %lld", scr_name, retval, (long long)buf->st_dev, (long long)buf->st_ino);
+//autowrap:      LOG_DBG("result(\"%s\") = %d, st_dev = %lld, st_ino = %lld, st_size = %lld, st_blksize = %lld, st_blocks = %lld", scr_name, retval, (long long)buf->st_dev, (long long)buf->st_ino, (long long)buf->st_size, (long long)buf->st_blksize, (long long)buf->st_blocks);
 int
     __xstat(
         int 
@@ -490,6 +490,7 @@ int
 //no_syminit:    }
 //no_syminit:    __real___lxstat=dlsym(RTLD_NEXT, "__lxstat");
 //autowrap:      retval=h5fs_stat(scr_name,buf);
+//autowrap:      LOG_DBG("result(\"%s\") = %d, st_dev = %lld, st_ino = %lld, st_size = %lld, st_blksize = %lld, st_blocks = %lld", scr_name, retval, (long long)buf->st_dev, (long long)buf->st_ino, (long long)buf->st_size, (long long)buf->st_blksize, (long long)buf->st_blocks);
 int
     __lxstat(
         int
@@ -525,6 +526,7 @@ int
 //no_syminit:    }
 //no_syminit:    __real___xstat64=dlsym(RTLD_NEXT, "__xstat64");
 //autowrap:      retval=h5fs_stat64(scr_name,buf);
+//autowrap:      LOG_DBG("result(\"%s\") = %d, st_dev = %lld, st_ino = %lld, st_size = %lld, st_blksize = %lld, st_blocks = %lld", scr_name, retval, (long long)buf->st_dev, (long long)buf->st_ino, (long long)buf->st_size, (long long)buf->st_blksize, (long long)buf->st_blocks);
 int
     __xstat64(
         int
@@ -550,6 +552,7 @@ int
 //no_syminit:    }
 //no_syminit:    __real___lxstat64=dlsym(RTLD_NEXT, "__lxstat64");
 //autowrap:      retval=h5fs_stat64(scr_name,buf);
+//autowrap:      LOG_DBG("result(\"%s\") = %d, st_dev = %lld, st_ino = %lld, st_size = %lld, st_blksize = %lld, st_blocks = %lld", scr_name, retval, (long long)buf->st_dev, (long long)buf->st_ino, (long long)buf->st_size, (long long)buf->st_blksize, (long long)buf->st_blocks);
 int
     __lxstat64(
         int
