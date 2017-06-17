@@ -817,3 +817,32 @@ int
         int
             mode
         );
+// sys/statfs.h
+int
+    statfs(
+        const PATHNAME
+            name,
+        struct statfs *
+            buf
+        );
+int
+    statfs64(
+        const PATHNAME
+            name,
+        struct statfs64 *
+            buf
+        );
+int
+    fstatfs(
+        FD
+            fd,
+        struct statfs *
+            buf
+        );
+int
+    fstatfs64(
+        FD
+            fd,
+        struct statfs64 *
+            buf
+        );

@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
+#include <sys/vfs.h>
 #include <unistd.h>
 #include <wchar.h>
 #include <fcntl.h>
