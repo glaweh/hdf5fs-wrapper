@@ -39,6 +39,7 @@ my $func_name;
 my (@argt,@argn);
 my $in_proto = 0;
 my @autowrap;
+my @unautowrap;
 my $need_khiter = 0;
 my @autoerr;
 my @no_syminit;
@@ -227,8 +228,14 @@ sub function_process() {
             }
         } else {
             $funcbody.="        LOG_ERR(\"NOT IMPLEMENTED in $io_calls_template:$lineno ! Call arguments: \"$d_option);\n";
-            $funcbody.="        retval = $orig_func_name($chaincall_arg);\n"       unless ($void_ret);
-            $funcbody.="        $orig_func_name($chaincall_arg);\n"                if     ($void_ret);
+            if ($#unautowrap >=0) {
+                foreach (@unautowrap) {
+                    $funcbody.="        $_\n";
+                }
+            } else {
+                $funcbody.="        retval = $orig_func_name($chaincall_arg);\n"       unless ($void_ret);
+                $funcbody.="        $orig_func_name($chaincall_arg);\n"                if     ($void_ret);
+            }
         }
         $funcbody.="    } else {\n";
         $funcbody.="        retval = $orig_func_name($chaincall_arg);\n"       unless ($void_ret);
@@ -299,6 +306,10 @@ while (<$in_fh>) {
         push @van,$1;
         next;
     }
+    if (/^\/\/unautowrap:\s+(.+?)\s*$/) {
+        push @unautowrap,$1 unless ($noautowrap);
+        next;
+    }
     if (/^\/\/autowrap:\s+(.+?)\s*$/) {
         push @autowrap,$1 unless ($noautowrap);
         next;
@@ -349,6 +360,7 @@ while (<$in_fh>) {
         @argt=();
         @argn=();
         @autowrap =();
+        @unautowrap = ();
         @autoerr  =();
         @no_syminit = ();
         $func_name=undef;
