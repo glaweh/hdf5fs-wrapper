@@ -818,6 +818,9 @@ int
             mode
         );
 // sys/statfs.h
+//unautowrap:      // report to caller that statfs is not supported by FS
+//unautowrap:      retval=-1;
+//unautowrap:      errno=ENOSYS;
 int
     statfs(
         const PATHNAME
@@ -825,6 +828,9 @@ int
         struct statfs *
             buf
         );
+//unautowrap:      // report to caller that statfs is not supported by FS
+//unautowrap:      retval=-1;
+//unautowrap:      errno=ENOSYS;
 int
     statfs64(
         const PATHNAME
@@ -832,6 +838,9 @@ int
         struct statfs64 *
             buf
         );
+//unautowrap:      // report to caller that statfs is not supported by FS
+//unautowrap:      retval=-1;
+//unautowrap:      errno=ENOSYS;
 int
     fstatfs(
         FD
@@ -839,6 +848,9 @@ int
         struct statfs *
             buf
         );
+//unautowrap:      // report to caller that statfs is not supported by FS
+//unautowrap:      retval=-1;
+//unautowrap:      errno=ENOSYS;
 int
     fstatfs64(
         FD
