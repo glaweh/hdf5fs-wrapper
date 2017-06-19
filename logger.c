@@ -90,7 +90,9 @@ void log_early_msg_function(const int log_level, const char *function_name, cons
 void logger_init(const char * init_logger_tag) {
     strncpy(logger_tag, init_logger_tag, PATH_MAX);
     char program_name[PATH_MAX];
-    if (readlink("/proc/self/exe", program_name, PATH_MAX) >=0 ) {
+    ssize_t progname_length;
+    if ((progname_length = readlink("/proc/self/exe", program_name, PATH_MAX)) >=0 ) {
+        program_name[progname_length] = 0;
         LOG_INFO("program name '%s'", program_name);
     } else {
         LOG_ERR("error getting program name");
